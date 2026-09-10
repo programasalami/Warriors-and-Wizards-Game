@@ -9,26 +9,26 @@ public sealed class Sampler {
     internal uint TextureUnit;
     
     public Sampler(Texture texture) {
-        GL.CreateSampler(out Handle);
+        GL.GenSampler(out Handle);
         TextureHandle = texture.Handle;
         SetFilter(TextureFilter.Nearest);
     }
-    
+
     public Sampler(Texture texture, uint textureUnit) {
-        GL.CreateSampler(out Handle);
+        GL.GenSampler(out Handle);
         TextureHandle = texture.Handle;
         SetFilter(TextureFilter.Nearest);
         Bind(textureUnit);
     }
 
     public Sampler(Texture texture, TextureFilter filter) {
-        GL.CreateSampler(out Handle);
+        GL.GenSampler(out Handle);
         TextureHandle = texture.Handle;
         SetFilter(filter);
     }
-    
+
     public Sampler(Texture texture, TextureFilter filter, uint textureUnit) {
-        GL.CreateSampler(out Handle);
+        GL.GenSampler(out Handle);
         TextureHandle = texture.Handle;
         Bind(textureUnit);
         SetFilter(filter);
@@ -38,10 +38,11 @@ public sealed class Sampler {
         if (textureUnit > 15) {
             throw new ArgumentOutOfRangeException(nameof(textureUnit), textureUnit, null);
         }
-        
-        
+
+
         TextureUnit = textureUnit;
-        GL.BindTextureUnit(textureUnit, TextureHandle);
+        GL.ActiveTexture((OpenTK.Graphics.OpenGL.TextureUnit)((int)OpenTK.Graphics.OpenGL.TextureUnit.Texture0 + textureUnit));
+        GL.BindTexture(TextureTarget.Texture2D, TextureHandle);
         GL.BindSampler(textureUnit, Handle);
     }
     

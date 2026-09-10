@@ -1,4 +1,4 @@
-﻿#version 450 core
+﻿#version 430 core
 
 uniform mat4 ViewMatrix;
 
@@ -50,7 +50,7 @@ void main() {
     
     gl_Position = vec4(pos, 0, 1) * ViewMatrix;
     vsOutput.Position1 = gl_Position;
-    vsOutput.Color = mix(Color, data.Color, Color == 0);
+    vsOutput.Color = (Color == 0u) ? data.Color : Color;
     vsOutput.Override = data.ColorOverride;
     vsOutput.Info = data.Info;
     vsOutput.UVCoords = UVCoords;

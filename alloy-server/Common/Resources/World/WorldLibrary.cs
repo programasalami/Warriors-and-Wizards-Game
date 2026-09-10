@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
@@ -22,17 +23,29 @@ public static class WorldLibrary {
     /// </summary>
     /// <param name="dir">Directory containing world config and map files.</param>
     public static void Load(string dir) {
-        var files = Directory.EnumerateFiles(dir, "*json", SearchOption.AllDirectories);
+        dir = Path.Combine(AppContext.BaseDirectory, dir);
+
+        if (!Directory.Exists(dir)) {
+            Log.Error($"World directory not found. '{dir}'");
+            return;
+        }
+
+        var files = Directory.EnumerateFiles(dir, "*.json", SearchOption.AllDirectories);
+
         Parallel.ForEach(files, file => {
             Log.Debug($"Loading world {file}...");
 
             var config = JsonConvert.DeserializeObject<WorldConfig>(File.ReadAllText(file));
             var maps = DeserializeMaps(config);
+
             WorldConfigs.TryAdd(config.Name, config);
+
             if (config.DisplayName != null)
-                WorldConfigs.TryAdd(config.DisplayName, config); // Add by display name as well
+                WorldConfigs.TryAdd(config.DisplayName, config);
+
             MapDatas[config.Name] = maps;
         });
+
         Log.Info("World Library loaded successfully.");
     }
 
@@ -40,12 +53,26 @@ public static class WorldLibrary {
         if (config.Maps == null)
             return null;
 
+        var worldsDir = Path.Combine(
+            AppContext.BaseDirectory,
+            GameServerConfig.Config.WorldsDir
+        );
+
         var maps = new MapData[config.Maps.Length];
+
         Parallel.For(0, config.Maps.Length, i => {
             var mapName = config.Maps[i];
-            var data = File.ReadAllBytes(GameServerConfig.Config.WorldsDir + mapName);
+            var mapPath = Path.Combine(worldsDir, mapName);
+
+            if (!File.Exists(mapPath)) {
+                Log.Error($"World map not found: '{mapPath}'");
+                return;
+            }
+
+            var data = File.ReadAllBytes(mapPath);
             maps[i] = new MapData(data, mapName);
         });
+
         return maps;
     }
 }

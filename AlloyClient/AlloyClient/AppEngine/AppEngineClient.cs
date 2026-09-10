@@ -29,11 +29,12 @@ public static class AppEngineClient {
             return null;
         }
         
-        var cancellationTokenSource = new CancellationTokenSource(Settings.AppEngineTimeout);
         var content = data == null ? null : new FormUrlEncodedContent(data);
 
         for (var i = 1; i <= retries + 1; i++) {
             Logger.Log(LogLevel.Trace, $"Sending request to '{endpoint}'. Attempt {i} of {retries + 1}.");
+
+            using var cancellationTokenSource = new CancellationTokenSource(Settings.AppEngineTimeout);
 
             try {
                 var response = await client.PostAsync(endpoint, content, cancellationTokenSource.Token);

@@ -15,15 +15,17 @@ public readonly struct VertexStride {
     }
 
     public void BindAttributes(VertexArrayObject vao, uint index) {
+        vao.Bind();
+
         var offset = 0u;
         for (var i = 0u; i < Layout.Length; i++) {
             var e = Layout[i];
-            
-            GL.EnableVertexArrayAttrib(vao.Handle, e.Location);
-            GL.VertexArrayAttribBinding(vao.Handle, e.Location, index);
-            
+
+            GL.EnableVertexAttribArray(e.Location);
+            GL.VertexAttribBinding(e.Location, index);
+
             if (Instanced) {
-                GL.VertexArrayBindingDivisor(vao.Handle, index, 1);
+                GL.VertexBindingDivisor(index, 1);
             }
 
             switch (e.Type) {
@@ -33,16 +35,16 @@ public readonly struct VertexStride {
                 case VertexAttribType.UnsignedShort:
                 case VertexAttribType.Int:
                 case VertexAttribType.UnsignedInt:
-                    GL.VertexArrayAttribIFormat(vao.Handle, e.Location, (int)e.Format, (VertexAttribIType)e.Type, offset);
+                    GL.VertexAttribIFormat(e.Location, (int)e.Format, (VertexAttribIType)e.Type, offset);
                     break;
                 case VertexAttribType.Float:
                 case VertexAttribType.HalfFloat:
-                    GL.VertexArrayAttribFormat(vao.Handle, e.Location, (int)e.Format, e.Type, false, offset);
+                    GL.VertexAttribFormat(e.Location, (int)e.Format, e.Type, false, offset);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException(nameof(e.Type), e.Type, null);
             }
-            
+
             offset += e.Bytes;
         }
     }

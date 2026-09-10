@@ -1,4 +1,4 @@
-﻿#version 460 core
+﻿#version 430 core
 
 uniform mat4 FullMatrix;
 uniform mat4 BillMatrix;

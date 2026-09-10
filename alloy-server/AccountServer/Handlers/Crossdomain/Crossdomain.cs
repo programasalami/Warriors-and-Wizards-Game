@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Threading.Tasks;
@@ -16,7 +17,7 @@ public class Crossdomain : RequestHandler {
 
     public override async Task<string> Handle(string ip, NameValueCollection query) {
         if (_file == null)
-            _file = File.ReadAllText(CROSSDOMAIN_PATH);
+            _file = File.ReadAllText(System.IO.Path.Combine(AppContext.BaseDirectory, CROSSDOMAIN_PATH));
 
         return _file;
     }

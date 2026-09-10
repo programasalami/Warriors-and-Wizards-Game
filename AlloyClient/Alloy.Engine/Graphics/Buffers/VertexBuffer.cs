@@ -15,21 +15,24 @@ public sealed unsafe class VertexBuffer<T> where T : unmanaged, IVertexData<T> {
         Length = vertexCount * sizeof(T);
         Stride = stride;
         
-        GL.CreateBuffer(out Handle);
-        GL.NamedBufferStorage(Handle, vertexCount * sizeof(T), null, BufferStorageMask.DynamicStorageBit);
+        GL.GenBuffer(out Handle);
+        GL.BindBuffer(BufferTarget.CopyWriteBuffer, Handle);
+        GL.BufferData(BufferTarget.CopyWriteBuffer, vertexCount * sizeof(T), IntPtr.Zero, BufferUsage.DynamicDraw);
     }
-    
+
     public void SetData(ReadOnlySpan<T> data) {
         if (data.Length > Length) {
             throw new Exception("Data larger than buffer");
         }
-        
-        GL.NamedBufferSubData(Handle, 0, sizeof(T) * data.Length, data);
+
+        GL.BindBuffer(BufferTarget.CopyWriteBuffer, Handle);
+        GL.BufferSubData(BufferTarget.CopyWriteBuffer, 0, sizeof(T) * data.Length, data);
     }
-    
-    
+
+
     public void BindTo(VertexArrayObject vao, uint index = 0) {
-        GL.VertexArrayVertexBuffer(vao.Handle, index, Handle, 0, sizeof(T));
+        vao.Bind();
+        GL.BindVertexBuffer(index, Handle, 0, sizeof(T));
         Stride.BindAttributes(vao, index);
     }
 

@@ -108,7 +108,14 @@ internal class Program {
             return;
         }
 
-        var response = await RequestHandler.Handle(request, ip, query);
+        string response;
+        try {
+            response = await RequestHandler.Handle(request, ip, query);
+        }
+        catch (Exception e) {
+            Log.Error($"Unhandled exception while handling '{request}': {e}");
+            response = "<Error>Internal error.</Error>";
+        }
         response ??= "<Error>Internal error.</Error>";
 
         try {

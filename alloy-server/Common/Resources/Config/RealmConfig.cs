@@ -58,6 +58,14 @@ public class RealmConfig {
     public RealmCloseData[] Close { get; private set; }
 
     private static RealmConfig Load() {
-        return new RealmConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
+        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
+
+        if (!File.Exists(configPath)) {
+            throw new FileNotFoundException(
+                $"Realm config file not found: '{configPath}'",
+                configPath);
+        }
+
+        return new RealmConfig(XElement.Parse(File.ReadAllText(configPath)));
     }
 }

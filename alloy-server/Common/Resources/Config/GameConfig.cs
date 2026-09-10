@@ -25,6 +25,7 @@ public class GameConfig {
         => _config ??= Load();
 
     private static GameConfig Load() {
-        return new GameConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
+        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
+        return new GameConfig(XElement.Parse(File.ReadAllText(configPath)));
     }
 }

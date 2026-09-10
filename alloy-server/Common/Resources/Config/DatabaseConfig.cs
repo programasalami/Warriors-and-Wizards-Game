@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
@@ -9,7 +10,8 @@ using Common.Utilities;
 namespace Common.Resources.Config;
 
 public class DatabaseConfig {
-    private const string ConfigFile = "Resources/Config/Data/databaseConfig.xml";
+    private static readonly string ConfigFile =
+        Path.Combine(AppContext.BaseDirectory, "Resources", "Config", "Data", "databaseConfig.xml");
 
     private static DatabaseConfig _config;
 

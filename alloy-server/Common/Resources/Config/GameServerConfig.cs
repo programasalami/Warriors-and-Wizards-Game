@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
@@ -49,6 +50,11 @@ public class GameServerConfig {
     public int RealmCount { get; private set; }
 
     private static GameServerConfig Load() {
-        return new GameServerConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
+        var configPath = Path.Combine(
+            AppContext.BaseDirectory,
+            ConfigFile);
+
+        return new GameServerConfig(
+            XElement.Parse(File.ReadAllText(configPath)));
     }
 }

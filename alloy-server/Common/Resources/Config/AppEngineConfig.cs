@@ -8,12 +8,14 @@ using Common.Utilities;
 
 namespace Common.Resources.Config;
 
-public class AppEngineConfig {
+public class AppEngineConfig
+{
     private const string ConfigFile = "Resources/Config/Data/appEngineConfig.xml";
 
     private static AppEngineConfig _config;
 
-    public AppEngineConfig(XElement e) {
+    public AppEngineConfig(XElement e)
+    {
         XmlsDir = e.GetValue<string>("XmlsDir");
         WorldsDir = e.GetValue<string>("WorldsDir");
         Port = e.GetValue<int>("Port");
@@ -28,7 +30,12 @@ public class AppEngineConfig {
     public int Port { get; private set; }
     public string Address { get; private set; }
 
-    private static AppEngineConfig Load() {
-        return new AppEngineConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
+    private static AppEngineConfig Load()
+    {
+        var configFile = Path.Combine(Directory.GetCurrentDirectory(), "bin", "debug", "net10.0", ConfigFile);
+
+        return new AppEngineConfig(
+            XElement.Parse(File.ReadAllText(configFile))
+        );
     }
 }

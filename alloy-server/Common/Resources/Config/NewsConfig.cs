@@ -1,5 +1,6 @@
 ﻿#region
 
+using System;
 using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
@@ -24,7 +25,8 @@ public class NewsConfig {
     public NewsItemModel[] Models { get; private set; }
 
     private static NewsConfig Load() {
-        return new NewsConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
+        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
+        return new NewsConfig(XElement.Parse(File.ReadAllText(configPath)));
     }
 }
 

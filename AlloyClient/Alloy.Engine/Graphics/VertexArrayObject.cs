@@ -2,7 +2,7 @@
 
 public sealed class VertexArrayObject {
 
-    internal readonly int Handle = GL.CreateVertexArray();
+    internal readonly int Handle = GL.GenVertexArray();
 
     public void Bind() => GL.BindVertexArray(Handle);
 

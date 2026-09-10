@@ -20,13 +20,20 @@ public sealed class Texture {
     public Texture(ReadOnlySpan<Color> data, int width, int height) {
         Width = width;
         Height = height;
-        Handle = GL.CreateTexture(TextureTarget.Texture2D);
-        
-        GL.TextureStorage2D(Handle, 1, SizedInternalFormat.Rgba8, width, height);
-        GL.TextureSubImage2D(Handle, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+        Handle = GL.GenTexture();
+        GL.BindTexture(TextureTarget.Texture2D, Handle);
+
+        GL.TexStorage2D(TextureTarget.Texture2D, 1, SizedInternalFormat.Rgba8, width, height);
+        GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, data);
     }
 
-    public void SetData(ReadOnlySpan<Color> data, Vector4i rect) => GL.TextureSubImage2D(Handle, 0, rect.X, rect.Y, rect.Z, rect.W, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+    public void SetData(ReadOnlySpan<Color> data, Vector4i rect) {
+        GL.BindTexture(TextureTarget.Texture2D, Handle);
+        GL.TexSubImage2D(TextureTarget.Texture2D, 0, rect.X, rect.Y, rect.Z, rect.W, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+    }
 
-    public void SetData(ReadOnlySpan<Color> data, int width, int height) => GL.TextureSubImage2D(Handle, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+    public void SetData(ReadOnlySpan<Color> data, int width, int height) {
+        GL.BindTexture(TextureTarget.Texture2D, Handle);
+        GL.TexSubImage2D(TextureTarget.Texture2D, 0, 0, 0, width, height, PixelFormat.Rgba, PixelType.UnsignedByte, data);
+    }
 }

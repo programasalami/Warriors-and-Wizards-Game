@@ -25,7 +25,7 @@ using OpenTK.Platform;
 
 namespace AlloyClient;
 
-public sealed class Main() : GameWindow(new Version(4, 6), ILogger.Factory) {
+public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
 
     public static readonly Signal OnQuit = new ();
     public static readonly Signal<ScreenType> OnScreenChange = new();
