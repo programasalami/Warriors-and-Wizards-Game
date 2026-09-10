@@ -24,11 +24,11 @@ public static partial class Render {
     public static void DrawTiles(ReadOnlySpan<TileData> span) {
         LastDrawCountTiles = span.Length;
         _tileBuffer.SetData(span);
-        
+
         _defaultVao.Bind();
         _shaderGround.Apply();
         _tileBuffer.BindToIndex(0);
-        
+
         GL.DrawArrays(PrimitiveType.Triangles, 0, span.Length * 6);
     }
 

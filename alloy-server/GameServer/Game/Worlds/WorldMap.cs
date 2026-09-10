@@ -195,13 +195,13 @@ public class WorldMap {
     public EntityId GetNearestPlayer(float x, float y, float radiusSqr) {
         var min = float.MaxValue;
         var ret = EntityId.Null;
-        foreach (var (id, _) in _world.Users) {
-            ref var stats = ref _world.EntityStats.Get(id);
-            if (stats.Id == EntityId.Null)
+        foreach (var id in GetEntityIdsWithin(x, y, radiusSqr, out _)) {
+            if (!_world.Users.ContainsKey(id))
                 continue;
-            
+
+            ref var stats = ref _world.EntityStats.Get(id);
             var dist = stats.DistSqr(x, y);
-            if (dist <= radiusSqr && dist < min) {
+            if (dist < min) {
                 min = dist;
                 ret = stats.Id;
             }
@@ -214,28 +214,18 @@ public class WorldMap {
         => GetPlayersWithin(pos.X, pos.Y, radiusSqr);
 
     public IEnumerable<EntityId> GetPlayersWithin(float x, float y, float radiusSqr) {
-        foreach (var (id, _) in _world.Users) {
-            ref var stats = ref _world.EntityStats.Get(id);
-            if (stats.Id == EntityId.Null)
-                continue;
-            
-            var dist = stats.DistSqr(x, y);
-            if (dist <= radiusSqr)
-                yield return stats.Id;
+        foreach (var id in GetEntityIdsWithin(x, y, radiusSqr, out _)) {
+            if (_world.Users.ContainsKey(id))
+                yield return id;
         }
     }
-    
+
     public IEnumerable<User> GetUsersWithin(WorldPosData pos, float radiusSqr)
         => GetUsersWithin(pos.X, pos.Y, radiusSqr);
 
     public IEnumerable<User> GetUsersWithin(float x, float y, float radiusSqr) {
-        foreach (var (id, user) in _world.Users) {
-            ref var stats = ref _world.EntityStats.Get(id);
-            if (stats.Id == EntityId.Null)
-                continue;
-            
-            var dist = stats.DistSqr(x, y);
-            if (dist <= radiusSqr)
+        foreach (var id in GetEntityIdsWithin(x, y, radiusSqr, out _)) {
+            if (_world.Users.TryGetValue(id, out var user))
                 yield return user;
         }
     }

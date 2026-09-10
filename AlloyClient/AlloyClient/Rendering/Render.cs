@@ -74,7 +74,7 @@ public static partial class Render {
         _shaderParticle = Shader.FromSource(ParticleShaderSource);
         
         _defaultVao = new VertexArrayObject();
-        
+
         _tileData = new TileData[TileBufferSize];
         _tileBuffer = new StorageBuffer<TileData>(_tileData.Length);
 

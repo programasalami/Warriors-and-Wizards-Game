@@ -96,10 +96,18 @@ public class DebugStats : Sprite {
             return;
         }
 
+        if (_frameTimes.Count == 0) {
+            // A single frame hitch longer than the rolling window can drain the
+            // queue entirely; skip this cycle rather than indexing into nothing.
+            _statisticsTimer = 0;
+            _frameCount = 0;
+            return;
+        }
+
         if (_workingFrameTimes.Length < _frameTimes.Count) {
             _workingFrameTimes = new double[BitOperations.RoundUpToPowerOf2((uint)_frameTimes.Count)];
         }
-        
+
         _frameTimes.CopyTo(_workingFrameTimes, 0);
 
         var data = _workingFrameTimes.AsSpan(0, _frameTimes.Count);

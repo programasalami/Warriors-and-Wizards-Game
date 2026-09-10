@@ -261,7 +261,7 @@ public static class Map {
             if (!Tiles.GetChunkData(camChunkPos + new Vector2i(i % ViewDiameterX, i / ViewDiameterX), out var data)) {
                 continue;
             }
-            
+
             VisibleTiles.AddRange(data); // should probably not do this but cant be bothered currently
         }
         
