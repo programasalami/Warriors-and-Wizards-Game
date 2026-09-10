@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using Common.Database.Models;
 namespace Common.Database;
 
 public static class DbWriter<T> where T : class {
+    private const int MaxBatchSize = 500;
     private static readonly Channel<T> _channel = Channel.CreateUnbounded<T>();
     private static Task _processingTask;
     private static bool _initialized;
@@ -19,19 +21,38 @@ public static class DbWriter<T> where T : class {
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default).Unwrap();
     }
-    
+
     private static async Task ProcessAsync()
     {
-        // Continuously consume queued database writes off the main thread
-        await foreach (var item in _channel.Reader.ReadAllAsync())
+        var reader = _channel.Reader;
+        var batch = new List<T>(MaxBatchSize);
+        // Reference equality: enqueued items are the same live mutable instances the
+        // game holds, so writing one twice in a batch is redundant, not stale.
+        var seen = new HashSet<T>(ReferenceEqualityComparer.Instance);
+
+        // Continuously drain whatever's queued and upsert it in one transaction instead
+        // of one Upsert() per item - keeps the in-memory backlog (and crash-loss window) small.
+        while (await reader.WaitToReadAsync())
         {
+            batch.Clear();
+            seen.Clear();
+
+            while (batch.Count < MaxBatchSize && reader.TryRead(out var item))
+            {
+                if (seen.Add(item))
+                    batch.Add(item);
+            }
+
+            if (batch.Count == 0)
+                continue;
+
             try
             {
-                DbClient.DbCon.GetCollection<T>().Upsert(item);
+                DbClient.DbCon.GetCollection<T>().Upsert(batch);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Failed to save item to database. {ex.Message}");
+                Console.WriteLine($"Failed to save batch of {batch.Count} {typeof(T).Name} item(s) to database. {ex.Message}");
             }
         }
     }
