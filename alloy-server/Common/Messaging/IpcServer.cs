@@ -54,7 +54,7 @@ public class IpcServer {
             // Completion waits until the client disconnects or the pipe breaks
             await jsonRpc.Completion;
 
-            handler.Close();
+            await handler.Close();
             _log.Info($"[RPC] GameServer {handler.ServerId} has disconnected.");
         }
     }

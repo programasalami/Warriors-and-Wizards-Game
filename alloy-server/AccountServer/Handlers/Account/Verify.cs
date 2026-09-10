@@ -14,7 +14,7 @@ public class Verify : RequestHandler {
     public override string Path => "/account/verify";
 
     public override async Task<string> Handle(string ip, NameValueCollection query) {
-        var verify = DbClient.VerifyAccount(query["username"], query["password"], Guid.Empty);
+        var verify = await DbClient.VerifyAccount(query["username"], query["password"], Guid.Empty);
 
         var acc = verify.Acc;
         var status = verify.Status;

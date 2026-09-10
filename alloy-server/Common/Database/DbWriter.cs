@@ -3,17 +3,24 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Common.Database.Models;
+using Npgsql;
 
 namespace Common.Database;
 
+// Batches writes for one model type through a single background worker instead
+// of hitting Postgres once per call. Each type supplies its own upsert (insert
+// on a new row, update on an existing one) via Init - Postgres has no generic
+// reflection-based mapper the way LiteDB did, so this can't stay fully generic
+// the way it used to be.
 public static class DbWriter<T> where T : class {
     private const int MaxBatchSize = 500;
     private static readonly Channel<T> _channel = Channel.CreateUnbounded<T>();
     private static Task _processingTask;
     private static bool _initialized;
+    private static Func<NpgsqlConnection, T, Task> _upsertOne;
 
-    public static void Init() {
+    public static void Init(Func<NpgsqlConnection, T, Task> upsertOne) {
+        _upsertOne = upsertOne;
         _initialized = true;
         _processingTask = Task.Factory.StartNew(
             ProcessAsync,
@@ -30,8 +37,9 @@ public static class DbWriter<T> where T : class {
         // game holds, so writing one twice in a batch is redundant, not stale.
         var seen = new HashSet<T>(ReferenceEqualityComparer.Instance);
 
-        // Continuously drain whatever's queued and upsert it in one transaction instead
-        // of one Upsert() per item - keeps the in-memory backlog (and crash-loss window) small.
+        // Continuously drain whatever's queued and write it in one transaction instead
+        // of one round trip per item - keeps the in-memory backlog (and crash-loss
+        // window) small.
         while (await reader.WaitToReadAsync())
         {
             batch.Clear();
@@ -48,7 +56,13 @@ public static class DbWriter<T> where T : class {
 
             try
             {
-                DbClient.DbCon.GetCollection<T>().Upsert(batch);
+                await using var conn = await DbClient.OpenConnectionAsync();
+                await using var tx = await conn.BeginTransactionAsync();
+
+                foreach (var item in batch)
+                    await _upsertOne(conn, item);
+
+                await tx.CommitAsync();
             }
             catch (Exception ex)
             {
@@ -64,7 +78,7 @@ public static class DbWriter<T> where T : class {
 
         await _channel.Writer.WriteAsync(model);
     }
-    
+
     public static async Task StopAsync()
     {
         _channel.Writer.Complete();

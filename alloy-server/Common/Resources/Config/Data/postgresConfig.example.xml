@@ -1,0 +1,7 @@
+<PostgresConfig>
+    <Host>localhost</Host>
+    <Port>5432</Port>
+    <Database>alloy</Database>
+    <Username>postgres</Username>
+    <Password>changeme</Password>
+</PostgresConfig>

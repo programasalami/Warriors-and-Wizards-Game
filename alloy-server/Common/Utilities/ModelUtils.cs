@@ -4,6 +4,7 @@ using System.Xml.Linq;
 using Common.Database;
 using Common.Database.Models;
 using Common.Resources.Config;
+using Dapper;
 
 namespace Common.Utilities;
 
@@ -102,10 +103,14 @@ public static class ModelUtils {
 
     extension(Guild guild) {
         public XElement ToXml() {
+            using var conn = DbClient.DataSource.OpenConnection();
+            var members = conn.Query<string>("SELECT data FROM accounts WHERE guild_id=@GuildId", new { GuildId = guild.Id })
+                .Select(json => System.Text.Json.JsonSerializer.Deserialize<Account>(json));
+
             return new XElement("Guild",
                 new XAttribute("name", guild.Name),
                 new XElement("CurrentFame", guild.CurrentFame),
-                DbClient.Accounts.Find(x => x.GuildId == guild.Id).Select(acc =>
+                members.Select(acc =>
                     new XElement("Member",
                         new XElement("Name", acc.Name),
                         new XElement("Rank", acc.GuildRank),

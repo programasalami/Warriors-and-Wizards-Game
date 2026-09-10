@@ -12,6 +12,8 @@ appsettings.*.json
 !appsettings.json
 !appsettings.Example.json
 secrets.json
+postgresConfig.xml
+!postgresConfig.example.xml
 
 # ===== .NET / Visual Studio / Rider build junk =====
 [Bb]in/

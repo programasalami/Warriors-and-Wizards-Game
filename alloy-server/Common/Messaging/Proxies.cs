@@ -39,5 +39,5 @@ public readonly record struct CreateCharacterResultDto(Account Account, Characte
 public interface IAccountServerHandler : IAccountServerRpc {
     Guid ServerId { get; set; }
     void Attach(IGameServerRpc proxy);
-    void Close();
+    Task Close();
 }

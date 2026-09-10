@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Threading.Tasks;
 using Common;
 using Common.Database;
@@ -23,11 +22,9 @@ public class AccServerRpcHandler : IAccountServerHandler {
         _proxy = proxy;
     }
 
-    public void Close() {
+    public async Task Close() {
         IpcServer.Clients.TryRemove(ServerId, out _);
-        DbClient.Accounts.UpdateMany( // Release locks acquired by this GameServer instance
-            acc => new Account { LockOwner = Guid.Empty },
-            acc => acc.LockOwner == ServerId);
+        await AccountLockManager.ReleaseAllForServerAsync(ServerId);
     }
     
     public Task GameServerConnected(Guid gameServerId) {
@@ -43,21 +40,21 @@ public class AccServerRpcHandler : IAccountServerHandler {
         return await _proxy.GetUserInfo(name, accountId);
     }
 
-    public Task<VerifyResultDto> VerifyAccount(string username, string password, Guid gameServerGuid) {
-        var (acc, status) = DbClient.VerifyAccount(username, password, gameServerGuid);
-        return Task.FromResult(new VerifyResultDto(acc, status));
+    public async Task<VerifyResultDto> VerifyAccount(string username, string password, Guid gameServerGuid) {
+        var (acc, status) = await DbClient.VerifyAccount(username, password, gameServerGuid);
+        return new VerifyResultDto(acc, status);
     }
 
-    public Task<BanRecord[]> GetActiveBans(int accountId) {
-        return Task.FromResult(DbClient.Bans.Find(b => b.TargetAccId == accountId).ToArray());
+    public async Task<BanRecord[]> GetActiveBans(int accountId) {
+        return await DbClient.GetActiveBans(accountId);
     }
 
     public async Task FlushAccount(Account account) {
         await DbClient.FlushAsync(account);
     }
 
-    public Task<Character> GetCharacter(int accountId, int charId) {
-        return Task.FromResult(DbClient.GetCharacter(accountId, charId));
+    public async Task<Character> GetCharacter(int accountId, int charId) {
+        return await DbClient.GetCharacterAsync(accountId, charId);
     }
 
     public async Task<CreateCharacterResultDto> CreateCharacter(Account account, ushort objectType, ushort skinType) {

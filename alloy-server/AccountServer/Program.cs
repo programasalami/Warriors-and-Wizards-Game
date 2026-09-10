@@ -14,7 +14,6 @@ using System.Web;
 using AccountServer.Handlers;
 using AccountServer.Messaging;
 using Common.Database;
-using Common.Database.Models;
 using Common.Messaging;
 using Common.Resources.Config;
 using Common.Resources.Xml;
@@ -51,7 +50,7 @@ internal class Program {
             XmlLibrary.Load(config.XmlsDir);
 
             _ = IpcServer.StartAsync<AccServerRpcHandler>();
-            DbClient.Load(DatabaseConfig.Config.DbFile);
+            DbClient.Load();
 
             ReleaseLocks(); // Release all account locks at startup
 
@@ -101,19 +100,10 @@ internal class Program {
         await Task.Delay(TimeSpan.FromSeconds(10));
 
         var liveServerIds = IpcServer.Clients.Keys.ToHashSet();
+        var released = await AccountLockManager.ReleaseStaleLocksAsync(liveServerIds);
 
-        var staleAccounts = DbClient.Accounts
-            .Find(acc => acc.LockOwner != Guid.Empty)
-            .Where(acc => !liveServerIds.Contains(acc.LockOwner))
-            .ToList();
-
-        foreach (var acc in staleAccounts) {
-            acc.LockOwner = Guid.Empty;
-            DbClient.Accounts.Update(acc);
-        }
-
-        if (staleAccounts.Count > 0)
-            Log.Info($"Released {staleAccounts.Count} stale account lock(s) from GameServer instances that did not reconnect.");
+        if (released > 0)
+            Log.Info($"Released stale account locks from {released} GameServer instance(s) that did not reconnect.");
     }
 
     private static async Task HandleRequestAsync(HttpListenerContext context) {

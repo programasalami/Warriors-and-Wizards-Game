@@ -1,0 +1,4 @@
+<RedisConfig>
+    <Host>localhost</Host>
+    <Port>6379</Port>
+</RedisConfig>
