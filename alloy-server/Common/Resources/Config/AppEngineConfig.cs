@@ -1,6 +1,5 @@
-﻿#region
+#region
 
-using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
 
@@ -12,8 +11,6 @@ public class AppEngineConfig
 {
     private const string ConfigFile = "Resources/Config/Data/appEngineConfig.xml";
 
-    private static AppEngineConfig _config;
-
     public AppEngineConfig(XElement e)
     {
         XmlsDir = e.GetValue<string>("XmlsDir");
@@ -24,20 +21,11 @@ public class AppEngineConfig
     }
 
     public static AppEngineConfig Config
-        => _config ??= Load();
+        => ConfigLoader<AppEngineConfig>.Load(ConfigFile, e => new AppEngineConfig(e));
 
     public string XmlsDir { get; private set; }
     public string WorldsDir { get; private set; }
     public int Port { get; private set; }
     public string Address { get; private set; }
     public int MaxConcurrentRequests { get; private set; }
-
-    private static AppEngineConfig Load()
-    {
-        var configFile = Path.Combine(Directory.GetCurrentDirectory(), "bin", "debug", "net10.0", ConfigFile);
-
-        return new AppEngineConfig(
-            XElement.Parse(File.ReadAllText(configFile))
-        );
-    }
 }

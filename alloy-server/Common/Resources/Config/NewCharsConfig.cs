@@ -1,7 +1,5 @@
-﻿#region
+#region
 
-using System;
-using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
 
@@ -11,8 +9,6 @@ namespace Common.Resources.Config;
 
 public class NewCharsConfig {
     private const string ConfigFile = "Resources/Config/Data/newCharsConfig.xml";
-
-    private static NewCharsConfig _config;
 
     public NewCharsConfig(XElement e) {
         Experience = e.GetValue<int>("Experience");
@@ -26,7 +22,7 @@ public class NewCharsConfig {
     }
 
     public static NewCharsConfig Config
-        => _config ??= Load();
+        => ConfigLoader<NewCharsConfig>.Load(ConfigFile, e => new NewCharsConfig(e));
 
     public int Experience { get; private set; }
     public int Level { get; private set; }
@@ -36,9 +32,4 @@ public class NewCharsConfig {
     public int HealthPotions { get; private set; }
     public int MagicPotions { get; private set; }
     public bool HasBackpack { get; private set; }
-
-    private static NewCharsConfig Load() {
-        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
-        return new NewCharsConfig(XElement.Parse(File.ReadAllText(configPath)));
-    }
 }

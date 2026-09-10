@@ -1,8 +1,6 @@
-﻿#region
+#region
 
-using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Xml.Linq;
 using Common.Database.Models;
 using Common.Resources.Xml;
@@ -15,8 +13,6 @@ namespace Common.Resources.Config;
 public class NewAccountsConfig {
     private const string ConfigFile = "Resources/Config/Data/newAccountsConfig.xml";
 
-    private static NewAccountsConfig _config;
-
     public NewAccountsConfig(XElement e) {
         Fame = e.GetValue<int>("Fame");
         Credits = e.GetValue<int>("Credits");
@@ -27,7 +23,7 @@ public class NewAccountsConfig {
     }
 
     public static NewAccountsConfig Config
-        => _config ??= Load();
+        => ConfigLoader<NewAccountsConfig>.Load(ConfigFile, e => new NewAccountsConfig(e));
 
     public int Fame { get; private set; }
     public int Credits { get; private set; }
@@ -35,11 +31,6 @@ public class NewAccountsConfig {
     public int VaultCount { get; private set; }
     public int CharSlotCost { get; private set; }
     public int VaultSlotCost { get; private set; }
-
-    private static NewAccountsConfig Load() {
-        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
-        return new NewAccountsConfig(XElement.Parse(File.ReadAllText(configPath)));
-    }
 
     public static List<ClassStats> CreateClassStats() {
         var classStats = new List<ClassStats>();

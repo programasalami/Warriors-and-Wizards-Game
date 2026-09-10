@@ -1,8 +1,5 @@
-﻿#region
+#region
 
-using System;
-using System.IO;
-using System.Linq;
 using System.Xml.Linq;
 using Common.Utilities;
 
@@ -15,17 +12,10 @@ public class GameConfig {
 
     public int[] StarGoals { get; set; }
 
-    private static GameConfig _config;
-
     public GameConfig(XElement e) {
         StarGoals = e.GetValue<string>("StarGoals")?.CommaToArray<int>();
     }
 
     public static GameConfig Config
-        => _config ??= Load();
-
-    private static GameConfig Load() {
-        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
-        return new GameConfig(XElement.Parse(File.ReadAllText(configPath)));
-    }
+        => ConfigLoader<GameConfig>.Load(ConfigFile, e => new GameConfig(e));
 }

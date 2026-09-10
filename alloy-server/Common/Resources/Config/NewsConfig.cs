@@ -1,7 +1,5 @@
-﻿#region
+#region
 
-using System;
-using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
 using Newtonsoft.Json;
@@ -13,21 +11,14 @@ namespace Common.Resources.Config;
 public class NewsConfig {
     private const string ConfigFile = "Resources/Config/Data/newsConfig.xml";
 
-    private static NewsConfig _config;
-
     public NewsConfig(XElement e) {
         Models = JsonConvert.DeserializeObject<NewsItemModel[]>(e.GetValue<string>("Models"));
     }
 
     public static NewsConfig Config
-        => _config ??= Load();
+        => ConfigLoader<NewsConfig>.Load(ConfigFile, e => new NewsConfig(e));
 
     public NewsItemModel[] Models { get; private set; }
-
-    private static NewsConfig Load() {
-        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
-        return new NewsConfig(XElement.Parse(File.ReadAllText(configPath)));
-    }
 }
 
 public class NewsItemModel {

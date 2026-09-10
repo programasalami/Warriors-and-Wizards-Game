@@ -1,7 +1,6 @@
-﻿#region
+#region
 
 using System;
-using System.IO;
 using System.Linq;
 using System.Xml.Linq;
 using Common.Utilities;
@@ -42,8 +41,6 @@ public class RealmEventData {
 public class RealmConfig {
     private const string ConfigFile = "Resources/Config/Data/realmConfig.xml";
 
-    private static RealmConfig _config;
-
     public RealmConfig(XElement e) {
         Names = e.GetValue<string>("Names")?.Split(',');
         Events = e.Elements("Event").Select(x => new RealmEventData(x)).ToArray();
@@ -51,21 +48,9 @@ public class RealmConfig {
     }
 
     public static RealmConfig Config
-        => _config ??= Load();
+        => ConfigLoader<RealmConfig>.Load(ConfigFile, e => new RealmConfig(e));
 
     public string[] Names { get; private set; }
     public RealmEventData[] Events { get; private set; }
     public RealmCloseData[] Close { get; private set; }
-
-    private static RealmConfig Load() {
-        var configPath = Path.Combine(AppContext.BaseDirectory, ConfigFile);
-
-        if (!File.Exists(configPath)) {
-            throw new FileNotFoundException(
-                $"Realm config file not found: '{configPath}'",
-                configPath);
-        }
-
-        return new RealmConfig(XElement.Parse(File.ReadAllText(configPath)));
-    }
 }

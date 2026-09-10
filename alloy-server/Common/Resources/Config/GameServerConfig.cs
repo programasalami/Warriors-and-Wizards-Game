@@ -1,7 +1,5 @@
-﻿#region
+#region
 
-using System;
-using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
 
@@ -11,8 +9,6 @@ namespace Common.Resources.Config;
 
 public class GameServerConfig {
     private const string ConfigFile = "Resources/Config/Data/gameServerConfig.xml";
-
-    private static GameServerConfig _config;
 
     public GameServerConfig(XElement e) {
         BehaviorsDir = e.GetValue<string>("BehaviorsDir");
@@ -32,7 +28,7 @@ public class GameServerConfig {
     }
 
     public static GameServerConfig Config
-        => _config ??= Load();
+        => ConfigLoader<GameServerConfig>.Load(ConfigFile, e => new GameServerConfig(e));
 
     public string BehaviorsDir { get; private set; }
     public string XmlsDir { get; private set; }
@@ -48,13 +44,4 @@ public class GameServerConfig {
     public string Version { get; private set; }
     public bool AdminOnly { get; private set; }
     public int RealmCount { get; private set; }
-
-    private static GameServerConfig Load() {
-        var configPath = Path.Combine(
-            AppContext.BaseDirectory,
-            ConfigFile);
-
-        return new GameServerConfig(
-            XElement.Parse(File.ReadAllText(configPath)));
-    }
 }

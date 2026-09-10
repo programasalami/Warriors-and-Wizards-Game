@@ -1,7 +1,5 @@
-﻿#region
+#region
 
-using System;
-using System.IO;
 using System.Xml.Linq;
 using Common.Utilities;
 
@@ -10,21 +8,14 @@ using Common.Utilities;
 namespace Common.Resources.Config;
 
 public class DatabaseConfig {
-    private static readonly string ConfigFile =
-        Path.Combine(AppContext.BaseDirectory, "Resources", "Config", "Data", "databaseConfig.xml");
-
-    private static DatabaseConfig _config;
+    private const string ConfigFile = "Resources/Config/Data/databaseConfig.xml";
 
     public DatabaseConfig(XElement e) {
         DbFile = e.GetValue<string>("DbFile");
     }
 
     public static DatabaseConfig Config
-        => _config ??= Load();
+        => ConfigLoader<DatabaseConfig>.Load(ConfigFile, e => new DatabaseConfig(e));
 
     public string DbFile { get; private set; }
-
-    private static DatabaseConfig Load() {
-        return new DatabaseConfig(XElement.Parse(File.ReadAllText(ConfigFile)));
-    }
 }
