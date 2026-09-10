@@ -34,6 +34,7 @@ mono_crash.*
 
 # Visual Studio
 .vs/
+.GeneratedFiles/
 
 # JetBrains Rider
 .idea/
@@ -72,3 +73,4 @@ desktop.ini
 CLAUDE.md
 .cursor/
 .windsurf/
+tmp-loadtest/
