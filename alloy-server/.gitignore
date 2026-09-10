@@ -360,3 +360,6 @@ MigrationBackup/
 .idea/tasks.xml
 .idea/dictionaries
 .idea/libraries/
+
+## Scratch/test tooling
+tmp-loadtest/
