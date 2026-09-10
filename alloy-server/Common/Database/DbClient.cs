@@ -229,7 +229,7 @@ public static class DbClient {
             else {
                 // Perform a "soft" delete, doesn't actually delete from database, instead we mark it as deleted
                 chr.IsDeleted = true;
-                await FlushAsync(chr);
+                await FlushAsync(acc);
             }
         }
 

@@ -9,8 +9,10 @@ namespace Common.Database;
 public static class DbWriter<T> where T : class {
     private static readonly Channel<T> _channel = Channel.CreateUnbounded<T>();
     private static Task _processingTask;
-    
+    private static bool _initialized;
+
     public static void Init() {
+        _initialized = true;
         _processingTask = Task.Factory.StartNew(
             ProcessAsync,
             CancellationToken.None,
@@ -35,6 +37,10 @@ public static class DbWriter<T> where T : class {
     }
 
     public static async Task WriteAsync(T model) {
+        if (!_initialized)
+            throw new InvalidOperationException(
+                $"DbWriter<{typeof(T).Name}>.Init() was never called - writes for this type would be queued and silently dropped forever.");
+
         await _channel.Writer.WriteAsync(model);
     }
     
