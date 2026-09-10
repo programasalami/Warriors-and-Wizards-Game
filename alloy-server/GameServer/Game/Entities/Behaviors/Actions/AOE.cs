@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
 using Common;
 using Common.Game;
@@ -75,7 +74,7 @@ public record AOE : BehaviorScript {
             return BehaviorTickState.OnCooldown;
         }
 
-        aoeInfo.AoeDamagerList = aoeInfo.AoeDamagerList.Where(x => x.IsActive).ToList();
+        aoeInfo.AoeDamagerList.RemoveAll(x => !x.IsActive);
 
         //if (host.HasConditionEffect(ConditionEffectIndex.Stunned))
         //    return;
