@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Threading.Tasks;
 using Common.Game;
 using Common.Utilities;
 
@@ -21,7 +22,7 @@ public class GameLogic {
         var sw = Stopwatch.StartNew();
         while (true) {
             Update();
-            
+
             if (sw.ElapsedMilliseconds < mspt)
                 continue;
 
@@ -39,7 +40,7 @@ public class GameLogic {
 
             sw.Restart();
 
-            TickWorlds(ref WorldTime);
+            TickWorlds(WorldTime);
         }
     }
 
@@ -48,6 +49,7 @@ public class GameLogic {
     }
 
     private static void Update() {
+        // Global and cheap - stays sequential, drained once before any per-world work.
         while (_pendingActions.TryDequeue(out var act)) {
             try {
                 act();
@@ -57,6 +59,11 @@ public class GameLogic {
             }
         }
 
+        // Stays sequential and plain foreach, deliberately: this runs in the
+        // unthrottled busy-spin (every loop iteration, not gated by mspt like
+        // TickWorlds is), so Parallel.ForEach's thread-pool dispatch overhead here
+        // gets paid far more often than any per-world work it could parallelize is
+        // worth - tried it, made CPU usage and lag measurably worse.
         foreach (var world in RealmManager.Worlds.Values) {
             try {
                 world.Update();
@@ -66,6 +73,9 @@ public class GameLogic {
             }
         }
 
+        // Kept sequential: a user doesn't necessarily have a settled World yet (Hello
+        // and Load are still resolving which world they belong to), so this can't
+        // cleanly shard by world the way Update/Tick above can.
         foreach (var user in RealmManager.Users.Values) {
             try {
                 user.Network.HandleIncomingPackets();
@@ -76,9 +86,20 @@ public class GameLogic {
             }
         }
     }
-    
-    private static void TickWorlds(ref RealmTime time) {
-        foreach (var world in RealmManager.Worlds.Values)
-            world.Tick(ref time);
+
+    private static void TickWorlds(RealmTime time) {
+        // Every behavior/entity Tick signature downstream expects `ref RealmTime`, so
+        // each parallel worker gets its own local copy to pass by ref into - avoids
+        // handing multiple threads a ref to the single shared WorldTime field without
+        // needing to touch any of those signatures.
+        Parallel.ForEach(RealmManager.Worlds.Values, world => {
+            var localTime = time;
+            try {
+                world.Tick(ref localTime);
+            }
+            catch (Exception ex) {
+                _log.Error($"Error ticking world {world.Id}: {ex}");
+            }
+        });
     }
 }

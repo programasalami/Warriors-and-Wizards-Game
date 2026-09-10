@@ -10,7 +10,6 @@ public class TauntInfo {
 }
 
 public record Taunt : BehaviorScript {
-    private static readonly Random _rand = new();
     private readonly int _cooldownMS;
     private readonly float _probability;
 
@@ -23,7 +22,7 @@ public record Taunt : BehaviorScript {
     }
 
     public override void Start(ref EntityView host) {
-        if (_cooldownMS == 0 && _rand.NextDouble() < _probability) {
+        if (_cooldownMS == 0 && Random.Shared.NextDouble() < _probability) {
             var text = _text.RandomElement();
             foreach (var user in host.World.Users.Values)
                 user.SendEnemy(ref host.Entity, text);
@@ -41,7 +40,7 @@ public record Taunt : BehaviorScript {
         }
 
         tauntInfo.CooldownLeft = _cooldownMS;
-        if (_rand.NextDouble() < _probability) {
+        if (Random.Shared.NextDouble() < _probability) {
             var text = _text.RandomElement();
             foreach (var user in host.World.Users.Values)
                 user.SendEnemy(ref host.Entity, text);

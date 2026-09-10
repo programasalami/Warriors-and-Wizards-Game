@@ -31,18 +31,22 @@ public class RealmManager {
 
     public static void AddWorld(World world) {
         world.Id = world.Id == 0 ? GetNextWorldId() : world.Id;
-        Worlds = Worlds.Add(world.Id, world);
+        // Plain Worlds.Add(...) would be an unsynchronized read-modify-write - fine
+        // when only one thread ever touches this, but once worlds tick in parallel,
+        // two worlds spawning a new instance (e.g. a portal) in the same tick window
+        // could race and silently drop one of them.
+        ImmutableInterlocked.TryAdd(ref Worlds, world.Id, world);
     }
 
     public static void UserConnected(User user) {
-        Users = Users.Add(user.Id, user);
+        ImmutableInterlocked.TryAdd(ref Users, user.Id, user);
         SendServerProjectiles(user);
         user.StartNetwork();
         _log.Debug($"User {user.Id} connected from {user.Network.IP}");
     }
-    
+
     public static void UserDisconnected(User user) {
-        Users = Users.Remove(user.Id);
+        ImmutableInterlocked.TryRemove(ref Users, user.Id, out _);
     }
 
     public static int GetNextWorldId() {
