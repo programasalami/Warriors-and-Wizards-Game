@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.11" />
+      <PackageReference Include="OpenTK" Version="5.0.0-pre.16" />
+      <PackageReference Include="ReFuel.StbImage" Version="2.1.1" />
+    </ItemGroup>
+	
+	<ItemGroup>
+	  <Using Include="OpenTK.Graphics.OpenGL" />
+      <Using Include="OpenTK.Mathematics" />
+    </ItemGroup>
+	
+	<ItemGroup>
+	  <ProjectReference Include="..\Alloy.Common\Alloy.Common.csproj" />
+	</ItemGroup>
+
+</Project>

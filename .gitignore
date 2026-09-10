@@ -1,0 +1,62 @@
+# ===== Secrets / environment / credentials =====
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.pfx
+*.p12
+*secret*
+*credentials*
+appsettings.*.json
+!appsettings.json
+!appsettings.Example.json
+secrets.json
+
+# ===== .NET / Visual Studio / Rider build junk =====
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Ll]og/
+[Ll]ogs/
+*.user
+*.userosscache
+*.suo
+*.userprefs
+*.sln.docstates
+*.DotSettings.user
+mono_crash.*
+
+# Visual Studio
+.vs/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# ===== Runtime / generated data =====
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+logs/
+*.log
+
+# ===== OS junk =====
+Thumbs.db
+desktop.ini
+.DS_Store

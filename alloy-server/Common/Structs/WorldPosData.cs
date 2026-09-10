@@ -1,0 +1,86 @@
+using System;
+using System.Numerics;
+using Common.Network;
+
+namespace Common.Structs;
+
+public struct WorldPosData : IEquatable<WorldPosData> {
+    public float X;
+    public float Y;
+
+    public WorldPosData(float x, float y) {
+        X = x;
+        Y = y;
+    }
+
+    public static WorldPosData Read(ref SpanReader rdr) {
+        return new WorldPosData { X = rdr.ReadSingle(), Y = rdr.ReadSingle() };
+    }
+
+    public void operator +=(WorldPosData pos2) {
+        X += pos2.X;
+        Y += pos2.Y;
+    }
+    
+    public static WorldPosData operator +(WorldPosData pos1, WorldPosData pos2) {
+        return new WorldPosData(pos1.X + pos2.X, pos1.Y + pos2.Y);
+    }
+
+    public override int GetHashCode() {
+        return (X, Y).GetHashCode();
+    }
+
+    public override bool Equals(object other) {
+        return other is WorldPosData pos && Equals(pos);
+    }
+
+    public bool Equals(WorldPosData pos) {
+        return pos.X == X &&
+               pos.Y == Y;
+    }
+
+    public static bool operator ==(WorldPosData pos1, WorldPosData pos2) {
+        return pos1.Equals(pos2);
+    }
+
+    public static bool operator !=(WorldPosData pos1, WorldPosData pos2) {
+        return !pos1.Equals(pos2);
+    }
+
+    public static implicit operator Vector2(WorldPosData pos) {
+        return new Vector2(pos.X, pos.Y);
+    }
+    
+    public override string ToString() {
+        return $"X:{X}, Y:{Y}";
+    }
+}
+
+public static class WorldPosDataExtensions {
+    public static WorldPosData ToWorldPos(this in Vector2 data) {
+        return new WorldPosData(data.X, data.Y);
+    }
+    public static Vector2 ToVec2(this in WorldPosData data) {
+        return new Vector2(data.X, data.Y);
+    }
+
+    public static float DistSqr(this in Vector2 vec1, in Vector2 vec2) {
+        var dx = vec1.X - vec2.X;
+        var dy = vec1.Y - vec2.Y;
+        return dx * dx + dy * dy;
+    }
+    
+    public static float DistSqr(this in WorldPosData pos1, in WorldPosData pos2) {
+        var dx = pos1.X - pos2.X;
+        var dy = pos1.Y - pos2.Y;
+        return dx * dx + dy * dy;
+    }
+
+    public static float AngleDegrees(this in WorldPosData pos1, in WorldPosData pos2) {
+        return pos1.AngleRadians(pos2) * 180f / (float)Math.PI;
+    }
+
+    public static float AngleRadians(this in WorldPosData pos1, in WorldPosData pos2) {
+        return (float)Math.Atan2(pos2.Y - pos1.Y, pos2.X - pos1.X);
+    }
+}

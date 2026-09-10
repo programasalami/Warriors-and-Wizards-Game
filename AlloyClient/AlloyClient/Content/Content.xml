@@ -1,0 +1,20 @@
+﻿<Content Verbose="False">
+    <Builder type="Copy">
+        <Folder ext="*.xml">Xmls</Folder>
+        <Folder ext="*.png">TitleScreen</Folder>
+		<Folder>Sound</Folder>
+    </Builder>
+
+    <Builder type="Font">
+        <Folder ext="*.msdf">Fonts</Folder>
+    </Builder>
+
+    <Builder type="Fbx">
+        <Folder ext="*.fbx">Objects</Folder>
+    </Builder>
+    
+    <Builder type="Atlas">
+        <File>Game.atlas</File>
+        <File>Ui.atlas</File>
+    </Builder>
+</Content>

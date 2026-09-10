@@ -1,0 +1,19 @@
+﻿namespace AlloyClient.Networking.Packets.Outgoing;
+
+public class JoinGuild : OutgoingPacket<JoinGuild> {
+    public string GuildName;
+
+    public override PacketId PacketId => PacketId.JoinGuild;
+
+    public override void Reset() {
+        GuildName = string.Empty;
+    }
+
+    public override void Write(ref SpanWriter writer) {
+        writer.WriteUTF(GuildName);
+    }
+
+    public override string ToString() {
+        return $"GuildName: {GuildName}";
+    }
+}

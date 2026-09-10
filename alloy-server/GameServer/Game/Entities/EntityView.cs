@@ -1,0 +1,40 @@
+using Common.Utilities.Collections;
+using GameServer.Game.Entities.Components;
+using GameServer.Game.Entities.Events;
+using GameServer.Game.Worlds;
+
+namespace GameServer.Game.Entities;
+
+public readonly ref struct EntityView {
+    public readonly World World;
+    public readonly EntityId Id;
+    public readonly int OwnerAccId;
+    public readonly ref Entity Entity;
+    
+    public readonly ref EntityBehavior Behavior;
+    public readonly ref EntityStats Stats;
+    public readonly ref EntityEvents Events;
+    public readonly ref EntityCombat Combat;
+    public readonly ref EntityInventory Inventory;
+    
+    public readonly ref PlayerSight PlayerSight;
+    public readonly ref PlayerChat PlayerChat;
+
+    public EntityView(World world, EntityId id) {
+        World = world;
+        Id = id;
+        // ref var ally = ref world.AllyEntities.Get(id); // TODO: Ally entities
+        // OwnerId = ally.OwnerId;
+        // OwnerAccId = ally.OwnerAccId;
+        Entity = ref world.Entities.Get(id);
+        
+        Behavior = ref world.EntityBehaviors.Get(id);
+        Stats = ref world.EntityStats.Get(id);
+        Events = ref world.EntityEvents.Get(id);
+        Combat = ref world.EntityCombat.Get(id);
+        Inventory = ref world.EntityInventories.Get(id);
+        
+        PlayerSight = ref world.PlayerSights.Get(id);
+        PlayerChat = ref world.PlayerChat.Get(id);
+    }
+}

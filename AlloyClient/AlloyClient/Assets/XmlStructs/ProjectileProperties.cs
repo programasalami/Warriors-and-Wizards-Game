@@ -1,0 +1,92 @@
+using System.Linq;
+using System.Xml.Linq;
+using AlloyClient.Game.Objects.ProjectilePaths;
+using AlloyClient.Networking.Packets.Incoming;
+using Alloy.Common;
+using AlloyClient.Game;
+
+namespace AlloyClient.Assets.XmlStructs;
+
+public sealed class ProjectileProperties {
+
+    public readonly XElement Root;
+    
+    public int BulletType {get; private set;}
+    public string ObjectId {get; private set;}
+    public float LifetimeMs {get; private set;}
+    public float Speed {get; private set;}
+    public float RealSpeed {get; private set;}
+    public int Size {get; private set;}
+    public int MinDamage {get; private set;}
+    public int MaxDamage {get; private set;}
+    public (ConditionEffect, int)[] Effects {get; private set;}
+    public bool MultiHit {get; private set;}
+    public bool PassesCover {get; private set;}
+    public bool ArmorPiercing {get; private set;}
+    public bool HasParticleTrail {get; private set;}
+    public bool Wavy {get; private set;}
+    public bool Parametric {get; private set;}
+    public bool Boomerang {get; private set;}
+    public float Amplitude {get; private set;}
+    public float Frequency {get; private set;}
+    public float Magnitude {get; private set;}
+    public bool NoRotation {get; private set;}
+    public ParticleTrail ParticleTrail {get; private set;}
+    public ProjectilePath Path { get; private set; }
+
+    private ProjectileProperties() {}
+    public ProjectileProperties(XElement e) {
+        Root = e;
+        BulletType = e.GetAttribute<int>("id");
+        ObjectId = e.GetValue<string>("ObjectId");
+        LifetimeMs = e.GetValue<float>("LifetimeMS");
+        RealSpeed = e.GetValue<float>("Speed");
+        Speed = RealSpeed / 10;
+        Size = e.GetValue<int>("Size", -1);
+        MinDamage = e.HasElement("Damage") ? e.GetValue<int>("Damage") : e.GetValue<int>("MinDamage");
+        MaxDamage = e.HasElement("Damage") ? e.GetValue<int>("Damage") : e.GetValue<int>("MaxDamage");
+        Effects = e.Elements("ConditionEffect").Select(x => (ConditionEffect.FromName(x.Value), (int)(x.GetAttribute<float>("duration") * 1000))).ToArray();
+        MultiHit = e.HasElement("MultiHit");
+        PassesCover = e.HasElement("PassesCover");
+        ArmorPiercing = e.HasElement("ArmorPiercing");
+        HasParticleTrail = e.HasElement("ParticleTrail");
+        Wavy = e.HasElement("Wavy");
+        Parametric = e.HasElement("Parametric");
+        Boomerang = e.HasElement("Boomerang");
+        Amplitude = e.GetValue<float>("Amplitude");
+        Frequency = e.GetValue<float>("Frequency", 1);
+        Magnitude = e.GetValue<float>("Magnitude", 3);
+        NoRotation = e.HasElement("NoRotation");
+
+        if (e.GetElement("ParticleTrail", out var tag)) {
+            ParticleTrail = ParticleTrail.FromXml(tag);
+        }
+        
+        if (e.Element("Path") != null)
+        {
+            Path = new ProjectilePath();
+            foreach (var elem in e.Elements("Path"))
+                Path.RegisterSegment(ProjectilePathSegment.ParsePath(elem));
+        }
+        else
+            Path = ProjectilePathSegment.ParsePath(this).ToPath();
+    }
+
+    public static ProjectileProperties FromServer(ServerProjectileProps props) {
+        return new ProjectileProperties()
+        {
+            BulletType = props.ProjId,
+            ObjectId = props.ObjectId,
+            LifetimeMs = props.Lifetime,
+            Size = props.Size,
+            Effects = props.Effects,
+            MultiHit = props.MultiHit,
+            PassesCover = props.PassesCover,
+            ArmorPiercing = props.ArmorPiercing
+        };
+    }
+}
+
+public readonly record struct ParticleTrail(uint Color, int LifetimeMs, float Intensity) {
+    public static ParticleTrail FromXml(XElement xml) => new(xml.GetValue<uint>("ParticleTrail", 0xFF00FF), xml.GetAttribute("lifetimeMS", 600), xml.GetAttribute("intensity", 0.3f));
+};

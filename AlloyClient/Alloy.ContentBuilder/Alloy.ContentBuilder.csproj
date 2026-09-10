@@ -1,0 +1,39 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net10.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <LangVersion>preview</LangVersion>
+		<AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+		<AssemblyName>ContentBuilder</AssemblyName>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+      <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
+      <OutputPath>bin\</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\Alloy.Common\Alloy.Common.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="msdf-atlas-gen-w64.exe">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SharpAssimp" Version="6.0.12" />
+      <PackageReference Include="StbImageSharp" Version="2.30.16" />
+      <PackageReference Include="StbImageWriteSharp" Version="1.16.7" />
+      <PackageReference Include="StbRectPackSharp" Version="1.0.4" />
+    </ItemGroup>
+
+</Project>

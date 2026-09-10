@@ -1,0 +1,149 @@
+﻿#region
+
+using System;
+using System.Diagnostics;
+using System.IO;
+
+#endregion
+
+namespace Common.Utilities;
+
+public enum LogLevel {
+    Info,
+    Debug,
+    Warn,
+    Error,
+    Fatal
+}
+
+public class Logger : ILogger {
+    private const int PADDING = 18;
+
+    private static readonly string CurrentDir = Directory.GetCurrentDirectory();
+    private static readonly string LogDir = $"/logs/{Process.GetCurrentProcess().ProcessName}/";
+
+    private static readonly object _consoleLock = new();
+    private readonly string _loggerName;
+
+    static Logger() {
+        // Create directories for the log files if they don't exist
+        foreach (var level in Enum.GetValues(typeof(LogLevel))) {
+            var path = $"{CurrentDir}{LogDir}{level.ToString().ToLower()}";
+            if (!Directory.Exists(path))
+                Directory.CreateDirectory(path);
+        }
+    }
+
+    public Logger(Type type)
+        : this(type.Name) { }
+
+    public Logger(string name) {
+        _loggerName = name;
+    }
+
+    public void Info(object obj, bool saveToFile = true) {
+        Log(obj.ToString(), LogLevel.Info, saveToFile, _loggerName);
+    }
+
+    public void Debug(object obj, bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Debug, saveToFile, _loggerName);
+    }
+
+    public void Warn(object obj, bool saveToFile = true) {
+        Log(obj.ToString(), LogLevel.Warn, saveToFile, _loggerName);
+    }
+
+    public void Error(object obj, bool saveToFile = true) {
+        Log(obj.ToString(), LogLevel.Error, saveToFile, _loggerName);
+    }
+
+    public void Fatal(object obj, bool saveToFile = true) {
+        Log(obj.ToString(), LogLevel.Fatal, saveToFile, _loggerName);
+    }
+
+    public static void Info(object obj, string loggerName = "Logger", bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Info, saveToFile, loggerName);
+    }
+
+    public static void Debug(object obj, string loggerName = "Logger", bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Debug, saveToFile, loggerName);
+    }
+
+    public static void Warn(object obj, string loggerName = "Logger", bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Warn, saveToFile, loggerName);
+    }
+
+    public static void Error(object obj, string loggerName = "Logger", bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Error, saveToFile, loggerName);
+    }
+
+    public static void Fatal(object obj, string loggerName = "Logger", bool saveToFile = false) {
+        Log(obj.ToString(), LogLevel.Fatal, saveToFile, loggerName);
+    }
+
+    public void Log(LogLevel level, object obj, bool saveToFile = false) {
+        Log(obj.ToString(), level, saveToFile, _loggerName);
+    }
+
+    private static void Log(string text, LogLevel level, bool saveToFile, string loggerName) {
+#if RELEASE
+            if (level == LogLevel.Debug)
+                return;
+#endif
+        var lvl = level.ToString().ToUpper();
+        var lvlPad = lvl.Length + (7 - lvl.Length);
+
+        const int maxLoggerLen = PADDING - 2;
+        if (loggerName.Length > maxLoggerLen)
+            loggerName = loggerName.Substring(0, maxLoggerLen - 3) + "...";
+        
+        var senderPad = loggerName.Length + (PADDING - loggerName.Length);
+
+        text = $"{DateTime.Now.TimeOfDay}  {lvl.PadRight(lvlPad) + loggerName.PadRight(senderPad) + text}";
+
+        using (TimedLock.Lock(_consoleLock)) {
+            Console.BackgroundColor = GetBackColor(level);
+            Console.ForegroundColor = GetForeColor(level);
+            Console.WriteLine(text);
+        }
+
+        try {
+            if (saveToFile) {
+                var path = $"{CurrentDir}{LogDir}{level.ToString().ToLower()}/log.txt";
+                File.AppendAllLines(path, new[] { text });
+            }
+        }
+        catch (IOException e) { } // uhhh, leave this here ok?
+    }
+
+    private static ConsoleColor GetBackColor(LogLevel level) {
+        switch (level) {
+            case LogLevel.Info:
+            case LogLevel.Debug:
+            case LogLevel.Warn:
+            case LogLevel.Fatal:
+                return ConsoleColor.Black;
+            case LogLevel.Error:
+                return ConsoleColor.Red;
+            default:
+                throw new ArgumentException($"Invalid LogLevel '{level}'");
+        }
+    }
+
+    private static ConsoleColor GetForeColor(LogLevel level) {
+        switch (level) {
+            case LogLevel.Info:
+                return ConsoleColor.Gray;
+            case LogLevel.Debug:
+                return ConsoleColor.DarkGray;
+            case LogLevel.Warn:
+                return ConsoleColor.Yellow;
+            case LogLevel.Error:
+                return ConsoleColor.White;
+            case LogLevel.Fatal:
+                return ConsoleColor.White;
+            default:
+                throw new ArgumentException($"Invalid LogLevel '{level}'");
+        }
+    }
+}
