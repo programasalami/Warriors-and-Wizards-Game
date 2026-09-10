@@ -4,6 +4,7 @@ using System;
 using System.Collections.Specialized;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Net;
 using System.Reflection;
 using System.Text;
@@ -79,7 +80,34 @@ internal class Program {
     }
 
     private static void ReleaseLocks() {
-        DbClient.Accounts.UpdateMany(acc => new Account { LockOwner = Guid.Empty }, acc => true);
+        _ = ReleaseStaleLocksAsync();
+    }
+
+    // Accounts stay locked to whichever GameServer instance owns them, to stop the
+    // same account being played from two places at once. If we cleared every lock
+    // unconditionally on every AccountServer restart, an account whose GameServer is
+    // still up and running (just temporarily disconnected from AccountServer) could
+    // get claimed by a second login while the original session is still active. Give
+    // GameServer instances a short window to reconnect and reassert their locks
+    // (see GameServer.Program.MaintainAccountServerConnectionAsync) before treating
+    // any remaining lock as abandoned.
+    private static async Task ReleaseStaleLocksAsync() {
+        await Task.Delay(TimeSpan.FromSeconds(10));
+
+        var liveServerIds = IpcServer.Clients.Keys.ToHashSet();
+
+        var staleAccounts = DbClient.Accounts
+            .Find(acc => acc.LockOwner != Guid.Empty)
+            .Where(acc => !liveServerIds.Contains(acc.LockOwner))
+            .ToList();
+
+        foreach (var acc in staleAccounts) {
+            acc.LockOwner = Guid.Empty;
+            DbClient.Accounts.Update(acc);
+        }
+
+        if (staleAccounts.Count > 0)
+            Log.Info($"Released {staleAccounts.Count} stale account lock(s) from GameServer instances that did not reconnect.");
     }
 
     private static async Task HandleRequestAsync(HttpListenerContext context) {

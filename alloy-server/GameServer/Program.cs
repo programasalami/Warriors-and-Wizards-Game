@@ -11,6 +11,7 @@ using GameServer.Game.Chat.Commands;
 using GameServer.Game.Entities.Behaviors;
 using GameServer.Game.Network;
 using GameServer.Messaging;
+using StreamJsonRpc;
 
 namespace GameServer;
 
@@ -40,9 +41,12 @@ public class Program {
             BehaviorLibrary.Load();
             CommandManager.Load();
 
-            (_, AccountServerRpc) = await IpcClient.ConnectAsync(new GameServerRpcHandler(), TaskUtils.Timeout(5));
+            var (session, rpc) = await IpcClient.ConnectAsync(new GameServerRpcHandler(), TaskUtils.Timeout(5));
+            AccountServerRpc = rpc;
             await AccountServerRpc.GameServerConnected(Guid);
             _log.Info($"[RPC] Connected to AccountServer. GUID: {Guid}");
+
+            _ = MaintainAccountServerConnectionAsync(session);
             
             DbClient.Load(DatabaseConfig.Config.DbFile);
 
@@ -55,6 +59,37 @@ public class Program {
         GameLogic.Run(config.MsPT);
     }
     
+    // If the RPC pipe to AccountServer ever drops (e.g. AccountServer restarts),
+    // keep retrying so this instance can reassert its account locks instead of
+    // leaving them stuck until this GameServer is also restarted.
+    private static async Task MaintainAccountServerConnectionAsync(JsonRpc session) {
+        while (true) {
+            try {
+                await session.Completion;
+            }
+            catch {
+                // Connection dropped; fall through to reconnect below.
+            }
+
+            _log.Warn("[RPC] Lost connection to AccountServer. Attempting to reconnect...");
+
+            while (true) {
+                try {
+                    IAccountServerRpc rpc;
+                    (session, rpc) = await IpcClient.ConnectAsync(new GameServerRpcHandler(), TaskUtils.Timeout(5));
+                    AccountServerRpc = rpc;
+                    await AccountServerRpc.GameServerConnected(Guid);
+                    _log.Info("[RPC] Reconnected to AccountServer.");
+                    break;
+                }
+                catch (Exception ex) {
+                    _log.Error($"[RPC] Reconnect attempt failed: {ex.Message}");
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+                }
+            }
+        }
+    }
+
     private static async Task OnShutdownAsync()
     {
         Console.WriteLine("Stopping database...");
