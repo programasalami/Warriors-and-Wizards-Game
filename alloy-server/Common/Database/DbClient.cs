@@ -22,9 +22,14 @@ public static class DbClient {
     public static LiteDatabase DbCon;
     
     public static void Load(string dbFilePath) {
+        // AccountServer is the only process that opens this file now - GameServer goes
+        // through RPC instead (see IAccountServerRpc) - so Direct mode's in-process
+        // locking is safe here and far faster than Shared mode's cross-process file lock,
+        // which serialized every read/write (including simple Exists/Count checks) across
+        // both processes and capped registration throughput at ~30/s under load.
         var connectionString = new ConnectionString() {
             Filename = dbFilePath,
-            Connection = ConnectionType.Shared
+            Connection = ConnectionType.Direct
         };
         
         DbCon = new LiteDatabase(connectionString);
@@ -43,6 +48,7 @@ public static class DbClient {
         Accounts.EnsureIndex(x => x.Name, true);
         Accounts.EnsureIndex(x => x.GuildId);
         Logins.EnsureIndex(x => x.Name, true);
+        Logins.EnsureIndex(x => x.IpAddress);
         Guilds.EnsureIndex(x => x.Name, true);
         Mutes.EnsureIndex(x => x.TargetAccId);
         Mutes.EnsureIndex(x => x.ModeratorAccId);
@@ -83,8 +89,10 @@ public static class DbClient {
 
         var lowerName = username.ToLower();
 
-        // Check name in use
-        if (Logins.Exists(i => i.Name.Equals(lowerName)))
+        // Check name in use. Use == (not .Equals()) so LiteDB's query planner can
+        // resolve this against the unique index instead of falling back to a full
+        // collection scan on every registration.
+        if (Logins.Exists(i => i.Name == lowerName))
             status = RegisterStatus.NameInUse;
 
         // Check accounts per ip

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using Common;
 using Common.Database;
@@ -40,5 +41,27 @@ public class AccServerRpcHandler : IAccountServerHandler {
 
     public async Task<GameInfoDto?> GetUserInfo(string name, int accountId) {
         return await _proxy.GetUserInfo(name, accountId);
+    }
+
+    public Task<VerifyResultDto> VerifyAccount(string username, string password, Guid gameServerGuid) {
+        var (acc, status) = DbClient.VerifyAccount(username, password, gameServerGuid);
+        return Task.FromResult(new VerifyResultDto(acc, status));
+    }
+
+    public Task<BanRecord[]> GetActiveBans(int accountId) {
+        return Task.FromResult(DbClient.Bans.Find(b => b.TargetAccId == accountId).ToArray());
+    }
+
+    public async Task FlushAccount(Account account) {
+        await DbClient.FlushAsync(account);
+    }
+
+    public Task<Character> GetCharacter(int accountId, int charId) {
+        return Task.FromResult(DbClient.GetCharacter(accountId, charId));
+    }
+
+    public async Task<CreateCharacterResultDto> CreateCharacter(Account account, ushort objectType, ushort skinType) {
+        var result = await DbClient.CreateCharacterAsync(account, objectType, skinType);
+        return new CreateCharacterResultDto(account, result.Char, result.Status);
     }
 }

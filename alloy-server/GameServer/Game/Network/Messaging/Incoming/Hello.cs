@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Common;
-using Common.Database;
 using Common.Network;
 using Common.Resources.Config;
 using Common.Utilities;
@@ -41,7 +40,7 @@ public record Hello : IIncomingPacket {
         
         var acc = user.GameInfo.Account;
         if (user.State != ConnectionState.Reconnecting) {
-            var verify = DbClient.VerifyAccount(Username, Password, Program.Guid);
+            var verify = await Program.AccountServerRpc.VerifyAccount(Username, Password, Program.Guid);
             var status = verify.Status;
             acc = verify.Acc;
             if (acc == null) {
@@ -62,16 +61,16 @@ public record Hello : IIncomingPacket {
         
         if (acc.IsBanned) {
             // Check if ban has expired
-            var bans = DbClient.Bans.Find(i => i.TargetAccId == acc.Id).ToArray();
+            var bans = await Program.AccountServerRpc.GetActiveBans(acc.Id);
             if (bans.Any(b => b.Permanent) ||
                 bans.Any(b => b.ExpiresAt > DateTime.UtcNow)) // Means the ban hasn't been lifted yet
             {
                 user.SendFailure(Failure.DEFAULT, "Account is banned.");
                 return;
             }
-        
-            acc.IsBanned = false; // Update bool value 
-            await DbClient.FlushAsync(acc);
+
+            acc.IsBanned = false; // Update bool value
+            await Program.AccountServerRpc.FlushAccount(acc);
         }
         
         if (GameServerConfig.Config.AdminOnly && !acc.IsAdmin) {

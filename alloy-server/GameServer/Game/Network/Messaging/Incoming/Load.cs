@@ -1,5 +1,4 @@
-﻿using Common.Database;
-using Common.Network;
+﻿using Common.Network;
 using Common.Utilities;
 using GameServer.Game.Network;
 using GameServer.Game.Network.Messaging;
@@ -23,7 +22,7 @@ public record Load : IIncomingPacket {
         
         var chr = user.GameInfo.Char;
         if (user.State != ConnectionState.Reconnecting) {
-            chr = DbClient.GetCharacter(user.GameInfo.Account.Id, CharId);
+            chr = await Program.AccountServerRpc.GetCharacter(user.GameInfo.Account.Id, CharId);
             if (chr == null) {
                 user.SendFailure(Failure.DEFAULT, $"Failed to load character #{CharId}");
                 return;

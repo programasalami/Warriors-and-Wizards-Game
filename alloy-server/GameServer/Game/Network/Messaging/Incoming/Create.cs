@@ -1,5 +1,4 @@
-﻿using Common.Database;
-using Common.Network;
+﻿using Common.Network;
 using Common.Utilities;
 using GameServer.Game.Network;
 using GameServer.Game.Network.Messaging;
@@ -18,13 +17,16 @@ public record Create : IIncomingPacket {
     }
 
     public async Task Handle(User user) {
-        var result = await DbClient.CreateCharacterAsync(user.GameInfo.Account, (ushort)ClassType, (ushort)SkinType);
+        var result = await Program.AccountServerRpc.CreateCharacter(user.GameInfo.Account, (ushort)ClassType, (ushort)SkinType);
         var chr = result.Char;
         var status = result.Status;
         if (chr == null) {
             user.SendFailure(Failure.DEFAULT, status.GetDescription());
         }
         else {
+            // AccountServer mutated its own copy of the account (NextCharId, Characters) -
+            // adopt it here so this session's in-memory account reflects the new character.
+            user.GameInfo.Account = result.Account;
             var world = user.GameInfo.World;
             if (world.Deleted) {
                 user.SendFailure(Failure.DEFAULT, "Invalid world.");

@@ -1,6 +1,5 @@
 ﻿using System.Globalization;
 using System.Reflection;
-using Common.Database;
 using Common.Messaging;
 using Common.Resources.Config;
 using Common.Resources.World;
@@ -30,8 +29,7 @@ public class Program {
         Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
         
         AppDomain.CurrentDomain.UnhandledException += UnhandledException;
-        AppDomain.CurrentDomain.ProcessExit += async (s, e) => await OnShutdownAsync();
-        
+
         var config = GameServerConfig.Config;
         using (var timer = new EasyTimer(LogLevel.Info, "Starting server...", $"Listening on port {config.Port} ([TIME])")) {
             EnumUtils.Load();
@@ -47,8 +45,6 @@ public class Program {
             _log.Info($"[RPC] Connected to AccountServer. GUID: {Guid}");
 
             _ = MaintainAccountServerConnectionAsync(session);
-            
-            DbClient.Load(DatabaseConfig.Config.DbFile);
 
             RealmManager.Init();
 
@@ -90,15 +86,6 @@ public class Program {
         }
     }
 
-    private static async Task OnShutdownAsync()
-    {
-        Console.WriteLine("Stopping database...");
-        
-        await DbClient.Dispose();
-        
-        Console.WriteLine("Database closed cleanly.");
-    }
-    
     private static void UnhandledException(object sender, UnhandledExceptionEventArgs args) {
         _log.Fatal(args.ExceptionObject);
     }

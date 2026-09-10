@@ -3,4 +3,5 @@
     <WorldsDir>Resources/World/Data/</WorldsDir>
     <Port>8080</Port>
     <Address>127.0.0.1</Address>
+    <MaxConcurrentRequests>64</MaxConcurrentRequests>
 </AppEngineConfig>
