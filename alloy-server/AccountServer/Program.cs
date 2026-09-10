@@ -27,6 +27,10 @@ namespace AccountServer;
 internal class Program {
     private static readonly Logger Log = new(typeof(Program));
 
+    // Generous for our small form-encoded requests (username/password/charId etc.),
+    // but bounds how much memory a single request body can force us to buffer.
+    private const int MaxRequestBodyBytes = 64 * 1024;
+
     private static async Task Main(string[] args) {
         ThreadPool.SetMinThreads(1000, 1000);
 
@@ -55,7 +59,7 @@ internal class Program {
             listener.Start();
         }
 
-        var semaphore = new SemaphoreSlim(200);
+        var semaphore = new SemaphoreSlim(config.MaxConcurrentRequests);
 
         while (true) {
             HttpListenerContext context;
@@ -66,9 +70,11 @@ internal class Program {
                 break; // listener was stopped (e.g. on shutdown)
             }
 
-            await semaphore.WaitAsync();
-
+            // Dispatch first, wait for a processing slot inside the task. Waiting on the
+            // semaphore here (before looping back to GetContextAsync) would stall accepting
+            // new connections entirely once the limit is hit, instead of just queuing them.
             _ = Task.Run(async () => {
+                await semaphore.WaitAsync();
                 try {
                     await HandleRequestAsync(context);
                 }
@@ -126,11 +132,32 @@ internal class Program {
 
         Log.Debug($"Received '{request}' from '{ip}'");
 
+        if (context.Request.ContentLength64 > MaxRequestBodyBytes) {
+            Log.Warn($"Rejected '{request}' from '{ip}': declared body size {context.Request.ContentLength64} exceeds the {MaxRequestBodyBytes}-byte limit");
+            context.Response.StatusCode = 413;
+            try { context.Response.Close(); } catch { }
+            return;
+        }
+
         NameValueCollection query;
         try {
             using var inputStream = context.Request.InputStream;
             using var reader = new StreamReader(inputStream, Encoding.UTF8);
-            query = HttpUtility.ParseQueryString(await reader.ReadToEndAsync());
+
+            var buffer = new char[MaxRequestBodyBytes];
+            var totalRead = 0;
+            int charsRead;
+            while ((charsRead = await reader.ReadAsync(buffer.AsMemory(totalRead, buffer.Length - totalRead))) > 0) {
+                totalRead += charsRead;
+                if (totalRead >= buffer.Length) {
+                    Log.Warn($"Rejected '{request}' from '{ip}': body exceeded the {MaxRequestBodyBytes}-byte limit while reading");
+                    context.Response.StatusCode = 413;
+                    try { context.Response.Close(); } catch { }
+                    return;
+                }
+            }
+
+            query = HttpUtility.ParseQueryString(new string(buffer, 0, totalRead));
         }
         catch (HttpListenerException) {
             return;

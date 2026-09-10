@@ -20,6 +20,7 @@ public class AppEngineConfig
         WorldsDir = e.GetValue<string>("WorldsDir");
         Port = e.GetValue<int>("Port");
         Address = e.GetValue<string>("Address");
+        MaxConcurrentRequests = e.GetValue("MaxConcurrentRequests", 200);
     }
 
     public static AppEngineConfig Config
@@ -29,6 +30,7 @@ public class AppEngineConfig
     public string WorldsDir { get; private set; }
     public int Port { get; private set; }
     public string Address { get; private set; }
+    public int MaxConcurrentRequests { get; private set; }
 
     private static AppEngineConfig Load()
     {
