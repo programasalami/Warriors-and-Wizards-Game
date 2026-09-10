@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Net.Sockets;
@@ -129,7 +130,19 @@ public class NetworkHandler {
 
         _receiveState.OnDataReceived(args.BytesTransferred);
 
-        while (_receiveState.PacketReady()) {
+        while (true) {
+            bool ready;
+            try {
+                ready = _receiveState.PacketReady();
+            }
+            catch (InvalidDataException ex) {
+                User.Disconnect($"Invalid packet: {ex.Message}", DisconnectReason.NetworkError);
+                return false;
+            }
+
+            if (!ready)
+                break;
+
             var pktId = (PacketId)_receiveState.ReadPacket(out var rdr);
             try {
                 // Console.WriteLine($"RECEIVING {pktId}");
@@ -152,7 +165,14 @@ public class NetworkHandler {
             if (User.State == ConnectionState.Disconnected || !Socket.Connected)
                 break;
 
-            pkt.Handle(User);
+            try {
+                pkt.Handle(User).GetAwaiter().GetResult();
+            }
+            catch (Exception ex) {
+                _log.Error($"Error handling packet for user {User.Id}: {ex}");
+                User.Disconnect("Internal error handling packet", DisconnectReason.Failure);
+                break;
+            }
         }
     }
 }

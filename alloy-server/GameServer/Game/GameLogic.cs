@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Common.Game;
@@ -47,15 +48,32 @@ public class GameLogic {
     }
 
     private static void Update() {
-        while (_pendingActions.TryDequeue(out var act))
-            act();
-        
-        foreach (var world in RealmManager.Worlds.Values)
-            world.Update();
-        
+        while (_pendingActions.TryDequeue(out var act)) {
+            try {
+                act();
+            }
+            catch (Exception ex) {
+                _log.Error($"Error running queued action: {ex}");
+            }
+        }
+
+        foreach (var world in RealmManager.Worlds.Values) {
+            try {
+                world.Update();
+            }
+            catch (Exception ex) {
+                _log.Error($"Error updating world {world.Id}: {ex}");
+            }
+        }
+
         foreach (var user in RealmManager.Users.Values) {
-            user.Network.HandleIncomingPackets();
-            user.Network.SendSocketData();
+            try {
+                user.Network.HandleIncomingPackets();
+                user.Network.SendSocketData();
+            }
+            catch (Exception ex) {
+                _log.Error($"Error handling network I/O for user {user.Id}: {ex}");
+            }
         }
     }
     

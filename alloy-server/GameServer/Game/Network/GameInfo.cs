@@ -52,11 +52,17 @@ public class GameInfo {
     }
 
     public void Unload() {
+        if (World == null) {
+            State = GameState.Idle;
+            PlayerId = EntityId.Null;
+            return;
+        }
+
         ref var inv = ref World.EntityInventories.Get(PlayerId);
         if (inv.Id != EntityId.Null)
             inv.Save(Char);
-        
-        World?.LeaveWorld(PlayerId);
+
+        World.LeaveWorld(PlayerId);
         State = GameState.Idle;
         PlayerId = EntityId.Null;
     }

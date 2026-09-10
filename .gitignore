@@ -60,3 +60,9 @@ logs/
 Thumbs.db
 desktop.ini
 .DS_Store
+
+# ===== AI tooling artifacts =====
+.claude/
+CLAUDE.md
+.cursor/
+.windsurf/
