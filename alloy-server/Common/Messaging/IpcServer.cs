@@ -1,57 +1,71 @@
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.IO.Pipes;
+using System.Net;
+using System.Net.Security;
+using System.Net.Sockets;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading;
 using System.Threading.Tasks;
+using Common.Resources.Config;
 using Common.Utilities;
 using StreamJsonRpc;
 
 namespace Common.Messaging;
 
 public class IpcServer {
-    public const string PIPE_NAME = "alloy_rpc";
-    
     private static readonly Logger _log = new Logger(typeof(IpcServer));
-    
+
     public static readonly ConcurrentDictionary<Guid, IGameServerRpc> Clients = new();
 
     public static async Task StartAsync<THandler>(CancellationToken ct = default) where THandler : IAccountServerHandler, new() {
-        _log.Info($"[RPC] Starting IpcServer at pipe '{PIPE_NAME}'...");
-        
-        while (!ct.IsCancellationRequested)
-        {
-            // Named Pipe streams are single-use per connection.
-            // Create a new stream for each incoming client.
-            var pipeServer = new NamedPipeServerStream(
-                PIPE_NAME,
-                PipeDirection.InOut,
-                NamedPipeServerStream.MaxAllowedServerInstances,
-                PipeTransmissionMode.Byte,
-                PipeOptions.Asynchronous);
+        var config = RpcServerConfig.Config;
+        var certificate = RpcCertificateHelper.LoadOrCreateServerCertificate(config.CertificatePfxPath, config.CertificatePassword);
 
-            await pipeServer.WaitForConnectionAsync(ct);
+        var listener = new TcpListener(IPAddress.Parse(config.ListenAddress), config.ListenPort);
+        listener.Start();
 
-            // Handle connection in background so the loop can accept new clients
-            _ = HandleClientConnectionAsync<THandler>(pipeServer, ct);
+        _log.Info($"[RPC] Starting IpcServer at {config.ListenAddress}:{config.ListenPort} (TLS)...");
+
+        while (!ct.IsCancellationRequested) {
+            var tcpClient = await listener.AcceptTcpClientAsync(ct);
+            _ = HandleClientConnectionAsync<THandler>(tcpClient, certificate, config.SharedSecret, ct);
         }
     }
-    
-    private static async Task HandleClientConnectionAsync<THandler>(NamedPipeServerStream pipeStream, CancellationToken cancellationToken) where THandler : IAccountServerHandler, new() {
-        await using (pipeStream)
-        {
+
+    private static async Task HandleClientConnectionAsync<THandler>(
+        TcpClient tcpClient, X509Certificate2 certificate, string sharedSecret, CancellationToken cancellationToken)
+        where THandler : IAccountServerHandler, new() {
+        var remoteEndpoint = tcpClient.Client.RemoteEndPoint;
+
+        using (tcpClient)
+        await using (var sslStream = new SslStream(tcpClient.GetStream(), false)) {
+            try {
+                await sslStream.AuthenticateAsServerAsync(new SslServerAuthenticationOptions {
+                    ServerCertificate = certificate,
+                    ClientCertificateRequired = false
+                }, cancellationToken);
+            }
+            catch (Exception ex) {
+                _log.Warn($"[RPC] TLS handshake failed from {remoteEndpoint}: {ex.Message}");
+                return;
+            }
+
+            if (!await RpcHandshake.ValidateSecretAsync(sslStream, sharedSecret, cancellationToken)) {
+                _log.Warn($"[RPC] Rejected connection from {remoteEndpoint} - shared secret mismatch.");
+                return;
+            }
+
             // Bind for incoming calls from GameServer
             var handler = new THandler();
-            var jsonRpc = new JsonRpc(pipeStream);
+            var jsonRpc = new JsonRpc(sslStream);
             jsonRpc.AddLocalRpcTarget<IAccountServerRpc>(handler, null);
-            
+
             var gameServerProxy = jsonRpc.Attach<IGameServerRpc>();
             handler.Attach(gameServerProxy);
 
             jsonRpc.StartListening();
 
-            // Completion waits until the client disconnects or the pipe breaks
+            // Completion waits until the client disconnects or the connection breaks
             await jsonRpc.Completion;
 
             await handler.Close();

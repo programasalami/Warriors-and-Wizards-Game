@@ -1,0 +1,7 @@
+<RpcServerConfig>
+    <ListenAddress>0.0.0.0</ListenAddress>
+    <ListenPort>8081</ListenPort>
+    <CertificatePfxPath>Resources/Config/Data/rpc-server.pfx</CertificatePfxPath>
+    <CertificatePassword>changeme</CertificatePassword>
+    <SharedSecret>changeme</SharedSecret>
+</RpcServerConfig>

@@ -14,6 +14,12 @@ appsettings.*.json
 secrets.json
 postgresConfig.xml
 !postgresConfig.example.xml
+rpcServerConfig.xml
+!rpcServerConfig.example.xml
+rpcClientConfig.xml
+!rpcClientConfig.example.xml
+rpc-server.pfx
+rpc-server.cer
 
 # ===== .NET / Visual Studio / Rider build junk =====
 [Bb]in/

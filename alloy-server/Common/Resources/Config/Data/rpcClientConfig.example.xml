@@ -1,0 +1,6 @@
+<RpcClientConfig>
+    <ServerHost>127.0.0.1</ServerHost>
+    <ServerPort>8081</ServerPort>
+    <TrustedCertPath>Resources/Config/Data/rpc-server.cer</TrustedCertPath>
+    <SharedSecret>changeme</SharedSecret>
+</RpcClientConfig>
