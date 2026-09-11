@@ -4,10 +4,15 @@ using Common.Database.Models;
 using Common.Resources.Config;
 using Common.Resources.Xml;
 using Common.Utilities;
-using GameServer.Game.Entities.Behaviors;
-using GameServer.Game.Entities.Behaviors.Actions;
+using GameServer.Game.Systems.Behaviors;
+using GameServer.Game.Systems.Behaviors.Actions;
 using GameServer.Game.Network;
-using GameServer.Game.Network.Messaging.Outgoing;
+using GameServer.Game.Network.Messaging;
+using GameServer.Game.Session;
+using GameServer.Game.Systems.Chat;
+using GameServer.Game.Systems.Combat;
+using GameServer.Game.Systems.Inventory;
+using GameServer.Game.Systems.Projectiles;
 using GameServer.Game.Worlds;
 using GameServer.Game.Worlds.Logic;
 

@@ -1,0 +1,53 @@
+using System;
+using Common.Game;
+using Common.Utilities;
+using GameServer.Game.Entities.Extensions;
+using GameServer.Game.Systems.Chat;
+using GameServer.Game.Systems.Combat;
+using GameServer.Game.Entities;
+
+namespace GameServer.Game.Systems.Behaviors.Actions;
+
+public class TauntInfo {
+    public int CooldownLeft;
+}
+
+public record Taunt : BehaviorScript {
+    private readonly int _cooldownMS;
+    private readonly float _probability;
+
+    private readonly string[] _text;
+
+    public Taunt(string text, int coolDownMS = 0, float probability = 1f) {
+        _text = text.Split("||");
+        _cooldownMS = coolDownMS;
+        _probability = probability;
+    }
+
+    public override void Start(ref EntityView host) {
+        if (_cooldownMS == 0 && Random.Shared.NextDouble() < _probability) {
+            var text = _text.RandomElement();
+            foreach (var user in host.World.Users.Values)
+                user.SendEnemy(ref host.Entity, text);
+        }
+    }
+
+    public override BehaviorTickState Tick(ref EntityView host, ref RealmTime time) {
+        if (_cooldownMS == 0)
+            return BehaviorTickState.BehaviorFailed; // IDK ??!??!
+
+        var tauntInfo = host.Behavior.Resources.ResolveResource<TauntInfo>(this);
+        if (tauntInfo.CooldownLeft > 0) {
+            tauntInfo.CooldownLeft -= time.ElapsedMsDelta;
+            return BehaviorTickState.OnCooldown;
+        }
+
+        tauntInfo.CooldownLeft = _cooldownMS;
+        if (Random.Shared.NextDouble() < _probability) {
+            var text = _text.RandomElement();
+            foreach (var user in host.World.Users.Values)
+                user.SendEnemy(ref host.Entity, text);
+        }
+        return BehaviorTickState.BehaviorActive;
+    }
+}
