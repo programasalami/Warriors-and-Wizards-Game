@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Common;
-using Common.Game;
 using Common.Resources.World;
 using Common.Resources.Xml;
 using Common.Structs;

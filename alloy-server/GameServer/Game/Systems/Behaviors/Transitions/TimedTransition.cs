@@ -1,4 +1,3 @@
-using Common.Game;
 using GameServer.Game.Systems.Behaviors;
 using GameServer.Game.Systems.Chat;
 using GameServer.Game.Systems.Combat;

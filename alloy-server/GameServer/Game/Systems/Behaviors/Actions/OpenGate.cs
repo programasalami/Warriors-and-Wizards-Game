@@ -1,4 +1,3 @@
-using Common.Game;
 using Common.Resources.Xml;
 using GameServer.Game.Entities;
 

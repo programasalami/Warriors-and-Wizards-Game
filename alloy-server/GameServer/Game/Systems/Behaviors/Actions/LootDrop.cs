@@ -1,6 +1,5 @@
 using System.Collections;
 using Common;
-using Common.Game;
 using Common.Resources.Xml.Descriptors;
 using Common.Utilities;
 using GameServer.Game.Systems.Behaviors.Loot;

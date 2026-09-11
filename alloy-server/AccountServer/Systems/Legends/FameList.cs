@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace AccountServer.Handlers.Legends;
+namespace AccountServer.Systems.Legends;
 
 public class FameList : RequestHandler {
     public override string Path => "/fame/list";

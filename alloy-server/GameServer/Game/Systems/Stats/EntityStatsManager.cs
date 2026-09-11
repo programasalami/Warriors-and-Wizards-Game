@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Common.Game;
 using Common.Utilities.Collections;
 using GameServer.Game.Systems.Behaviors;
 using GameServer.Game.Systems.Chat;

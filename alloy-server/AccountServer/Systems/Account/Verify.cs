@@ -8,25 +8,19 @@ using Common.Utilities;
 
 #endregion
 
-namespace AccountServer.Handlers.Char;
+namespace AccountServer.Systems.Account;
 
-public class Delete : RequestHandler {
-    public override string Path => "/char/delete";
+public class Verify : RequestHandler {
+    public override string Path => "/account/verify";
 
     public override async Task<string> Handle(string ip, NameValueCollection query) {
         var verify = await DbClient.VerifyAccount(query["username"], query["password"], Guid.Empty);
-        
+
         var acc = verify.Acc;
         var status = verify.Status;
         if (acc == null)
             return status.GetDescription();
-        
-        if (!int.TryParse(query["charId"], out var charId))
-            return WriteError("A character Id is required to delete the character");
-        
-        if (await DbClient.DeleteCharacterAsync(acc.Id, charId))
-            return WriteSuccess();
 
-        return WriteError("Internal server error.");
+        return acc.ToXml().ToString();
     }
 }

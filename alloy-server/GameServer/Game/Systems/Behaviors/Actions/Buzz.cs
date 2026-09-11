@@ -1,7 +1,6 @@
 using System;
 using System.Numerics;
 using Common;
-using Common.Game;
 using GameServer.Game.Entities;
 
 namespace GameServer.Game.Systems.Behaviors.Actions;

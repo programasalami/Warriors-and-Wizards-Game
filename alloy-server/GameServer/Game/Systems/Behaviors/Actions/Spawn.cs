@@ -2,7 +2,6 @@ using System;
 using System.Linq;
 using System.Numerics;
 using System.Xml.Linq;
-using Common.Game;
 using Common.Resources.Xml;
 using Common.Utilities;
 using GameServer.Game.Entities;

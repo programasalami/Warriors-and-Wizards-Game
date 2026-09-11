@@ -8,7 +8,7 @@ using Common.Utilities;
 
 #endregion
 
-namespace AccountServer.Handlers.Char;
+namespace AccountServer.Systems.Char;
 
 public class ListMembers : RequestHandler {
     public override string Path => "/char/list";

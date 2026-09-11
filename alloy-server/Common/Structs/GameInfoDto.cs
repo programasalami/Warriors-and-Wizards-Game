@@ -1,5 +1,3 @@
-using Common.Structs;
-
-namespace Common.Game;
+namespace Common.Structs;
 
 public readonly record struct GameInfoDto(int AccountId, int WorldId, string WorldName, WorldPosData Position);

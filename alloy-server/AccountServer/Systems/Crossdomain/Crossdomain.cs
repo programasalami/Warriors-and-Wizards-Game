@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 #endregion
 
-namespace AccountServer.Handlers.Crossdomain;
+namespace AccountServer.Systems.Crossdomain;
 
 public class Crossdomain : RequestHandler {
     private const string CROSSDOMAIN_PATH = "Handlers/Crossdomain/crossdomain.xml";

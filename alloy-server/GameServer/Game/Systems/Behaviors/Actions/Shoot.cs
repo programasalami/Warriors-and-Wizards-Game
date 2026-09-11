@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using Common;
-using Common.Game;
 using Common.Projectiles.ProjectilePaths;
 using Common.Resources.Xml;
 using Common.Resources.Xml.Descriptors;

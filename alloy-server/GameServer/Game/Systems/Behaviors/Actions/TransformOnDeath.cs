@@ -1,5 +1,4 @@
 using System;
-using Common.Game;
 using Common.Resources.Xml;
 using GameServer.Game.Systems.Events;
 using GameServer.Game.Entities;

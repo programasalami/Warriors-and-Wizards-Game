@@ -1,5 +1,4 @@
 using System.Numerics;
-using Common.Game;
 using Common.Projectiles.ProjectilePaths;
 using Common.Resources.Xml;
 using Common.Resources.Xml.Descriptors;

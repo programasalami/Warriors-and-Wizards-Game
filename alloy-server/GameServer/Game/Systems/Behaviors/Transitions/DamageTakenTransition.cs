@@ -1,5 +1,4 @@
-﻿using Common.Game;
-using GameServer.Game.Entities;
+﻿using GameServer.Game.Entities;
 using GameServer.Game.Systems.Events;
 
 namespace GameServer.Game.Systems.Behaviors.Transitions;

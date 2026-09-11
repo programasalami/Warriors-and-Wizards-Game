@@ -6,7 +6,7 @@
 //
 // #endregion
 //
-// namespace AccountServer.Handlers.Guild;
+// namespace AccountServer.Systems.Guild;
 //
 // public class SetBoard : RequestHandler {
 //     public override string Path => "/guild/setBoard";

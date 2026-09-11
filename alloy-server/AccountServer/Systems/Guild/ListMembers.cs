@@ -3,13 +3,14 @@
 // using System.Collections.Specialized;
 // using System.Threading.Tasks;
 // using Common.Database;
+// using Common.Utilities;
 //
 // #endregion
 //
-// namespace AccountServer.Handlers.Guild;
+// namespace AccountServer.Systems.Guild;
 //
-// public class GetBoard : RequestHandler {
-//     public override string Path => "/guild/getBoard";
+// public class ListMembers : RequestHandler {
+//     public override string Path => "/guild/listMembers";
 //
 //     public override async Task<string> Handle(string ip, NameValueCollection query) {
 //         var verify = await DbClient.VerifyAccountAsync(query["username"], query["password"]);
@@ -22,6 +23,6 @@
 //         if (guild == null)
 //             return WriteError("Invalid guild id.");
 //
-//         return guild.GuildBoard ?? "";
+//         return guild.ToXml().ToString();
 //     }
 // }

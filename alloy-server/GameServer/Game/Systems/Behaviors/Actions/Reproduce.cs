@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Numerics;
-using Common.Game;
 using Common.Resources.Xml;
 using GameServer.Game.Entities;
 
