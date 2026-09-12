@@ -18,7 +18,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Common.Protocol\Common.Protocol.csproj" />
+        <ProjectReference Include="..\..\Shared\Common.Protocol\Common.Protocol.csproj" />
     </ItemGroup>
 
     <ItemGroup>

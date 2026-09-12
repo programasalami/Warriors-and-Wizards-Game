@@ -27,7 +27,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\..\Common.Protocol\Common.Protocol.csproj" />
+      <ProjectReference Include="..\..\Shared\Common.Protocol\Common.Protocol.csproj" />
       <ProjectReference Include="..\Alloy.Audio\Alloy.Audio.csproj" />
       <ProjectReference Include="..\Alloy.Common\Alloy.Common.csproj" />
       <ProjectReference Include="..\Alloy.ContentBuilder\Alloy.ContentBuilder.csproj">

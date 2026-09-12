@@ -13,9 +13,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Tests", "Common.Test
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer.Tests", "GameServer.Tests\GameServer.Tests.csproj", "{D79F06C0-2E48-4CEA-B30D-9062A766428F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{1DC1452D-57FE-4F62-A1EA-BEA1C2C92D9B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Shared\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{1DC1452D-57FE-4F62-A1EA-BEA1C2C92D9B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol", "..\Common.Protocol\Common.Protocol.csproj", "{3A1ED76F-C91E-4A96-AEF8-D0A5BDDC4A6F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol", "..\Shared\Common.Protocol\Common.Protocol.csproj", "{3A1ED76F-C91E-4A96-AEF8-D0A5BDDC4A6F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
