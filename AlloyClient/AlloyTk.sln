@@ -18,9 +18,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alloy.ContentReader", "Allo
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Alloy.ShaderSourceGen", "Alloy.ShaderSourceGen\Alloy.ShaderSourceGen.csproj", "{6D386809-0F83-47E8-86FD-7C68C857B188}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlloyClient.Tests", "AlloyClient.Tests\AlloyClient.Tests.csproj", "{7A5C0296-6F0C-4B86-A0FB-AEF0329A1E43}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AlloyClient.Tests", "Tests\AlloyClient.Tests\AlloyClient.Tests.csproj", "{7A5C0296-6F0C-4B86-A0FB-AEF0329A1E43}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Shared\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{098F6FA3-9B1A-4C9F-AEB6-9698EF7A0044}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Shared\Tests\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{098F6FA3-9B1A-4C9F-AEB6-9698EF7A0044}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol", "..\Shared\Common.Protocol\Common.Protocol.csproj", "{F40A49EB-0374-4DFC-BDB0-452D8058596C}"
 EndProject

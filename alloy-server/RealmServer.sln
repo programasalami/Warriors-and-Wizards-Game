@@ -9,11 +9,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Common", "Common\Common.csp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{CFCE656D-B4DC-43B2-986F-AC279F7543E6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Tests", "Common.Tests\Common.Tests.csproj", "{6843F799-7017-44C5-B1B3-1D56D8CFB86E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Tests", "Tests\Common.Tests\Common.Tests.csproj", "{6843F799-7017-44C5-B1B3-1D56D8CFB86E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer.Tests", "GameServer.Tests\GameServer.Tests.csproj", "{D79F06C0-2E48-4CEA-B30D-9062A766428F}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer.Tests", "Tests\GameServer.Tests\GameServer.Tests.csproj", "{D79F06C0-2E48-4CEA-B30D-9062A766428F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Shared\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{1DC1452D-57FE-4F62-A1EA-BEA1C2C92D9B}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol.Tests", "..\Shared\Tests\Common.Protocol.Tests\Common.Protocol.Tests.csproj", "{1DC1452D-57FE-4F62-A1EA-BEA1C2C92D9B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Protocol", "..\Shared\Common.Protocol\Common.Protocol.csproj", "{3A1ED76F-C91E-4A96-AEF8-D0A5BDDC4A6F}"
 EndProject
