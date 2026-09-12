@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using Common.Network;
 
 namespace Common.Structs;
 
@@ -13,15 +12,11 @@ public struct WorldPosData : IEquatable<WorldPosData> {
         Y = y;
     }
 
-    public static WorldPosData Read(ref SpanReader rdr) {
-        return new WorldPosData { X = rdr.ReadSingle(), Y = rdr.ReadSingle() };
-    }
-
     public void operator +=(WorldPosData pos2) {
         X += pos2.X;
         Y += pos2.Y;
     }
-    
+
     public static WorldPosData operator +(WorldPosData pos1, WorldPosData pos2) {
         return new WorldPosData(pos1.X + pos2.X, pos1.Y + pos2.Y);
     }
@@ -50,7 +45,7 @@ public struct WorldPosData : IEquatable<WorldPosData> {
     public static implicit operator Vector2(WorldPosData pos) {
         return new Vector2(pos.X, pos.Y);
     }
-    
+
     public override string ToString() {
         return $"X:{X}, Y:{Y}";
     }
@@ -69,7 +64,7 @@ public static class WorldPosDataExtensions {
         var dy = vec1.Y - vec2.Y;
         return dx * dx + dy * dy;
     }
-    
+
     public static float DistSqr(this in WorldPosData pos1, in WorldPosData pos2) {
         var dx = pos1.X - pos2.X;
         var dy = pos1.Y - pos2.Y;

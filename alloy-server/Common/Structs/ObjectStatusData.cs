@@ -15,7 +15,7 @@ public struct ObjectStatusData {
     public static ObjectStatusData Read(ref SpanReader rdr) {
         var ret = new ObjectStatusData();
         ret.ObjectId = EntityId.Read(ref rdr);
-        ret.Pos = WorldPosData.Read(ref rdr);
+        ret.Pos = WorldPosDataIO.Read(ref rdr);
         ret.Stats = new StatValue[rdr.ReadByte()];
         for (var i = 0; i < ret.Stats.Length; i++)
             ret.Stats[i] = StatData.Read(ref rdr).Value;

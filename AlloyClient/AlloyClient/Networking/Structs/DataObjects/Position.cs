@@ -1,4 +1,6 @@
-﻿namespace AlloyClient.Networking.Structs.DataObjects;
+﻿using Common.Structs;
+
+namespace AlloyClient.Networking.Structs.DataObjects;
 
 public struct Position : IDataObject {
     public static readonly Position Zero = new();
@@ -10,6 +12,9 @@ public struct Position : IDataObject {
         X = f;
         Y = f1;
     }
+
+    public static implicit operator WorldPosData(Position pos) => new(pos.X, pos.Y);
+    public static implicit operator Position(WorldPosData pos) => new(pos.X, pos.Y);
 
     public void Read(ref SpanReader reader) {
         X = reader.ReadSingle();

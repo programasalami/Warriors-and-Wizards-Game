@@ -18,6 +18,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\..\Common.Protocol\Common.Protocol.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <PackageReference Include="Dapper" Version="2.1.66" />
         <PackageReference Include="Ionic.Zlib.Core" Version="1.0.0" />
         <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.1" />

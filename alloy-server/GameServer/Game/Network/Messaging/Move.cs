@@ -23,6 +23,6 @@ public record Move : IIncomingPacket {
     }
 
     public void Read(ref SpanReader rdr) {
-        Pos = WorldPosData.Read(ref rdr);
+        Pos = WorldPosDataIO.Read(ref rdr);
     }
 }
