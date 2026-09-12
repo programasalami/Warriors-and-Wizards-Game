@@ -1,7 +1,7 @@
 ﻿using Alloy.Audio;
 using Microsoft.Extensions.Logging;
 
-namespace AlloyClient;
+namespace AlloyClient.Core;
 
 public static class Audio {
 

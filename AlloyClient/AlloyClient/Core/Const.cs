@@ -1,4 +1,4 @@
-﻿namespace AlloyClient;
+﻿namespace AlloyClient.Core;
 
 public static class Const {
     public const ushort DefaultTile = 0xFF;

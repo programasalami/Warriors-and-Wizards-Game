@@ -1,4 +1,4 @@
-﻿namespace AlloyClient;
+﻿namespace AlloyClient.Core;
 
 public enum ScreenType {
     Menu,

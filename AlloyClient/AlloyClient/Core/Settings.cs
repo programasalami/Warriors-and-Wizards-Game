@@ -14,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using OpenTK.Mathematics;
 using OpenTK.Platform;
 
-namespace AlloyClient;
+namespace AlloyClient.Core;
 
 public static class Settings {
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(Settings));

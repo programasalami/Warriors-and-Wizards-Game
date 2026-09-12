@@ -19,7 +19,8 @@ public class KeyMapperOption : Option {
     
     public override void SetDisabled(bool val) {
         _disabled = val;
-        // TODO: SetDisabled for KeyMapperOption
+        _keyCodeBox.MouseEnabled = !val;
+        Alpha = val ? 0.6f : 1f;
     }
 
     private void OnKeyCodeChange() {

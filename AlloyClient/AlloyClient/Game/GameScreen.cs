@@ -39,10 +39,10 @@ public sealed class GameScreen : Screen {
         AddChild(_chat= new ChatBox());
         AddChild(_debugStats = new DebugStats());
         
-        GameSprite = this; // TODO: remove this ;-;
+        GameSprite = this;
     }
 
-    public void CreatePlayerDependentAssets() => _hud.CreatePlayerDependentAssets(); // TODO: remove this ;-;
+    public void CreatePlayerDependentAssets() => _hud.CreatePlayerDependentAssets();
 
     public override void Update(GameTime gameTime) {
         Client.Tick();

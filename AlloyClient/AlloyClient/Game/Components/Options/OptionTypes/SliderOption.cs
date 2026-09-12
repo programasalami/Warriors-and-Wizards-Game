@@ -23,6 +23,6 @@ public class SliderOption : Option {
     
     public override void SetDisabled(bool val) {
         _disabled = val;
-        // TODO: SetDisabled for SliderOption
+        Alpha = val ? 0.6f : 1f;
     }
 }
