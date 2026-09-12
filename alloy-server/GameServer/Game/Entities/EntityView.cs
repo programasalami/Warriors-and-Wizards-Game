@@ -1,4 +1,5 @@
 using Common.Utilities.Collections;
+using Common;
 using GameServer.Game.Systems.Behaviors;
 using GameServer.Game.Systems.Chat;
 using GameServer.Game.Systems.Combat;
@@ -44,4 +45,11 @@ public readonly ref struct EntityView {
         PlayerSight = ref world.PlayerSights.Get(id);
         PlayerChat = ref world.PlayerChat.Get(id);
     }
+
+    public bool HasConditionEffect(ConditionEffectIndex effect) => Stats.HasConditionEffect(effect);
+
+    public void ApplyConditionEffect(ConditionEffectIndex effect, float durationSeconds) =>
+        Stats.ApplyConditionEffect(effect, durationSeconds);
+
+    public void RemoveConditionEffect(ConditionEffectIndex effect) => Stats.RemoveConditionEffect(effect);
 }

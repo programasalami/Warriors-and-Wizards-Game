@@ -19,6 +19,20 @@ public unsafe struct BitMask256 {
         return (_bits[index >> 5] & (1u << (index & 31))) != 0;
     }
 
+    public void Unset(int index) {
+        if (index < 0 || index > 255)
+            return;
+        _bits[index >> 5] &= ~(1u << (index & 31));
+
+        _notEmpty = false;
+        for (var i = 0; i < 8; i++) {
+            if (_bits[i] == 0)
+                continue;
+            _notEmpty = true;
+            break;
+        }
+    }
+
     public void Clear() {
         for (var i = 0; i < 8; i++)
             _bits[i] = 0;
