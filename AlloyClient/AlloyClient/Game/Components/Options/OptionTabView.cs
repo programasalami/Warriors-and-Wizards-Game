@@ -137,14 +137,14 @@ public class OptionTabView : Container {
     }
 
     private void AddGraphicsOptions() {
-        _options.Add(new ChoiceOption<float>(Settings.CameraAngle, ["45", "0"], [7 * MathF.PI, 0f], "Default Camera Angle", "This toggles the default camera angle", OnDefautCameraAngleChange));
+        _options.Add(new ChoiceOption<float>(Settings.CameraAngle, ["45", "0"], [7 * MathF.PI, 0f], "Default Camera Angle", "This toggles the default camera angle"));
         _options.Add(new ChoiceOption<bool>(Settings.CenterPlayer, OnOffLabels, OnOffValues, "Center On Player", "This toggles whether the player is centered or offset"));
         _options.Add(new ChoiceOption<bool>(Settings.EyeCandyParticles, OnOffLabels, OnOffValues, "Eye Candy Particles", "This toggles whether to show eye candy particles, disabling this will improve performance."));
         _options.Add(new ChoiceOption<bool>(Settings.ReducedParticles, OnOffLabels, OnOffValues, "Reduced Particles", "This toggles whether to show reduced particles, enabling this will improve performance."));
         _options.Add(new ChoiceOption<FullscreenType>(Settings.FullscreenMode, ["Exclusive", "Borderless"], [FullscreenType.Exclusive, FullscreenType.Borderless], "Fullscreen type", "Changes which type fullscreen uses", OnWindowModeChange));
         _options.Add(new ChoiceOption<int>(Settings.FpsCap, ["30", "60", "90", "120", "144", "165", "240", "300", "360", "None"], [30, 60, 90, 120, 144, 165, 240, 300, 360, -1], "FPS Cap", "This allows you to choose a frame rate cap", OnFPSChange));
-        _options.Add(new ChoiceOption<int>(Settings.MaxRenderDistance, ["Low", "Medium", "High", "Max"], [15, 20, 25, 60], "Max Render Distance", "Pick the maximum render distance of your client. Can improve performance greatly.", OnRenderDistanceChange));
-        _options.Add(new ChoiceOption<float>(Settings.CameraZoom, ["100%", "90%", "80%", "70%", "60%", "50%", "200%", "150%"], [1f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 2f, 1.5f], "Zoom", "Zooms your game in and out so you can see more or less things at once. You can also use the /mscale command or use Shift + Scroll. (Available options: 100%, 90%, 80%, 70%, 60%, 50%, 200%, 150%)", OnMScaleChange));
+        _options.Add(new ChoiceOption<int>(Settings.MaxRenderDistance, ["Low", "Medium", "High", "Max"], [15, 20, 25, 60], "Max Render Distance", "Pick the maximum render distance of your client. Can improve performance greatly."));
+        _options.Add(new ChoiceOption<float>(Settings.CameraZoom, ["100%", "90%", "80%", "70%", "60%", "50%", "200%", "150%"], [1f, 0.9f, 0.8f, 0.7f, 0.6f, 0.5f, 2f, 1.5f], "Zoom", "Zooms your game in and out so you can see more or less things at once. You can also use the /mscale command or use Shift + Scroll. (Available options: 100%, 90%, 80%, 70%, 60%, 50%, 200%, 150%)"));
         _options.Add(new ChoiceOption<bool>(Settings.VSync, OnOffLabels, OnOffValues, "VSync", "This toggles whether to have VSync enabled or not.", OnVSyncToggle));
     }
 
@@ -189,17 +189,11 @@ public class OptionTabView : Container {
     }
 
     private void OnChatVisible() {
-        throw new NotImplementedException();
-        //GameSprite.Instance.ChatBox.Enabled = !GameSprite.Instance.ChatBox.Enabled;
+        GameScreen.GameSprite?.SetChatVisible(Settings.ChatVisible.Value);
     }
 
     private void OnChatBoxScale() {
-        throw new NotImplementedException();
-        //GameSprite.Instance.ChatBox.Scale = new Vector2(Settings.ChatScaling);
-    }
-
-    private void OnDefautCameraAngleChange() {
-        throw new NotImplementedException();
+        GameScreen.GameSprite?.SetChatScale(Settings.ChatScaling.Value);
     }
 
     private void OnVSyncToggle() {
@@ -208,16 +202,8 @@ public class OptionTabView : Container {
         option.SetDisabled(Settings.VSync);
     }
 
-    private void OnRenderDistanceChange() {
-        throw new NotImplementedException();
-    }
-
     private void OnFPSChange() {
         Main.OnScreenChange.Dispatch(ScreenType.Game);
-    }
-
-    private void OnMScaleChange() {
-        throw new NotImplementedException();
     }
 
     private void OnWindowModeChange() {

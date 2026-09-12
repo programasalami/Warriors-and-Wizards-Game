@@ -44,6 +44,10 @@ public sealed class GameScreen : Screen {
 
     public void CreatePlayerDependentAssets() => _hud.CreatePlayerDependentAssets();
 
+    public void SetChatVisible(bool visible) => _chat.Visible = visible;
+
+    public void SetChatScale(float scale) => _chat.Scale = new Vector2(scale);
+
     public override void Update(GameTime gameTime) {
         Client.Tick();
         
