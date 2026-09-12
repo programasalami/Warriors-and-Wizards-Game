@@ -40,6 +40,7 @@ public record RingAttack : BehaviorScript {
         _angleToIncrement = angleToIncrement.Deg2Rad();
         _fixedAngle = fixedAngle.Deg2Rad();
         _coolDownMS = coolDownMS;
+        _targeted = targeted;
         _seeInvis = seeInvis;
         _useSavedAngle = useSavedAngle;
     }

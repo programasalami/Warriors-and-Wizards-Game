@@ -75,7 +75,7 @@ public sealed class MinimapLayer : Container {
             var fillColor = 0u;
             
             if (entity is Player player) {
-                if (false) {// todo: paused
+                if (player.HasConditionEffect(ConditionEffect.Paused)) {
                     fillColor = 0x7F7F7F;
                 } else if (player.IsFellowGuild) {
                     fillColor = 0x00FF00;

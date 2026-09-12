@@ -62,8 +62,8 @@ public class Player : Entity {
     public int VitalityBoost;
     public int WisdomBoost;
     
-    public double AttackPeriod;
-    public double AttackStart;
+    public new double AttackPeriod;
+    public new double AttackStart;
 
     public int AccountId;
 
@@ -562,8 +562,7 @@ public class Player : Entity {
         RelativeMoveVector.X = relMoveVecX;
         RelativeMoveVector.Y = relMoveVecY;
 
-        if (false) {
-            // Confused
+        if (HasConditionEffect(ConditionEffect.Confused)) {
             var temp = RelativeMoveVector.X;
             RelativeMoveVector.X = -RelativeMoveVector.Y;
             RelativeMoveVector.Y = -temp;
@@ -572,16 +571,14 @@ public class Player : Entity {
     }
 
     private float GetMoveSpeed() {
-        if (false) {
-            // Slowed
+        if (HasConditionEffect(ConditionEffect.Slowed)) {
             return MinMoveSpeed * MovementMultiplier;
         }
 
         var speed = Focused ? FocusedSpeed : Speed;
         var moveSpeed = MinMoveSpeed + speed / 75 * (MaxMoveSpeed - MinMoveSpeed);
 
-        if (false || false) {
-            // Speedy or NinjaSpeedy
+        if (HasConditionEffect(ConditionEffect.Speedy) || HasConditionEffect(ConditionEffect.NinjaSpeedy)) {
             moveSpeed *= 1.5f;
         }
 

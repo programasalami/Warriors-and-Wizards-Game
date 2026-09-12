@@ -33,7 +33,7 @@ public record DropPortalOnDeath : BehaviorScript {
 
         if (Random.Shared.NextDouble() <= _probability) {
             var portalDesc = XmlLibrary.Id2Object(_portalId);
-            var timeoutTime = _timeout == null ? portalDesc.XML.GetValue<int>("Timeout") : _timeout;
+            var timeoutTime = _timeout == 0 ? portalDesc.XML.GetValue<int>("Timeout") : _timeout;
 
             var entity = new Entity(portalDesc.ObjectType);
             ref var en = ref host.World.EnterWorld(ref entity);

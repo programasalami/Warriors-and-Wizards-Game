@@ -29,14 +29,6 @@ namespace AlloyClient.Game.Components.Hud.Inventory
 
         public int currentTabIndex = 1;
 
-        private readonly IconButton InventoryTabButton;
-        private readonly IconButton BackpackTabButton;
-        private readonly IconButton StatsViewTabButton;
-
-        private readonly CutEdgeRect InventoryTab;
-        private readonly CutEdgeRect BackpackTab;
-        private readonly CutEdgeRect StatsViewTab;
-
         private InventoryGrid _inventoryGrid;
         private InventoryGrid _backpackPanel;
         private StatsPanel _statsPanel;
@@ -70,24 +62,6 @@ namespace AlloyClient.Game.Components.Hud.Inventory
 
             foreach (var tab in Tabs)
             {
-                switch (tab.Value)
-                {
-                    case TabTypes.Inventory:
-                        invTab = InventoryTab;
-                        invTabButton = InventoryTabButton;
-                        break;
-                    case TabTypes.StatsView:
-                        invTab = StatsViewTab;
-                        invTabButton = StatsViewTabButton;
-                        break;
-                    case TabTypes.Backpack:
-                        invTab = BackpackTab;
-                        invTabButton = BackpackTabButton;
-                        break;
-                    case TabTypes.PetInfo:
-                        break;
-                }
-
                 invTab = new CutEdgeRect(new CutEdgeConfig { Width = 34, Height = 24, CutX = 5, CutY = 5, Cuts = CutEdges.Top, Color = currentTabIndex == tab.Key ? TabColor : BackgroundColor });
                 invTab.X = X;
                 invTab.Y = Y;

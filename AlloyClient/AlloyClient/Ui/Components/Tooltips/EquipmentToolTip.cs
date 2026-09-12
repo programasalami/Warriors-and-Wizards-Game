@@ -17,7 +17,6 @@ public sealed class EquipmentToolTip : Tooltip
     private SimpleText TitleText;
     private SimpleText DescText;
 
-    private SimpleText DamageText;
     private SimpleText StatsText;
     private string statsText;
     public EquipmentToolTip(ItemDesc itemDesc) : base(220, 100)

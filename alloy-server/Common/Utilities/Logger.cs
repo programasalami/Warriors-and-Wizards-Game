@@ -113,7 +113,7 @@ public class Logger : ILogger {
                 File.AppendAllLines(path, new[] { text });
             }
         }
-        catch (IOException e) { } // uhhh, leave this here ok?
+        catch (IOException) { } // uhhh, leave this here ok?
     }
 
     private static ConsoleColor GetBackColor(LogLevel level) {

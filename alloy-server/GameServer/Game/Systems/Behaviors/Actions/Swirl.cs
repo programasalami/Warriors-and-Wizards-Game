@@ -62,7 +62,7 @@ public record Swirl : BehaviorScript {
             }
         }
         else if (swirlState.RemainingTime <= 0 ||
-                 (swirlState.RemainingTime - period > 200 && host.World.Map.GetNearestOtherEntityByName(host.Stats.Pos, host.Id, null, 2) != null)) {
+                 (swirlState.RemainingTime - period > 200 && host.World.Map.GetNearestOtherEntityByName(host.Stats.Pos, host.Id, null, 2) != EntityId.Null)) {
             if (_targeted) {
                 swirlState.Acquired = false;
 

@@ -13,8 +13,6 @@ public class OptionTabView : Container {
     private static readonly string[] WindowLabels = ["Windowed", "Maximized", "Borderless", "Fullscreen"];
     private static readonly object[] WindowValues = [WindowMode.Normal, WindowMode.Maximized, WindowMode.WindowedFullscreen, WindowMode.ExclusiveFullscreen];
     
-    private readonly OptionsView _optionsView;
-
     private readonly Container _container;
     private readonly List<Option> _options = [];
     private readonly VerticalScrollBar _scrollbar;

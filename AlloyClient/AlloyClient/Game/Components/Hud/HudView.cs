@@ -13,7 +13,6 @@ public sealed class HudView : Sprite {
     private CharacterBars _bars;
 
     private EquippedGrid _equippedGrid;
-    private InventoryGrid _inventoryGrid;
     private TabStrip _tabStrip;
 
     private InteractPanel _interactPanel;
@@ -42,7 +41,6 @@ public sealed class HudView : Sprite {
 
     public void CreatePlayerDependentAssets() {
         RemoveChild(_equippedGrid);
-        RemoveChild(_inventoryGrid);
         RemoveChild(_interactPanel);
         RemoveChild(_tabStrip);
 

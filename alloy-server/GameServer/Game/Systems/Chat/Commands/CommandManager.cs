@@ -46,7 +46,7 @@ public static class CommandManager {
             return;
         }
 
-        cmd.ExecuteAsync(user, args);
+        _ = cmd.ExecuteAsync(user, args);
     }
 
     public static IEnumerable<string> GetCommandList(int accRank) {

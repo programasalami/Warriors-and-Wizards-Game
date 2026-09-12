@@ -41,7 +41,9 @@ public static class Logging {
     }
 }
 
+#pragma warning disable CS9113 // required by AddConsoleFormatter<T, TOptions> DI registration, unused by this formatter
 public sealed class SingleLineConsoleFormatter(IOptions<ConsoleFormatterOptions> options) : ConsoleFormatter(FormatterName) {
+#pragma warning restore CS9113
     public const string FormatterName = "alloySingleline";
 
     private const string Ansi = "\e[";

@@ -91,7 +91,7 @@ public static class Client {
 
         SendHello();
 
-        Task.Run(ReceiveLoop);
+        _ = Task.Run(ReceiveLoop);
     }
 
     private static void ReceiveLoop() {

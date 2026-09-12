@@ -11,7 +11,6 @@ public class StatusBar : Sprite {
 
     private NineSliceRect _mainBar;
     private NineSliceRect _backgroundBar;
-    private NineSliceRect _outlineBar;
     private SimpleText _label;
     private SimpleText _valueText;
 

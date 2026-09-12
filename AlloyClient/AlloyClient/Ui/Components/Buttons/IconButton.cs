@@ -24,9 +24,6 @@ public struct IconButtonConfig {
 public sealed class IconButton : Sprite {
     private AtlasPosition _texture;
 
-    private uint _activeColor;
-    private uint _hoverColor;
-
     private int _width;
     private int _height;
     

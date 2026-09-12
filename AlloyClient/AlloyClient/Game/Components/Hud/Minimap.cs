@@ -27,8 +27,6 @@ public sealed class Minimap : Sprite {
     private float _zoomStep;
     private float _size;
 
-    private bool _mouseOver;
-
     private readonly MinimapLayer _layer;
 
     private readonly IconButton _zoomIn;
@@ -81,10 +79,6 @@ public sealed class Minimap : Sprite {
         AddChild(_arrow);
         
         AddEventListener(Event.EnterFrame, OnFrameEnter);
-        
-        // :smallbrain: not valid callbacks, doesnt support lambdas /shrug >:
-        //AddEventListener(MouseEventId.MouseOver, () => _mouseOver = true);
-        //AddEventListener(MouseEventId.MouseOut, () => _mouseOver = false);
     }
 
     private void UpdateButtons() {

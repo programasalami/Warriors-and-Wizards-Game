@@ -23,7 +23,7 @@ public struct EntityId : IEquatable<EntityId> {
         => new (rdr.ReadInt32());
     
     public bool Equals(EntityId other) => Value == other.Value;
-    public override bool Equals(object? obj) => obj is EntityId other && Equals(other);
+    public override bool Equals(object obj) => obj is EntityId other && Equals(other);
     public override int GetHashCode() => Value;
 
     public static bool operator ==(EntityId a, EntityId b) => a.Value == b.Value;

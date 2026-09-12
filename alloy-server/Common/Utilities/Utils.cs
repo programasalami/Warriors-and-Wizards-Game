@@ -14,7 +14,7 @@ namespace Common.Utilities;
 
 public static class Utils {
     public static string ToSHA1(this string value) {
-        return Convert.ToBase64String(new SHA1Managed().ComputeHash(Encoding.UTF8.GetBytes(value)));
+        return Convert.ToBase64String(SHA1.HashData(Encoding.UTF8.GetBytes(value)));
     }
 
     public static bool ContainsIgnoreCase(this string self, string val) {

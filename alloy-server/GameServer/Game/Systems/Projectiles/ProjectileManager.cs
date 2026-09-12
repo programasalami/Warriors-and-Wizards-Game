@@ -9,14 +9,12 @@ namespace GameServer.Game.Systems.Projectiles;
 
 public class ProjectileManager : ManagerBase<Projectile> {
 
-    private readonly World _world;
     private readonly Stack<int> _freeIdxs;
     private readonly Queue<EntityId> _pendingRemove = [];
-    
+
     private int _idxCounter; // First element starts at id = 1
-    
+
     public ProjectileManager(World world, int capacity) : base(world, capacity) {
-        _world = world;
         _freeIdxs = new Stack<int>(capacity);
     }
 

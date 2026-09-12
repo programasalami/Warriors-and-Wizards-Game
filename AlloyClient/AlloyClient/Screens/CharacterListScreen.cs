@@ -39,10 +39,6 @@ public class CharacterListScreen : TitleScreenBase {
     private int _selectedCharacterId = -1;
 
 
-    private Container _mainBar;
-    private Container _backBar;
-    
-    
 
     public CharacterListScreen() {
         #region Title Buttons

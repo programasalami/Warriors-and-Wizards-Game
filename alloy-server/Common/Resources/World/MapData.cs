@@ -80,18 +80,18 @@ public enum TileRegion {
 
 public struct json_dat {
     public byte[] data { get; set; }
-    public loc[] dict { get; set; }
+    public Loc[] dict { get; set; }
     public int height { get; set; }
     public int width { get; set; }
 }
 
-public struct loc {
+public struct Loc {
     public string ground { get; set; }
-    public obj[] objs { get; set; }
-    public obj[] regions { get; set; }
+    public Obj[] objs { get; set; }
+    public Obj[] regions { get; set; }
 }
 
-public struct obj {
+public struct Obj {
     public string id { get; set; }
     public string name { get; set; }
 }
@@ -127,13 +127,13 @@ public class MapTileData { // Don't modify this tile data with game logic, use W
         BlocksSight = desc?.BlocksSight ?? false;
     }
     
-    public loc GetEntry() {
-        var obj = new obj();
-        if (ObjectType != 0) obj = new obj { id = XmlLibrary.ObjectDescs[ObjectType].ObjectId, name = Key };
+    public Loc GetEntry() {
+        var obj = new Obj();
+        if (ObjectType != 0) obj = new Obj { id = XmlLibrary.ObjectDescs[ObjectType].ObjectId, name = Key };
 
-        return new loc {
+        return new Loc {
             ground = XmlLibrary.TileDescs[GroundType].GroundId, objs = obj.id != null ? new[] { obj } : null,
-            regions = Region != TileRegion.None ? new obj[] { new() { id = Region.ToString() } } : null
+            regions = Region != TileRegion.None ? new Obj[] { new() { id = Region.ToString() } } : null
         };
     }
 
@@ -244,7 +244,7 @@ public class MapData {
     }
 
     public string ExportJson() {
-        var tempDict = new List<loc>();
+        var tempDict = new List<Loc>();
         var stream = new MemoryStream();
         var wtr = new BinaryWriter(stream);
         var json = new json_dat { width = Width, height = Height };
