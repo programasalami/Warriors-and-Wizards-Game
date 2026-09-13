@@ -41,7 +41,11 @@ public abstract partial class GameWindow {
         
         Toolkit.OpenGL.SetCurrentContext(Context);
         GLLoader.LoadBindings(Toolkit.OpenGL.GetBindingsContext(Context));
-        
+
+        _logger.Log(LogLevel.Information, "GL context: {0} ({1}, {2}), GLSL {3}",
+            GL.GetString(StringName.Version), GL.GetString(StringName.Renderer),
+            GL.GetString(StringName.Vendor), GL.GetString(StringName.ShadingLanguageVersion));
+
         EnableDebugOutput();
         
         Toolkit.Event.EventRaised += HandleEvents;

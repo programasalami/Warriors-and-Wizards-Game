@@ -29,11 +29,11 @@ public static class AppRequests {
             return new AppResponse { Success = false, Message = "Failed to contact server." };
         }
 
-        if (response.Contains("Invalid")) {
-            return new AppResponse { Success = false, Message = "Invalid account credentials." };
+        var xml = XElement.Parse(response);
+        if (xml.Name.LocalName == "Error") {
+            return new AppResponse { Success = false, Message = xml.Value };
         }
 
-        var xml = XElement.Parse(response);
         GlobalData.Add(new AccountData(xml));
         GlobalData.Add(new LoginData(username, password));
         

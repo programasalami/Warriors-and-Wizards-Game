@@ -37,6 +37,8 @@ public sealed class Shader {
 
     public void Apply() => GL.UseProgram(Handle);
 
+    public int GetAttribLocation(string name) => GL.GetAttribLocation(Handle, name);
+
     public void SetValue(string uniform, Matrix4 matrix) => GL.ProgramUniformMatrix4f(Handle, GetLocation(uniform, UniformType.FloatMat4), 1, true, in matrix);
 
     public void SetValue(string uniform, float value) => GL.ProgramUniform1f(Handle, GetLocation(uniform, UniformType.Float), value);
@@ -44,6 +46,10 @@ public sealed class Shader {
     public void SetValue(string uniform, int value) => GL.ProgramUniform1i(Handle, GetLocation(uniform, UniformType.Int), value);
 
     public void SetValue(string uniform, Vector2 value) => GL.ProgramUniform2f(Handle, GetLocation(uniform, UniformType.FloatVec2), 1, in value);
+
+    public void SetValue(string uniform, Vector3 value) => GL.ProgramUniform3f(Handle, GetLocation(uniform, UniformType.FloatVec3), 1, in value);
+
+    public void SetValue(string uniform, Vector4 value) => GL.ProgramUniform4f(Handle, GetLocation(uniform, UniformType.FloatVec4), 1, in value);
 
     //public void SetValue(string uniform, Texture texture) => GL.ProgramUniform1i(Handle, GetLocation(uniform, UniformType.Sampler2d), (int)texture.TextureUnit);
     

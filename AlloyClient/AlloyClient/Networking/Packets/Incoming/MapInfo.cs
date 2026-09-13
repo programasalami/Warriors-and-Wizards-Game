@@ -1,6 +1,7 @@
 ﻿using AlloyClient.Data;
 using AlloyClient.Game;
 using AlloyClient.Networking.Packets.Outgoing;
+using Microsoft.Extensions.Logging;
 
 namespace AlloyClient.Networking.Packets.Incoming;
 
@@ -43,6 +44,9 @@ public class MapInfo : IncomingPacket<MapInfo> {
 
     public override void Handle() {
         Map.Reset();
+
+        AlloyClient.Networking.Client.Logger.Log(LogLevel.Debug,
+            $"[DIAG] MapInfo width={Width} height={Height} name={Name}");
 
         Map.InitMap(Width, Height, Name, DisplayName, Difficulty, Seed, Background,
             AllowPlayerTeleport, ShowDisplays);

@@ -8,6 +8,8 @@ using Common.Utilities;
 namespace Common.Network;
 
 public class SocketSendState : IDisposable {
+    private static readonly Logger _diagLog = new(typeof(SocketSendState));
+
     private bool _pending;
     private byte[] _sendBuffer;
     private int _sendLength;
@@ -60,6 +62,9 @@ public class SocketSendState : IDisposable {
         }
 
         var totalLen = writer.Position - start;
+
+        if (totalLen > 10_000)
+            _diagLog.Debug($"[DIAG] packet id={pktId} totalLen={totalLen} bytes");
 
         writer.Position = start;
         writer.Write(totalLen);

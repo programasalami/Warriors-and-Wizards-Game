@@ -12,7 +12,7 @@ public static class DisplayManager {
     public static void Init(Stage stage) {
         if (_stage != null)
             return;
-        
+
         _stage = stage;
         _stage.AddChild(ScreenManager.FadeScreen);
         _stage.AddChild(new ScreenManager());
@@ -20,7 +20,7 @@ public static class DisplayManager {
         _stage.AddChild(new DialogManager());
         _stage.AddChild(new TooltipManager());
     }
-    
+
     public static void Update(GameTime gameTime) {
         ScreenManager.Update(gameTime);
         _stage.Update(gameTime);
@@ -32,5 +32,5 @@ public static class DisplayManager {
         ScreenManager.Draw(gameTime);
         _stage.Draw(gameTime);
     }
-    
+
 }

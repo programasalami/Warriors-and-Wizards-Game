@@ -23,6 +23,9 @@ public sealed unsafe class UniformBuffer {
         if (size + offsetInBytes > LengthBytes) throw new Exception("Data larger than buffer");
 
         GL.BindBuffer(BufferTarget.CopyWriteBuffer, Handle);
+
+        // Orphan before writing - see the matching comment in InstanceAttributeBuffer.SetData.
+        GL.BufferData(BufferTarget.CopyWriteBuffer, LengthBytes, IntPtr.Zero, BufferUsage.DynamicDraw);
         GL.BufferSubData(BufferTarget.CopyWriteBuffer, offsetInBytes, size, data);
     }
 

@@ -1,6 +1,4 @@
-﻿#version 430 core
-
-#define TileBuffer
+#version 330 core
 
 uniform sampler2D GameTexture;
 uniform vec4 AlphaBlends[8];
@@ -21,7 +19,7 @@ void main() {
     vec2 wrappedTexels = floor(fract(vsInput.coreUV) * tileTexelSize);
     vec2 uv = (tileTexelOrigin + wrappedTexels + 0.5) / 4096.0;
     uv = mix(uv.xy, uv.yx, vsInput.Swizzle);
-    
+
     vec4 ogColor = texture(GameTexture, uv);
 
     if (vsInput.Mask.x > -1.0) {

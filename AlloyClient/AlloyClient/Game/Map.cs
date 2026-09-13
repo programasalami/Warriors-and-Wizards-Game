@@ -47,6 +47,8 @@ public class TileMap {
         chunk.SetDirty();
     }
 
+    public System.Collections.Generic.IEnumerable<Vector2i> DiagChunkKeys() => _chunks.Keys;
+
     public bool GetChunkData(Vector2i chunkCoords, out ReadOnlySpan<TileData> data) {
         if (!_chunks.TryGetValue(chunkCoords, out var chunk)) {
             data = default;
@@ -125,7 +127,8 @@ public static class Map {
     public const int VisibleChunks = ViewDiameterX * ViewDiameterY;
 
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(Map));
-    
+    private static bool _diagDrawLogged;
+
     public const int TileRenderDistance = 20;
 
     public static GameTime LastGameTime;
@@ -257,16 +260,24 @@ public static class Map {
         
         var camChunkPos = new Vector2i((int)camera.Position.X / TileMap.ChunkSize, (int)camera.Position.Y / TileMap.ChunkSize) - new Vector2i(ViewRadiusX, ViewRadiusY);
 
+        var diagFound = 0;
         for (var i = 0; i < VisibleChunks; i++) {
             if (!Tiles.GetChunkData(camChunkPos + new Vector2i(i % ViewDiameterX, i / ViewDiameterX), out var data)) {
                 continue;
             }
 
+            diagFound++;
             VisibleTiles.AddRange(data); // should probably not do this but cant be bothered currently
+        }
+
+        if (!_diagDrawLogged && LocalPlayer != null) {
+            _diagDrawLogged = true;
+            AlloyClient.Networking.Client.Logger.Log(Microsoft.Extensions.Logging.LogLevel.Debug,
+                $"[DIAG] Draw camPos={camera.Position} camChunkPos={camChunkPos} chunksFound={diagFound}/{VisibleChunks} visibleTiles={VisibleTiles.Count} createdChunks=[{string.Join(";", Tiles.DiagChunkKeys())}]");
         }
         
         Render.DrawTiles(VisibleTiles.AsReadOnlySpan());
-        
+
         #endregion
 
         #region Shadows
@@ -292,13 +303,13 @@ public static class Map {
         Render.DrawParticles(Particles, _particleCount);
 
         #endregion
-        
+
         GL.Enable(EnableCap.CullFace);
 
         #region Entities
-        
+
         RenderTargets.Clear();
-        
+
         Render.StartDrawModel();
 
         for (var i = 0; i < EntityStorage.Types.Length; i++) {
@@ -318,9 +329,9 @@ public static class Map {
 
             Render.FlushBufferModel();
         }
-        
+
         GL.Disable(EnableCap.CullFace);
-        
+
         Render.StartDrawEntity();
         
         foreach (var type in EntityStorage[ModelType.PbObject]) {

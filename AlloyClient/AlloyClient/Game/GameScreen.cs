@@ -9,6 +9,7 @@ using AlloyClient.Rendering;
 using AlloyClient.Ui.Character;
 using AlloyClient.Ui.Chat;
 using AlloyClient.Ui.Components.Elements;
+using Microsoft.Extensions.Logging;
 using OpenTK.Mathematics;
 
 namespace AlloyClient.Game;
@@ -28,6 +29,7 @@ public sealed class GameScreen : Screen {
 
     private double _fixedUpdateElapsed;
     private Camera _camera;
+    private bool _diagCameraLogged;
 
     public GameScreen() {
         Client.Connect(Settings.GameServerAddress, Settings.SelectedGameServerPort);
@@ -56,6 +58,14 @@ public sealed class GameScreen : Screen {
         }
         
         _camera = Camera.Update(Map.LocalPlayer.Position, new Vector3i(Stage.StageWidth, Stage.StageHeight, _hud.Width), Settings.CameraAngle, Settings.CameraZoom);
+
+        if (!_diagCameraLogged) {
+            _diagCameraLogged = true;
+            Client.Logger.Log(LogLevel.Debug,
+                $"[DIAG] camera pos={Map.LocalPlayer.Position} viewport=({Stage.StageWidth},{Stage.StageHeight},{_hud.Width}) " +
+                $"angle={Settings.CameraAngle} zoom={Settings.CameraZoom} matrix={_camera.Matrix} visibleTiles={_camera.VisibleTileRadius}");
+        }
+
         _userInput.Update(gameTime, _camera);
         _chatLayer.Update(gameTime, _camera);
         _notificationLayer.Update(gameTime, _camera);

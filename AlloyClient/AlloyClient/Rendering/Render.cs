@@ -16,9 +16,7 @@ public static partial class Render {
     public const int TileBufferSize = Map.VisibleChunks * TileMap.ChunkArea * 4;
     private const int ShadowBufferSize = 4096;
     
-    private static readonly (string, string)[] TileDefines = [("TileBuffer", $"{TileBufferSize}")];
     private static readonly (string, string)[] ShadowDefines = [("ShadowBuffer", $"{ShadowBufferSize}")];
-    private static readonly (string, string)[] ObjectDefines = [("ObjectBuffer", $"{BufferSize}")];
     
     // Shader Sources
     [Shader("Ground")] private static partial ShaderSource GroundShaderSource { get; }
@@ -37,34 +35,39 @@ public static partial class Render {
     // Vertex Objects
     private static VertexArrayObject _defaultVao;
     private static VertexArrayObject _modelVao;
+    private static VertexArrayObject _tileVao;
+    private static VertexArrayObject _entityVao;
 
     // Buffers
-    private static IndexBuffer _modelIndexBuffer;
-    private static VertexBuffer<VertexBase> _modelVertexBuffer;
-    
-    private static TileData[] _tileData;
-    private static StorageBuffer<TileData> _tileBuffer;
-    
+    private static VertexModel[] _modelInstances;
+    private static ModelVertexExpanded[] _modelVertexExpandedData;
+    private static InstanceAttributeBuffer<ModelVertexExpanded> _modelExpandedBuffer;
+
+    private static TileVertexExpanded[] _tileVertexData;
+    private static InstanceAttributeBuffer<TileVertexExpanded> _tileBuffer;
+
     private static ShadowData[] _shadowData;
     private static UniformBuffer _shadowBuffer;
-    
-    private static VertexModel[] _modelData;
-    private static VertexBuffer<VertexModel> _modelDataBuffer;
-    
+
     private static VertexObject[] _entityData;
-    private static StorageBuffer<VertexObject> _entityDataBuffer;
-    
+    private static EntityVertexExpanded[] _entityVertexData;
+    private static InstanceAttributeBuffer<EntityVertexExpanded> _entityDataBuffer;
+
+    private static readonly Vector2[] TileCorners = [new(0, 1), new(1, 1), new(0, 0), new(0, 0), new(1, 1), new(1, 0)];
+    private static readonly Vector2[] ObjectCorners = [new(-0.5f, 0.5f), new(0.5f, 0.5f), new(-0.5f, -0.5f), new(-0.5f, -0.5f), new(0.5f, 0.5f), new(0.5f, -0.5f)];
+    private static readonly Vector2[] ObjectUVs = [new(0, 1), new(1, 1), new(0, 0), new(0, 0), new(1, 1), new(1, 0)];
+
     public static unsafe void FirstTimeInit(Sampler atlas, BitmapFamily font) {
         // Shaders
-        _shaderGround = Shader.FromSource(GroundShaderSource, TileDefines);
+        _shaderGround = Shader.FromSource(GroundShaderSource);
         _shaderGround.SetValue("GameTexture", atlas);
 
         _shaderShadow = Shader.FromSource(ShadowShaderSource, ShadowDefines);
-        
+
         _shaderModel = Shader.FromSource(ModelShaderSource);
         _shaderModel.SetValue("GameTexture", atlas);
-        
-        _shaderObject = Shader.FromSource(ObjectShaderSource, ObjectDefines);
+
+        _shaderObject = Shader.FromSource(ObjectShaderSource);
         _shaderObject.SetValue("GameTexture", atlas);
         
         _shaderObject.SetValue("PixelRange", font.PixelRange);
@@ -75,36 +78,54 @@ public static partial class Render {
         
         _defaultVao = new VertexArrayObject();
 
-        _tileData = new TileData[TileBufferSize];
-        _tileBuffer = new StorageBuffer<TileData>(_tileData.Length);
+        _tileVertexData = new TileVertexExpanded[TileBufferSize * 6];
+        _tileBuffer = new InstanceAttributeBuffer<TileVertexExpanded>(_tileVertexData.Length);
+        _tileVao = new VertexArrayObject();
+        _tileBuffer.BindAttribute(_tileVao, 0, 2, 0);   // iLocalPos
+        _tileBuffer.BindAttribute(_tileVao, 1, 2, 8);   // iLocalUV
+        _tileBuffer.BindAttribute(_tileVao, 2, 4, 16);  // iPosition
+        _tileBuffer.BindAttribute(_tileVao, 3, 4, 32);  // iUV
+        _tileBuffer.BindAttribute(_tileVao, 4, 4, 48);  // iAnimate
+        _tileBuffer.BindAttribute(_tileVao, 5, 4, 64);  // iMask
+        _tileBuffer.BindAttribute(_tileVao, 6, 4, 80);  // iTemp
 
         _shadowData = new ShadowData[ShadowBufferSize];
         _shadowBuffer = new UniformBuffer(_shadowData.Length * sizeof(ShadowData));
         
-        _modelIndexBuffer = new IndexBuffer(ModelData.Indices.Length);
-        _modelIndexBuffer.SetData(ModelData.Indices);
-        _modelVertexBuffer = new VertexBuffer<VertexBase>(VertexBase.VertexStride, ModelData.Vertices.Length);
-        _modelVertexBuffer.SetData(ModelData.Vertices);
+        _modelInstances = new VertexModel[2000];
+        _modelVertexExpandedData = new ModelVertexExpanded[20000];
+        _modelExpandedBuffer = new InstanceAttributeBuffer<ModelVertexExpanded>(_modelVertexExpandedData.Length);
 
         _modelVao = new VertexArrayObject();
-        
-        _modelData = new VertexModel[BufferSize];
-        _modelDataBuffer = new VertexBuffer<VertexModel>(VertexModel.VertexStride, BufferSize);
-        _modelIndexBuffer.BindTo(_modelVao);
-        _modelVertexBuffer.BindTo(_modelVao);
-        _modelDataBuffer.BindTo(_modelVao, 1);
-        
-        
+        _modelExpandedBuffer.BindAttribute(_modelVao, 0, 3, 0);   // Position
+        _modelExpandedBuffer.BindAttribute(_modelVao, 1, 2, 12);  // BaseUV
+        _modelExpandedBuffer.BindAttribute(_modelVao, 2, 3, 20);  // iPosition
+        _modelExpandedBuffer.BindAttribute(_modelVao, 3, 4, 32);  // iUV
+        _modelExpandedBuffer.BindAttribute(_modelVao, 4, 3, 48);  // iExtra
+
+
         _entityData = new VertexObject[BufferSize];
-        _entityDataBuffer = new StorageBuffer<VertexObject>(BufferSize);
-        
+        _entityVertexData = new EntityVertexExpanded[BufferSize * 6];
+        _entityDataBuffer = new InstanceAttributeBuffer<EntityVertexExpanded>(_entityVertexData.Length);
+        _entityVao = new VertexArrayObject();
+        _entityDataBuffer.BindAttribute(_entityVao, 0, 2, 0);    // iLocalPos
+        _entityDataBuffer.BindAttribute(_entityVao, 1, 2, 8);    // iLocalUV
+        _entityDataBuffer.BindAttribute(_entityVao, 2, 4, 16);   // iPosition
+        _entityDataBuffer.BindAttribute(_entityVao, 3, 4, 32);   // iUV
+        _entityDataBuffer.BindAttribute(_entityVao, 4, 4, 48);   // iScale
+        _entityDataBuffer.BindAttribute(_entityVao, 5, 4, 64);   // iRotation
+        _entityDataBuffer.BindAttribute(_entityVao, 6, 4, 80);   // iExtra
+        _entityDataBuffer.BindAttribute(_entityVao, 7, 4, 96);   // iColor
+        _entityDataBuffer.BindAttribute(_entityVao, 8, 4, 112);  // iMask1
+        _entityDataBuffer.BindAttribute(_entityVao, 9, 4, 128);  // iMask2
+
         BuildParticleBuffers();
     }
     
     public static void SetShaderParams(GameTime gameTime, Camera camera) {
         _shaderGround.SetValue("FullMatrix", camera.Matrix);
         _shaderGround.SetValue("GameTime", (float)(gameTime.TotalMs / 1000.0f));
-        
+
         _shaderShadow.SetValue("FullMatrix", camera.Matrix);
         _shaderShadow.SetValue("BillMatrix", camera.BillboardMatrix);
         
@@ -112,7 +133,7 @@ public static partial class Render {
         
         _shaderObject.SetValue("FullMatrix", camera.Matrix);
         _shaderObject.SetValue("BillMatrix", camera.BillboardMatrix);
-        _shaderObject.SetValue("Zoom", Settings.CameraZoom);
+        // Zoom uniform no longer used by Object.frag (glow/outline pass disabled)
         
         _shaderParticle.SetValue("FullMatrix", camera.Matrix);
         _shaderParticle.SetValue("BillMatrix", camera.BillboardMatrix);

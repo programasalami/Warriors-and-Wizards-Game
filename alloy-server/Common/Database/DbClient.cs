@@ -13,6 +13,8 @@ using Npgsql;
 namespace Common.Database;
 
 public static class DbClient {
+    private static readonly Logger _log = new(typeof(DbClient));
+
     private const int MaxAccountsPerIp = 3000;
 
     public static NpgsqlDataSource DataSource;
@@ -218,11 +220,18 @@ public static class DbClient {
         if (acc == null)
             return (null, VerifyStatus.InternalError);
 
-        // Atomic acquire-or-verify-already-mine against Redis - replaces the old
-        // Account.LockOwner field entirely (that mutation was never actually
-        // persisted, so the old in-DB duplicate-login check didn't reliably work).
-        if (!await AccountLockManager.TryAcquireAsync(acc.Id, gameServerGuid))
-            return (null, VerifyStatus.AccountInUse);
+        // Guid.Empty means "just check credentials" (HTTP-only endpoints like
+        // /account/verify, /char/list, /account/purchaseCharSlot, /char/delete) -
+        // skip session locking entirely for those, since that caller never holds
+        // a live connection to disconnect and release the lock. Only a real
+        // GameServer session (Hello.cs, using its own Program.Guid) acquires it.
+        if (gameServerGuid != Guid.Empty) {
+            // Atomic acquire-or-verify-already-mine against Redis - replaces the old
+            // Account.LockOwner field entirely (that mutation was never actually
+            // persisted, so the old in-DB duplicate-login check didn't reliably work).
+            if (!await AccountLockManager.TryAcquireAsync(acc.Id, gameServerGuid))
+                return (null, VerifyStatus.AccountInUse);
+        }
 
         return (acc, VerifyStatus.Success);
     }
@@ -242,47 +251,53 @@ public static class DbClient {
         }
         else // Success, create character here
         {
-            var charId = acc.NextCharId;
-            var classDesc = XmlLibrary.PlayerDescs[objectType];
-            chr = new Character {
-                CharId = charId,
-                XpPoints = NewCharsConfig.Config.Experience,
-                Level = NewCharsConfig.Config.Level,
-                ObjectType = objectType,
-                ItemTypes = Enumerable.Repeat(-1, 20).ToArray(),
-                ItemDatas = Enumerable.Repeat((byte)0, 20).ToArray(),
-                TextureOne = (ushort)NewCharsConfig.Config.Tex1,
-                TextureTwo = (ushort)NewCharsConfig.Config.Tex2,
-                SkinType = skinType,
-                HealthPotions = NewCharsConfig.Config.HealthPotions,
-                MagicPotions = NewCharsConfig.Config.MagicPotions,
-                HasBackpack = NewCharsConfig.Config.HasBackpack,
-                Stats = new CharacterStats {
-                    Hp = classDesc.Stats[StatType.MaxHP].StartValue,
-                    MaxHp = classDesc.Stats[StatType.MaxHP].StartValue,
-                    Mp = classDesc.Stats[StatType.MaxMP].StartValue,
-                    MaxMp = classDesc.Stats[StatType.MaxMP].StartValue,
-                    Attack = classDesc.Stats[StatType.Attack].StartValue,
-                    Defense = classDesc.Stats[StatType.Defense].StartValue,
-                    Speed = classDesc.Stats[StatType.Speed].StartValue,
-                    Dexterity = classDesc.Stats[StatType.Dexterity].StartValue,
-                    Vitality = classDesc.Stats[StatType.Vitality].StartValue,
-                    Wisdom = classDesc.Stats[StatType.Wisdom].StartValue
-                },
-                CombatStats = new CombatStats(),
-                ExplorationStats = new ExplorationStats(),
-                KillStats = new KillStats(),
-                DungeonStats = new DungeonStats()
-            };
+            try {
+                var charId = acc.NextCharId;
+                var classDesc = XmlLibrary.PlayerDescs[objectType];
+                chr = new Character {
+                    CharId = charId,
+                    XpPoints = NewCharsConfig.Config.Experience,
+                    Level = NewCharsConfig.Config.Level,
+                    ObjectType = objectType,
+                    ItemTypes = Enumerable.Repeat(-1, 20).ToArray(),
+                    ItemDatas = Enumerable.Repeat((byte)0, 20).ToArray(),
+                    TextureOne = (ushort)NewCharsConfig.Config.Tex1,
+                    TextureTwo = (ushort)NewCharsConfig.Config.Tex2,
+                    SkinType = skinType,
+                    HealthPotions = NewCharsConfig.Config.HealthPotions,
+                    MagicPotions = NewCharsConfig.Config.MagicPotions,
+                    HasBackpack = NewCharsConfig.Config.HasBackpack,
+                    Stats = new CharacterStats {
+                        Hp = classDesc.Stats[StatType.MaxHP].StartValue,
+                        MaxHp = classDesc.Stats[StatType.MaxHP].StartValue,
+                        Mp = classDesc.Stats[StatType.MaxMP].StartValue,
+                        MaxMp = classDesc.Stats[StatType.MaxMP].StartValue,
+                        Attack = classDesc.Stats[StatType.Attack].StartValue,
+                        Defense = classDesc.Stats[StatType.Defense].StartValue,
+                        Speed = classDesc.Stats[StatType.Speed].StartValue,
+                        Dexterity = classDesc.Stats[StatType.Dexterity].StartValue,
+                        Vitality = classDesc.Stats[StatType.Vitality].StartValue,
+                        Wisdom = classDesc.Stats[StatType.Wisdom].StartValue
+                    },
+                    CombatStats = new CombatStats(),
+                    ExplorationStats = new ExplorationStats(),
+                    KillStats = new KillStats(),
+                    DungeonStats = new DungeonStats()
+                };
 
-            for (var i = 0; i < classDesc.Equipment.Length; i++) {
-                var itemType = classDesc.Equipment[i];
-                chr.ItemTypes[i] = itemType;
+                for (var i = 0; i < classDesc.Equipment.Length; i++) {
+                    var itemType = classDesc.Equipment[i];
+                    chr.ItemTypes[i] = itemType;
+                }
+
+                acc.NextCharId++;
+                acc.Characters.Add(chr);
+                await FlushAsync(acc);
+            } catch (Exception ex) {
+                _log.Error($"CreateCharacterAsync failed for objectType {objectType}: {ex}");
+                chr = null;
+                status = CreateCharacterStatus.InternalError;
             }
-
-            acc.NextCharId++;
-            acc.Characters.Add(chr);
-            await FlushAsync(acc);
         }
 
         return (chr, status);

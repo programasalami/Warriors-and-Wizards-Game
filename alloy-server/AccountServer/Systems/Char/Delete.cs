@@ -19,7 +19,7 @@ public class Delete : RequestHandler {
         var acc = verify.Acc;
         var status = verify.Status;
         if (acc == null)
-            return status.GetDescription();
+            return WriteError(status.GetDescription());
         
         if (!int.TryParse(query["charId"], out var charId))
             return WriteError("A character Id is required to delete the character");

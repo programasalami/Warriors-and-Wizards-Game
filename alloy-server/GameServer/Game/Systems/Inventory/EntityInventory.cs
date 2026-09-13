@@ -135,9 +135,17 @@ public struct EntityInventory : IEntityIdentifiable, IDisposable {
         
         stats.Set(StatType.HealthPotionStack, _potionStacks[0]);
         stats.Set(StatType.MagicPotionStack, _potionStacks[1]);
+
+        const int inventorySlots = (int)StatType.Inventory11 - (int)StatType.Inventory0 + 1;
+
         for (var i = 0; i < _size; i++)
             if (_itemUpdates.IsSet(i)) {
-                stats.Set(StatType.Inventory0 + i, _items[i]?.ObjectType ?? -1);
+                // Slots beyond the 12 regular inventory slots are backpack slots - they need
+                // their own StatType range, not a continuation of Inventory0+i, which would
+                // overflow into unrelated stats (Attack, Defense, Speed, Vitality, Wisdom,
+                // Dexterity, Condition1, NumStars, ...) for anyone with a backpack.
+                var statType = i < inventorySlots ? StatType.Inventory0 + i : StatType.Backpack0 + (i - inventorySlots);
+                stats.Set(statType, _items[i]?.ObjectType ?? -1);
                 stats.Set(StatType.InventoryData0 + i, _items[i]?.ExportString());
             }
 

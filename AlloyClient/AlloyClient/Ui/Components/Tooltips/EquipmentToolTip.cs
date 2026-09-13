@@ -123,7 +123,12 @@ public sealed class EquipmentToolTip : Tooltip
 
     public override void DrawSprite()
     {
-        ToolHeight = Height + 10;
+        // Height (the Sprite's auto-calculated content bounds) doesn't pick up Icon/Title/
+        // DescText/StatsText, since they're added directly to this tooltip rather than to a
+        // measured container - it comes back as 0, making the tooltip's background far too
+        // short to fit its own content. Use the actual bottom-most laid-out element instead.
+        var bottom = StatsText != null ? StatsText.Y + StatsText.Height : DescText.Y + DescText.Height;
+        ToolHeight = bottom + 10;
         base.DrawSprite();
     }
 

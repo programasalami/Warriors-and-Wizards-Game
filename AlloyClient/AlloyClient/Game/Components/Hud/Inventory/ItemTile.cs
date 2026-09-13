@@ -259,11 +259,14 @@ public sealed class ItemTile : Sprite {
 
         RemoveChild(_sprite);
         RemoveChild(_tierText);
-        
+
         _sprite.Scale = Stage.ScreenScale;
+        // Attach to the new parent before starting the drag: StartDrag() reads _sprite.Stage
+        // (via Stage.Mouse.GetMousePosition()) to compute the drag offset, which is null while
+        // _sprite sits between its old parent (just removed above) and this one.
+        GameScreen.GameSprite.AddChild(_sprite);
         _sprite.StartDrag();
         _sprite.AddEventListener(MouseEvent.LeftUp, OnEndDrag);
-        GameScreen.GameSprite.AddChild(_sprite);
     }
 
     private void OnEndDrag(MouseEvent args) {

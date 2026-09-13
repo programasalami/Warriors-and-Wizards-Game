@@ -20,11 +20,11 @@ public class PurchaseCharSlot : RequestHandler {
         var acc = verify.Acc;
         var status = verify.Status;
         if (acc == null)
-            return status.GetDescription();
-        
+            return WriteError(status.GetDescription());
+
         var buyStatus = await DbClient.BuyCharSlotAsync(acc);
         if (buyStatus != BuyStatus.Success)
-            return buyStatus.GetDescription();
+            return WriteError(buyStatus.GetDescription());
         
         return WriteSuccess();
     }

@@ -1,17 +1,16 @@
-﻿#version 430 core
+#version 330 core
 precision highp float;
 
-struct extra {
-    float Type;
-    float SortId;
-    float Shade;
-    float Alpha;
-};
-
+// Extra used to be a struct-typed varying in the middle of this interface block. Some
+// GLSL compilers/drivers mishandle struct members inside in/out interface blocks and
+// corrupt the plain vec2/vec4 varyings around them - on this GPU/driver it was zeroing
+// out the per-pixel variation of BaseUV/UV (declared before it), making every sprite
+// sample a single texel instead of its real texture. Flattened to a plain vec4 here:
+// x=Type, y=SortId, z=Shade, w=Alpha.
 in OBJECT_OUT {
     vec2 BaseUV;
     vec4 UV;
-    extra Extra;
+    vec4 Extra;
     vec4 Color;
     vec4 Mask1;
     vec4 Mask2;
@@ -42,115 +41,32 @@ float median(float a, float b, float c) {
     return max(min(a, b), min(max(a, b), c));
 }
 
-float samp(vec2 uv, vec2 dx, vec2 dy) {
-    return textureGrad(GameTexture, uv, dx, dy).a;
-}
-
-bool inBounds(vec2 uv, vec2 minUV, vec2 maxUV){
-    if (uv.x < minUV.x ||
-    uv.x > maxUV.x ||
-    uv.y < minUV.y ||
-    uv.y > maxUV.y)
-    {
-        return false;
-    }
-    return true;
-}
-
 vec4 GetGameObject() {
-    const float INV_TEX_SIZE = 1.0 / 4096.0;
-
-    // uvMax precomputed once, reused in map() and as loop bounds
+    // uvMax precomputed once, reused in map()
     vec2 uvMax = vsInput.UV.xy + vsInput.UV.zw;
     vec2 uv = map(vsInput.BaseUV, vsInput.UV.xy, uvMax);
-    vec2 dx = dFdx(uv);
-    vec2 dy = dFdy(uv);
-    vec4 color = textureGrad(GameTexture, uv, dx, dy);
-    color.rgb -= vsInput.Extra.Shade * 0.241 * clamp(vsInput.BaseUV.y - 0.4, 0.0, 0.4);
+    // textureLod at LOD 0 instead of textureGrad() with manually computed dFdx/dFdy: those
+    // derivatives are unreliable on this GPU/driver (garbage/degenerate mip selection made
+    // sprites look like flat blocks of solid color). Plain texture() (automatic derivatives)
+    // isn't safe either here - screen-space UV derivatives are discontinuous at atlas sprite
+    // boundaries, so automatic mip selection bleeds in neighboring atlas entries. Locking to
+    // LOD 0 sidesteps derivatives entirely and always samples the sharp, correct texels.
+    vec4 color = textureLod(GameTexture, uv, 0.0);
+    color.rgb -= vsInput.Extra.z * 0.241 * clamp(vsInput.BaseUV.y - 0.4, 0.0, 0.4);
     if (RenderPass == OpaquePass){
-        if (color.a < 1.0 || vsInput.Extra.Alpha < 1.0){
+        if (color.a < 1.0 || vsInput.Extra.w < 1.0){
             discard;
         }
         return color;
     }
 
-    if (color.a >= 1.0){
-        if (vsInput.Extra.Alpha < 1.0){
-            return color;
-        }
-        discard;
-    }
-
-    float pxW = length(dx);
-    float pxH = length(dy);
-    vec2 invPx = vec2(1.0 / pxW, 1.0 / pxH);
-
-    // Reuses invPx instead of recomputing length(dx * 4096.0) from scratch
-    float pixelsInOneTexel = max(invPx.x, invPx.y) * INV_TEX_SIZE;
-    float outlineSize = floor(max(1.0, Zoom));
-    float glowSize = max(6.0, pixelsInOneTexel);
-
-    ivec2 currentTexel = ivec2(uv * 4096.0);
-    vec2  minUV = vsInput.UV.xy;
-
-    vec2 dirs[8] = vec2[](
-    -dx - dy, -dy, dx - dy,  dx,
-    dx + dy,  dy, -dx + dy, -dx
-    );
-
-    bool belowTexel = (uvMax.y - uv.y + outlineSize * pxH) * 4096.0 < 1.0;
-
-    bool foundOutline = false;
-    float nearestDist = 999.0;
-    int glowSizeInt = int(glowSize);
-    int outlineSizeInt = int(outlineSize);
-
-    int stepSize = int(ceil(Zoom * 2));
-    for (int i = 1; i <= glowSizeInt && !foundOutline; i += stepSize) {
-        if (i > outlineSizeInt && belowTexel) {
-            discard;
-        }
-
-        float fi = float(i);
-        for (int j = 0; j < 8; j++) {
-            vec2 sampleUV = uv + dirs[j] * fi;
-            if (!inBounds(sampleUV, minUV, uvMax)){
-                continue;
-            }
-
-            ivec2 neighborTexel = ivec2(sampleUV * 4096.0);
-            if (neighborTexel == currentTexel){
-                continue;
-            }
-            
-            if (texelFetch(GameTexture, neighborTexel, 0).a == 0.0){
-                continue;
-            }
-
-            vec2 nearestPoint = clamp(uv,
-            vec2(neighborTexel)            * INV_TEX_SIZE,
-            vec2(neighborTexel + ivec2(1)) * INV_TEX_SIZE);
-            vec2 distPx = abs(uv - nearestPoint) * invPx;
-
-            if (max(distPx.x, distPx.y) <= outlineSize) {
-                foundOutline = true;
-                break;
-            }
-
-            nearestDist = min(nearestDist, length(distPx));
-        }
-    }
-
-    if (foundOutline){
-        return vec4(vsInput.Color.rgb, 1.0);
-    }
-
-    if (nearestDist < 999.0) {
-        float normalized = nearestDist / glowSize;
-        float glowAlpha  = 0.8 * exp(-normalized * 4.0) * (1.0 - smoothstep(0.8, 1.0, normalized));
-        if (glowAlpha > 0.0){
-            return vec4(vsInput.Color.rgb, glowAlpha);
-        }
+    // Fading-in objects (Extra.w = Alpha < 1) still show their full opaque texture color
+    // here. The neighbor-sampling outline/glow effect that used to follow is disabled: on
+    // this GPU/driver it misfired broadly instead of only along sprite edges, painting
+    // whole quads with vsInput.Color (opaque black for most objects) and blacking out
+    // everything behind them. Purely cosmetic effect - safe to skip.
+    if (color.a >= 1.0 && vsInput.Extra.w < 1.0){
+        return color;
     }
 
     discard;
@@ -176,7 +92,7 @@ vec4 GetText() {
 
 void main() {
     vec4 outputColor;
-    float id = vsInput.Extra.Type;
+    float id = vsInput.Extra.x;
 
     if (id == TypeGameObject || id == TypeEffect) {
         outputColor = GetGameObject();
@@ -188,7 +104,7 @@ void main() {
         outputColor = vec4(0, 0, 0, 0);
     }
 
-    outputColor.a *= vsInput.Extra.Alpha;
+    outputColor.a *= vsInput.Extra.w;
     if (outputColor.a == 0) {
         discard;
     }

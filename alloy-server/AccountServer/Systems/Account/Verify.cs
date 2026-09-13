@@ -19,7 +19,7 @@ public class Verify : RequestHandler {
         var acc = verify.Acc;
         var status = verify.Status;
         if (acc == null)
-            return status.GetDescription();
+            return WriteError(status.GetDescription());
 
         return acc.ToXml().ToString();
     }

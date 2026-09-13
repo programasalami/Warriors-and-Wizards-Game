@@ -22,6 +22,9 @@ public sealed unsafe class StorageBuffer<T> where T : unmanaged, IBufferData<T> 
         }
 
         GL.BindBuffer(BufferTarget.CopyWriteBuffer, Handle);
+
+        // Orphan before writing - see the matching comment in InstanceAttributeBuffer.SetData.
+        GL.BufferData(BufferTarget.CopyWriteBuffer, Length * sizeof(T), IntPtr.Zero, BufferUsage.DynamicDraw);
         GL.BufferSubData(BufferTarget.CopyWriteBuffer, 0, sizeof(T) * data.Length, data);
     }
 
