@@ -33,7 +33,13 @@ public static partial class UiRender {
     public static int LastRenderCount = 0;
 
     public static BitmapFamily MyriadPro;
-    
+
+    public static BitmapFamily NotJamSignature21;
+
+    public static BitmapFamily CrunchyFont;
+
+    public static BitmapFamily Occular;
+
     public static Matrix4 ViewMatrix = new(0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, 0f, -0.5f, 0f, -1f, 1f, 0.5f, 1f);
     
     [Shader("Ui")] private static partial ShaderSource UiShaderSource { get; }
@@ -88,10 +94,34 @@ public static partial class UiRender {
 
     public static void RegisterFont(BitmapFamily font) {
         MyriadPro = font;
-        
+
         UiShader.SetValue("PixelRange", MyriadPro.PixelRange);
         UiShader.SetValue("TextTextureSize", new Vector2(MyriadPro.Atlas.Width, MyriadPro.Atlas.Height));
         UiShader.SetValue("TextTexture", MyriadPro.Sampler);
+    }
+
+    public static void RegisterSecondaryFont(BitmapFamily font) {
+        NotJamSignature21 = font;
+
+        UiShader.SetValue("PixelRange2", NotJamSignature21.PixelRange);
+        UiShader.SetValue("TextTextureSize2", new Vector2(NotJamSignature21.Atlas.Width, NotJamSignature21.Atlas.Height));
+        UiShader.SetValue("TextTexture2", NotJamSignature21.Sampler);
+    }
+
+    public static void RegisterTertiaryFont(BitmapFamily font) {
+        CrunchyFont = font;
+
+        UiShader.SetValue("PixelRange3", CrunchyFont.PixelRange);
+        UiShader.SetValue("TextTextureSize3", new Vector2(CrunchyFont.Atlas.Width, CrunchyFont.Atlas.Height));
+        UiShader.SetValue("TextTexture3", CrunchyFont.Sampler);
+    }
+
+    public static void RegisterQuaternaryFont(BitmapFamily font) {
+        Occular = font;
+
+        UiShader.SetValue("PixelRange4", Occular.PixelRange);
+        UiShader.SetValue("TextTextureSize4", new Vector2(Occular.Atlas.Width, Occular.Atlas.Height));
+        UiShader.SetValue("TextTexture4", Occular.Sampler);
     }
 
     private static void OnResize(Vector2i screen) {
@@ -115,6 +145,15 @@ public static partial class UiRender {
 
     public static BitmapFont GetFont(FontType type) {
         return MyriadPro.Fonts[type];
+    }
+
+    public static BitmapFont GetFont(FontGroup group, FontType type) {
+        return group switch {
+            FontGroup.NotJamSignature21 => NotJamSignature21.Fonts[type],
+            FontGroup.CrunchyFont => CrunchyFont.Fonts[type],
+            FontGroup.Occular => Occular.Fonts[type],
+            _ => MyriadPro.Fonts[type],
+        };
     }
 
     private static void SetFocus(bool focus) => IsFocused = focus;

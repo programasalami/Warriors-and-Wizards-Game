@@ -123,15 +123,15 @@ internal class StreamTrack : Track {
     public void Setup(int source, StreamBuffer stream) {
         Source = source;
         _stream = stream;
-        
-        _bytesPerFrame = _stream.Vorbis.Channels * sizeof(short);
-        _format = InternalUtils.GetChannelFormat(_stream.Vorbis.Channels);
-        
+
+        _bytesPerFrame = _stream.Audio.Channels * sizeof(short);
+        _format = InternalUtils.GetChannelFormat(_stream.Audio.Channels);
+
         for (var i = 0; i < NumBuffers; i++) { // TODO: should probably check for data so we dont buffer 0 bytes
-            _stream.Vorbis.SubmitBuffer();
-            AL.BufferData(_buffers[i], _format, ref _stream.Vorbis.SongBuffer[0], _stream.Vorbis.Decoded * _bytesPerFrame, _stream.Vorbis.SampleRate);
+            _stream.Audio.SubmitBuffer();
+            AL.BufferData(_buffers[i], _format, ref _stream.Audio.SongBuffer[0], _stream.Audio.Decoded * _bytesPerFrame, _stream.Audio.SampleRate);
         }
-        
+
         AL.SourceQueueBuffers(Source, NumBuffers, _buffers);
     }
     
@@ -166,12 +166,12 @@ internal class StreamTrack : Track {
         base.Clear();
     }
 
-    public StreamBuffer ClearVorbis() {
+    public StreamBuffer ClearStream() {
         var buffer = _stream;
         _stream = null;
         return buffer;
     }
-    
+
     private void FillBuffers() {
         AL.GetSourcei(Source, SourceGetPNameI.BuffersProcessed, out var processed);
 
@@ -180,14 +180,14 @@ internal class StreamTrack : Track {
         while (processed-- > 0) {
             AL.SourceUnqueueBuffers(Source, 1, ref _buffers[index]);
 
-            _stream.Vorbis.SubmitBuffer();
-                
-            if (_stream.Vorbis.Decoded == 0 && _loop) {
-                _stream.Vorbis.Restart();
-                _stream.Vorbis.SubmitBuffer();
+            _stream.Audio.SubmitBuffer();
+
+            if (_stream.Audio.Decoded == 0 && _loop) {
+                _stream.Audio.Restart();
+                _stream.Audio.SubmitBuffer();
             }
 
-            AL.BufferData(_buffers[index], _format, ref _stream.Vorbis.SongBuffer[0], _stream.Vorbis.Decoded * _bytesPerFrame, _stream.Vorbis.SampleRate);
+            AL.BufferData(_buffers[index], _format, ref _stream.Audio.SongBuffer[0], _stream.Audio.Decoded * _bytesPerFrame, _stream.Audio.SampleRate);
             AL.SourceQueueBuffers(Source, 1, ref _buffers[index]);
             index++;
             index %= NumBuffers;

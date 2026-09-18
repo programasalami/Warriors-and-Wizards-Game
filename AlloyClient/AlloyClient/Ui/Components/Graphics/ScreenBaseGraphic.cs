@@ -1,36 +1,30 @@
-﻿using System;
-using Alloy.UiLib.Core;
+﻿using Alloy.UiLib.Core;
 using Alloy.UiLib.Rendering;
 using OpenTK.Mathematics;
 
 namespace AlloyClient.Ui.Components.Graphics;
 
 public sealed class ScreenGraphic : UiElement {
-    
-    private const int TexWidth = 1280;
-    private const int TexHeight = 720;
+
+    private const int TexWidth = 1451;
+    private const int TexHeight = 1084;
 
     public ScreenGraphic(bool splash = false) {
 
         TextureId = splash ? TextureType.TitleGraphic : TextureType.TitleBackground;
-        
+
         ResizeBackBuffer();
         FillData(TexWidth, TexHeight);
     }
 
     protected override void OnResize(ResizeEvent args) {
-        var x = (float)args.Width / TexWidth;
-        var y = (float)args.Height / TexHeight;
+        // Stretch to exactly fill the window every time, regardless of aspect ratio - no
+        // cropping (a "cover" fit would crop this image's border on wide screens) and no
+        // letterbox bars (a "contain" fit would leave them on the sides).
+        X = 0;
+        Y = 0;
 
-        var scale = MathF.Max(x, y);
-
-        var w = (int)(TexWidth * scale);
-        var h = (int)(TexHeight * scale);
-
-        X = (w - Stage.StageWidth) / -2;
-        Y = (h - Stage.StageHeight) / -2;
-        
-        FillData(w, h);
+        FillData(args.Width, args.Height);
     }
     
     private void ResizeBackBuffer() {

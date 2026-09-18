@@ -167,12 +167,21 @@ public sealed class Projectile : IResettable { // TODO: make struct
         }
     }
 
+    // The 0.5f world-Z here is a flat constant shared by every shooter (player or enemy,
+    // regardless of their own size/height) - it's completely independent of TypePlayer's own
+    // TextureBaseUnit/TextureBottomInset fixes, so it never moved when those did. It only reads
+    // as "shoot from the head" now because the player sprite itself finally sits at its correct
+    // size/position - before that fix landed, the character was in the wrong place too, so there
+    // was nothing correct to judge this against. Lowered per direct feedback (2026-09-18) so
+    // bullets visually originate around center-mass instead of head height. This is shared by
+    // every projectile in the game, not just the player's own, so a large future change here is
+    // worth a look at enemy bullets too.
     public VertexObject Draw(in DepthMatrix matrix) {
         var s = MathF.Sin(-_rotation);
         var c = MathF.Cos(-_rotation);
         var jitter = (_key.Key * 0.00001f) % 0.01f;
         var sort = 0.5f + 0.4f * (_position.X * matrix.M12 + _position.Y * matrix.M22 + matrix.M42) + jitter;
-        return new VertexObject(new Vector3(_position, 0.5f), _texture.UV.ToVector4(), _texture.Scale, new Vector4(s, c, _size, -1f), ExtraData.NewShadedObject(sort, 1f), Color.Black);
+        return new VertexObject(new Vector3(_position, 0.25f), _texture.UV.ToVector4(), _texture.Scale, new Vector4(s, c, _size, -1f), ExtraData.NewShadedObject(sort, 1f), Color.Black);
     }
 
     public ShadowData DrawShadow() => new (_position, 0.5f, Color.Black);

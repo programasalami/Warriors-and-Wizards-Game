@@ -169,8 +169,16 @@
     <Animated name="chars16x16dEncounters2"  w="16" h="16">Chars16x16dEncounters2.png</Animated>
     <Animated name="chars16x16rEncounters"   w="16" h="16">Chars16x16rEncounters.png</Animated>
 
-    <!-- Players (group="Full" = 3-row sheet: walk/attack/default) -->
-    <Animated name="players"                 w="8"  h="8"  group="Full">Players.png</Animated>
+    <!-- Players (group="Full" = 3 rows per class: FaceRight/FaceDown/FaceUp, 6 frame-columns each
+         - idle=0, walk=1-2, attack=4-5, see Texture.cs's TextureFromFacing) - bumped from 8x8 to
+         32x32 on 2026-09-17 when Players.png was rebuilt around Puny-Characters art for the
+         Warrior/Wizard cut-down (see project_class_system_xml_driven memory); only 2 of the
+         sheet's 16 class slots are populated now (Wizard@0, Warrior@1), the rest sit blank and
+         get skipped by the packer same as always. NOTE: bumping this cell size quadruples the
+         render-scale RenderBase.SetTexture computes from it (see its /8 divisor) - Players.xml's
+         Wizard/Warrior <RealSize>25</RealSize> compensates for that, don't remove one without the
+         other. -->
+    <Animated name="players"                 w="32" h="32" group="Full">Players.png</Animated>
     <Animated name="playerskins"             w="8"  h="8"  group="Full">PlayersSkins.png</Animated>
     <Animated name="playerskins16"           w="16" h="16" group="Full">PlayersSkins16.png</Animated>
     <Animated name="theGoldenArcher"         w="8"  h="8"  group="Full">TheGoldenArcher.png</Animated>

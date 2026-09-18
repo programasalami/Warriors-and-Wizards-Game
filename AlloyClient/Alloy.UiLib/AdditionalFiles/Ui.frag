@@ -23,6 +23,18 @@ uniform float PixelRange;
 uniform vec2 TextTextureSize;
 uniform sampler2D TextTexture;
 
+uniform float PixelRange2;
+uniform vec2 TextTextureSize2;
+uniform sampler2D TextTexture2;
+
+uniform float PixelRange3;
+uniform vec2 TextTextureSize3;
+uniform sampler2D TextTexture3;
+
+uniform float PixelRange4;
+uniform vec2 TextTextureSize4;
+uniform sampler2D TextTexture4;
+
 uniform sampler2D TitleBackgroundTexture;
 uniform sampler2D TitleGraphicTexture;
 
@@ -40,6 +52,9 @@ const float IdTitleBackground =6.0;
 const float IdTitleGraphic = 7.0;
 const float IdMinimap = 8.0;
 const float IdEllipse = 9.0;
+const float IdText2 = 10.0;
+const float IdText3 = 11.0;
+const float IdText4 = 12.0;
 
 vec4 unpackColor(uint color) {
     return vec4(
@@ -73,8 +88,8 @@ float median(float a, float b, float c) {
     return max(min(a, b), min(max(a, b), c));
 }
 
-float screenPxRange(vec2 uv) {
-    vec2 unitRange = vec2(PixelRange, PixelRange) / TextTextureSize;
+float screenPxRange(vec2 uv, float pixelRange, vec2 textureSize) {
+    vec2 unitRange = vec2(pixelRange, pixelRange) / textureSize;
     vec2 screenSize = vec2(1.0, 1.0) / fwidth(uv);
     return max(0.5 * dot(unitRange, screenSize), 1.0);
 }
@@ -88,9 +103,9 @@ vec2 SafeNormalize(vec2 v) {
     return v * vLength;
 }
 
-float GetOpacityFromDistance(float signedDistance, vec2 Jdx, vec2 Jdy) {
+float GetOpacityFromDistance(float signedDistance, vec2 Jdx, vec2 Jdy, float pixelRange) {
     const float distanceLimit = sqrt(2.0f) / 2.0f;
-    float thickness = 1.0f / (PixelRange / 2.0);
+    float thickness = 1.0f / (pixelRange / 2.0);
 
     vec2 gradientDistance = SafeNormalize(vec2(dFdx(signedDistance), dFdy(signedDistance)));
     vec2 gradient = vec2(gradientDistance.x * Jdx.x + gradientDistance.y * Jdy.x, gradientDistance.x * Jdx.y + gradientDistance.y * Jdy.y);
@@ -99,23 +114,23 @@ float GetOpacityFromDistance(float signedDistance, vec2 Jdx, vec2 Jdy) {
     return smoothstep(-scaledDistanceLimit, scaledDistanceLimit, signedDistance);
 }
 
-vec4 RenderText() {
-    vec4 mtsdf = texture(TextTexture, inp.UVCoords);
+vec4 RenderText(sampler2D tex, float pixelRange, vec2 textureSize) {
+    vec4 mtsdf = texture(tex, inp.UVCoords);
     float dist = median(mtsdf.r, mtsdf.g, mtsdf.b) - 0.5;
-    float pxRange = screenPxRange(inp.UVCoords);
+    float pxRange = screenPxRange(inp.UVCoords, pixelRange, textureSize);
 
     float bodyDist = dist * pxRange;
     float glowDist = mtsdf.a;
-    float glowSize = inp.Extra1.x / PixelRange;
+    float glowSize = inp.Extra1.x / pixelRange;
     float bodyAlpha;
     float glowAlpha;
 
     if (inp.Extra1.y == TextTypeSmall) {
-        vec2 pixelCoord = inp.UVCoords * TextTextureSize;
+        vec2 pixelCoord = inp.UVCoords * textureSize;
         vec2 Jdx = dFdx(pixelCoord);
         vec2 Jdy = dFdy(pixelCoord);
-        bodyAlpha = GetOpacityFromDistance(bodyDist, Jdx, Jdy);
-        glowAlpha = GetOpacityFromDistance(glowDist, Jdx, Jdy) * glowSize;
+        bodyAlpha = GetOpacityFromDistance(bodyDist, Jdx, Jdy, pixelRange);
+        glowAlpha = GetOpacityFromDistance(glowDist, Jdx, Jdy, pixelRange) * glowSize;
     } else {
         bodyAlpha = clamp(bodyDist + 0.5f, 0.0f, 1.0f);
         glowAlpha = glowDist * glowSize;
@@ -269,7 +284,13 @@ void main() {
     } else if (type == IdUiSlice) {
         pixel = slice();
     } else if (type == IdText) {
-        pixel = RenderText();
+        pixel = RenderText(TextTexture, PixelRange, TextTextureSize);
+    } else if (type == IdText2) {
+        pixel = RenderText(TextTexture2, PixelRange2, TextTextureSize2);
+    } else if (type == IdText3) {
+        pixel = RenderText(TextTexture3, PixelRange3, TextTextureSize3);
+    } else if (type == IdText4) {
+        pixel = RenderText(TextTexture4, PixelRange4, TextTextureSize4);
     } else if (type == IdTitleBackground) {
         pixel = RenderNoOutline(TitleBackgroundTexture);
     } else if (type == IdTitleGraphic) {
@@ -280,7 +301,7 @@ void main() {
         pixel = RenderEllipse();
     }
 
-    if (color.a > 0 && type != IdColor && type != IdText && type != IdEllipse)
+    if (color.a > 0 && type != IdColor && type != IdText && type != IdText2 && type != IdText3 && type != IdText4 && type != IdEllipse)
     pixel *= color;
 
     vec4 add = floor(inp.ColorTransform / 1000.0);

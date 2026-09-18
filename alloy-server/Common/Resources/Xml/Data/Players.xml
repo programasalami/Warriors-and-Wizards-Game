@@ -1,5 +1,6 @@
 <Objects>
 
+    <!--
     <Object type="0x0300" id="Rogue">
         <Class>Player</Class>
         <Description>The rogue relies on his speed to deal damage at medium range while avoiding attacks.</Description>
@@ -64,12 +65,13 @@
         <UnlockLevel level="5" type="0x0310">Priest</UnlockLevel>
         <UnlockCost>199</UnlockCost>
     </Object>
+    -->
     <Object type="0x030e" id="Wizard">
         <Class>Player</Class>
         <Description>The wizard deals damage from a long distance and blasts enemies with powerful spells.</Description>
         <AnimatedTexture>
             <File>players</File>
-            <Index>2</Index>
+            <Index>0</Index>
         </AnimatedTexture>
         <HitSound>player/wizard_hit</HitSound>
         <DeathSound>player/wizard_death</DeathSound>
@@ -95,6 +97,7 @@
         <LevelIncrease min="0" max="2">MpRegen</LevelIncrease>
         <UnlockCost>0</UnlockCost>
     </Object>
+    <!--
     <Object type="0x0310" id="Priest">
         <Class>Player</Class>
         <Description>The priest attacks at long range and can heal himself and his allies.</Description>
@@ -127,13 +130,14 @@
         <UnlockLevel level="5" type="0x030e">Wizard</UnlockLevel>
         <UnlockCost>50</UnlockCost>
     </Object>
+    -->
     <Object type="0x031d" id="Warrior">
         <Class>Player</Class>
         <Description>The warrior wears strong armor and uses his magic helmet to inspire his allies in battle.
         </Description>
         <AnimatedTexture>
             <File>players</File>
-            <Index>4</Index>
+            <Index>1</Index>
         </AnimatedTexture>
         <HitSound>player/warrior_hit</HitSound>
         <DeathSound>player/warrior_death</DeathSound>
@@ -157,9 +161,9 @@
         <LevelIncrease min="0" max="2">Dexterity</LevelIncrease>
         <LevelIncrease min="1" max="2">HpRegen</LevelIncrease>
         <LevelIncrease min="0" max="2">MpRegen</LevelIncrease>
-        <UnlockLevel level="5" type="0x0300">Rogue</UnlockLevel>
-        <UnlockCost>199</UnlockCost>
+        <UnlockCost>0</UnlockCost>
     </Object>
+    <!--
     <Object type="0x031e" id="Knight">
         <Class>Player</Class>
         <Description>The knight fights at close range, wears very heavy armor, and uses his shield to stun enemies.
@@ -462,6 +466,7 @@
         <UnlockLevel level="20" type="0x031d">Warrior</UnlockLevel>
         <UnlockCost>999</UnlockCost>
     </Object>
+    -->
     <!--	<Object type="0x0311" id="Samurai">-->
     <!--		<Class>Player</Class>-->
     <!--		<Description>The samurai fights with a katana and uses his wakizashi sidearm to expose enemy weak points.</Description>-->

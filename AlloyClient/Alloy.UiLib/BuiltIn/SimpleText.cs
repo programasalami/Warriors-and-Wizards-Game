@@ -9,6 +9,7 @@ public struct TextConfig {
     public string Text = "";
     public float FontSize = 1f;
     public FontType FontType = FontType.Normal;
+    public FontGroup FontGroup = FontGroup.MyriadPro;
     public int X = 0;
     public int Y = 0;
     public int MaxWidth = -1;
@@ -39,7 +40,7 @@ public sealed class SimpleText : Sprite {
     public SimpleText(TextConfig config) {
         Text = config.Text;
         _fontScale = config.FontSize;
-        _font = UiRender.GetFont(config.FontType);
+        _font = UiRender.GetFont(config.FontGroup, config.FontType);
         _maxWidth = config.MaxWidth;
         X = config.X;
         Y = config.Y;
@@ -49,7 +50,12 @@ public sealed class SimpleText : Sprite {
         SetColorSecondary(config.OutlineColor);
         SetAnchor(config.Anchor);
 
-        TextureId = TextureType.Text;
+        TextureId = config.FontGroup switch {
+            FontGroup.NotJamSignature21 => TextureType.Text2,
+            FontGroup.CrunchyFont => TextureType.Text3,
+            FontGroup.Occular => TextureType.Text4,
+            _ => TextureType.Text
+        };
         
         ResizeBackBuffer();
         FillData();

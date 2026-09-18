@@ -104,6 +104,9 @@ public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
         var titleBackground = ContentLoader.LoadTexture("TitleScreen/TitleScreenBackground.png");
         var titleGraphic = ContentLoader.LoadTexture("TitleScreen/TitleScreenGraphic.png");
         var font = new BitmapFamily(ContentLoader.LoadFont("Fonts/MyriadPro/MyriadPro.msdf"));
+        var notJamSignature21Font = new BitmapFamily(ContentLoader.LoadFont("Fonts/NotJamSignature21/NotJamSignature21.msdf"));
+        var crunchyFont = new BitmapFamily(ContentLoader.LoadFont("Fonts/CrunchyFont/CrunchyFont.msdf"));
+        var occularFont = new BitmapFamily(ContentLoader.LoadFont("Fonts/Occular/Occular.msdf"));
         
         // Init content that depends on any atlas
         ModelData.Load();
@@ -118,10 +121,16 @@ public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
         var titleBackgroundSampler = new Sampler(titleBackground, 4);
         var titleGraphicSampler = new Sampler(titleGraphic, 5);
         font.Sampler.Bind(6);
-        
+        notJamSignature21Font.Sampler.Bind(7);
+        crunchyFont.Sampler.Bind(8);
+        occularFont.Sampler.Bind(9);
+
         // Render setup
         Render.FirstTimeInit(gameAtlasSampler, font);
         UiRender.RegisterFont(font);
+        UiRender.RegisterSecondaryFont(notJamSignature21Font);
+        UiRender.RegisterTertiaryFont(crunchyFont);
+        UiRender.RegisterQuaternaryFont(occularFont);
         UiRender.RegisterTexture(TextureType.GameAtlas, gameAtlasSampler);
         UiRender.RegisterTexture(TextureType.UiAtlas, uiAtlasSampler);
         UiRender.RegisterTexture(TextureType.UiAtlasLinear, uiAtlasLinear);
@@ -129,7 +138,7 @@ public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
         UiRender.RegisterTexture(TextureType.TitleBackground, titleBackgroundSampler);
         UiRender.RegisterTexture(TextureType.TitleGraphic, titleGraphicSampler);
         
-        Audio.MusicChannel.FadeTo("Music/sorc.ogg", 2f);
+        Audio.MusicChannel.FadeTo("Music/Main_Music.wav", 2f);
         
         ScreenManager.FadeToScreen(new LoadingScreen(), Easing.SineInOut, 1000, 0x0);
     }

@@ -138,7 +138,15 @@ public static class DbClient {
     }
 
     private static async Task<Account> GetAccountByNameAsync(NpgsqlConnection conn, string name) {
-        var data = await conn.ExecuteScalarAsync<string>("SELECT data FROM accounts WHERE name=@Name", new { Name = name });
+        // Called from VerifyAccount with login.Name, which is always lowercase (RegisterAsync
+        // stores it that way) - but the accounts row itself keeps the original, as-typed casing
+        // (acc.Name = username, not lowerName, so the display name isn't forced to lowercase).
+        // A case-sensitive match here failed to find the account for any username containing an
+        // uppercase letter, which VerifyAccount surfaces as VerifyStatus.InternalError ("Internal
+        // server error") - happening on the very first auto-verify right after a successful
+        // register, while the login row it already wrote is left behind, permanently blocking
+        // that username on every retry with RegisterStatus.NameInUse ("Name taken").
+        var data = await conn.ExecuteScalarAsync<string>("SELECT data FROM accounts WHERE LOWER(name)=@Name", new { Name = name });
         return data == null ? null : JsonSerializer.Deserialize<Account>(data);
     }
 
@@ -195,8 +203,17 @@ public static class DbClient {
                 PasswordSalt = salt
             };
 
-            await FlushAsync(acc);
-            await FlushAsync(login);
+            // Written directly on this same connection instead of through FlushAsync/DbWriter<T> -
+            // that queues onto a background batch writer and returns as soon as the item is
+            // enqueued, not once it's actually committed. The client always immediately calls
+            // /account/verify right after a successful /account/register (see AppRequests.Register),
+            // so a registration that returned success before the row actually landed in the DB
+            // made that very next verify fail with "Invalid account credentials" for a brand new,
+            // correctly-registered account - the login row just didn't exist yet when the SELECT
+            // in VerifyAccount ran. Registration is low-frequency enough that skipping the batching
+            // optimization here costs nothing.
+            await UpsertAccountAsync(conn, acc);
+            await UpsertLoginAsync(conn, login);
         }
 
         return status;
@@ -205,10 +222,14 @@ public static class DbClient {
     public static async Task<(Account Acc, VerifyStatus Status)> VerifyAccount(string username, string password, Guid gameServerGuid) {
         await using var conn = await OpenConnectionAsync();
 
+        // RegisterAsync stores the login name lowercased (see lowerName below) - lowercase here
+        // too, or any username typed with a capital letter registers fine but then fails this
+        // exact-match lookup on the very next auto-verify, reporting InvalidCredentials for a
+        // brand new, correctly-registered account.
         var login = await conn.QueryFirstOrDefaultAsync<Login>(
             "SELECT id AS Id, name AS Name, password_hash AS PasswordHash, password_salt AS PasswordSalt, " +
             "ip_address AS IpAddress, last_login_at AS LastLoginAt FROM logins WHERE name=@Username",
-            new { Username = username });
+            new { Username = username.ToLower() });
         if (login == null)
             return (null, VerifyStatus.InvalidCredentials);
 

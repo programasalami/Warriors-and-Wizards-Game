@@ -75,7 +75,7 @@ internal class InternalAudioEngine {
     private readonly Dictionary<int, float> _channelVolumes = [];
     private readonly Dictionary<TrackLookup, Track> _tracks = [];
     private readonly Dictionary<string, StaticBuffer> _staticBuffers = [];
-    private readonly Dictionary<string, StreamBuffer> _vorbisBuffer = [];
+    private readonly Dictionary<string, StreamBuffer> _streamBuffers = [];
 
     public InternalAudioEngine(ILogger log, string localContentPath, CancellationToken cancelToken) {
         _log = log;
@@ -148,12 +148,12 @@ internal class InternalAudioEngine {
             track.Clear();
             switch (track) {
                 case StreamTrack streamTrack: {
-                    var vorbis = streamTrack.ClearVorbis();
+                    var stream = streamTrack.ClearStream();
 
-                    if (!_vorbisBuffer.TryAdd(vorbis.FilePath, vorbis)) {
-                        vorbis.Vorbis.Dispose();
+                    if (!_streamBuffers.TryAdd(stream.FilePath, stream)) {
+                        stream.Audio.Dispose();
                     }
-                
+
                     Pools.StreamTracks.Push(streamTrack);
                     break;
                 }
@@ -195,24 +195,33 @@ internal class InternalAudioEngine {
         _tracks[new TrackLookup(command.ChannelId, command.TrackId)] = track;
     }
 
+    private static readonly string[] SupportedExtensions = [".ogg", ".mp3", ".wav"];
+
     private StaticTrack CreateStaticTrack(EngineCommand command, int source) {
         Pools.StaticTracks.Pop(out var track);
-        
+
         if (!_staticBuffers.TryGetValue(command.FilePath, out var buffer)) {
             var path = Path.CombineAlt(_localContentPath, command.FilePath);
-            
-            if (Path.GetExtension(path) != ".ogg") {
-                _log.Log(LogLevel.Information, $"Failed to play song {path}, not an '.ogg' file");
+            var extension = Path.GetExtension(path);
+
+            if (!SupportedExtensions.Contains(extension)) {
+                _log.Log(LogLevel.Information, $"Failed to play song {path}, not a supported audio file ('.ogg'/'.mp3'/'.wav')");
                 return null;
             }
-            
+
             if (!File.Exists(path)) {
                 _log.Log(LogLevel.Information, $"Failed to find song at {path}");
                 return null;
             }
-            
+
             var fileData = File.ReadAllBytes(path);
-            var data = StbVorbis.decode_vorbis_from_memory(fileData, out var sampleRate, out var channels);
+
+            int sampleRate, channels;
+            var data = extension switch {
+                ".mp3" => Mp3AudioStream.DecodeFully(fileData, out sampleRate, out channels),
+                ".wav" => WavAudioStream.DecodeFully(fileData, out sampleRate, out channels),
+                _ => StbVorbis.decode_vorbis_from_memory(fileData, out sampleRate, out channels)
+            };
 
             AL.GenBuffer(out var id);
             AL.BufferData(id, InternalUtils.GetChannelFormat(channels), ref data[0], data.Length * sizeof(short), sampleRate);
@@ -226,27 +235,34 @@ internal class InternalAudioEngine {
 
     private StreamTrack CreateStreamTrack(EngineCommand command, int source) {
         Pools.StreamTracks.Pop(out var track);
-        
-        if (!_vorbisBuffer.Remove(command.FilePath, out var vorbis)) {
+
+        if (!_streamBuffers.Remove(command.FilePath, out var stream)) {
             var path = Path.CombineAlt(_localContentPath, command.FilePath);
-            
-            if (Path.GetExtension(path) != ".ogg") {
-                _log.Log(LogLevel.Information, $"Failed to play song {path}, not an '.ogg' file");
+            var extension = Path.GetExtension(path);
+
+            if (!SupportedExtensions.Contains(extension)) {
+                _log.Log(LogLevel.Information, $"Failed to play song {path}, not a supported audio file ('.ogg'/'.mp3'/'.wav')");
                 return null;
             }
-            
+
             if (!File.Exists(path)) {
                 _log.Log(LogLevel.Information, $"Failed to find song at {path}");
                 return null;
             }
-            
+
             var fileData = File.ReadAllBytes(path);
 
-            vorbis = new StreamBuffer(command.FilePath, Vorbis.FromMemory(fileData));
+            IAudioStream audio = extension switch {
+                ".mp3" => new Mp3AudioStream(new MemoryStream(fileData)),
+                ".wav" => new WavAudioStream(new MemoryStream(fileData)),
+                _ => new VorbisAudioStream(Vorbis.FromMemory(fileData))
+            };
+
+            stream = new StreamBuffer(command.FilePath, audio);
         }
 
 
-        track.Setup(source, vorbis);
+        track.Setup(source, stream);
         return track;
     }
 
@@ -259,9 +275,9 @@ internal class InternalAudioEngine {
             _staticBuffers.Remove(key);
         }
 
-        foreach (var (key, buffer) in _vorbisBuffer) {
-            buffer.Vorbis.Dispose();
+        foreach (var (key, stream) in _streamBuffers) {
+            stream.Audio.Dispose();
         }
-        _vorbisBuffer.Clear();
+        _streamBuffers.Clear();
     }
 }

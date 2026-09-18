@@ -39,5 +39,7 @@ public class LoadingScreen : TitleScreenBase {
         _text.Scale = Stage.ScreenScale;
         _text.X = Stage.StageWidth / 2;
         _text.Y = Stage.StageHeight - (int)(90 * Stage.ScreenScale.Y);
+
+        base.OnResize(args);
     }
 }

@@ -19,7 +19,27 @@ public sealed class TypePlayer : RenderBase {
     public override bool HasShadow {
         get => true;
     }
-    
+
+    // The "players" sheet's cells are natively 32x32 (see Game.atlas) - see the property's own
+    // doc comment on RenderBase for why this has to match the sheet's real cell size.
+    protected override float TextureBaseUnit => 32f;
+
+    // Measured directly (Python/PIL getbbox() on several idle/walk/attack frames of both Wizard
+    // and Warrior, 2026-09-18) - the art consistently leaves an 8-9px transparent gap below the
+    // character's feet within its 32x32 cell, unlike the original 8x8 sprites which had none.
+    // 9/32 rather than 8/32 to lean toward slightly under-correcting (leaving the character a
+    // touch high) rather than over-correcting into the shadow/ground.
+    protected override float TextureBottomInset => 9f / 32f;
+
+    // Measured the same way - the wide attack-release frame's actual content (body + weapon) sits
+    // centered around ~51% of its own double-width canvas, essentially identical to the ~50% the
+    // narrow idle frame's content sits at in its own single-width canvas. There's no left/right
+    // asymmetry to correct for in this art, unlike the original convention RenderBase's default
+    // (0.25) assumes - leaving that default in was shifting the whole sprite sideways by nothing
+    // to do with the actual art, and it's what read as the character "lunging a full tile" when
+    // shooting (worse the higher RealSize goes, since this shift scales with the same k).
+    protected override float AttackFrameBiasFraction => 0.5f;
+
     private readonly Player _player;
     
     private TypeName _typeName;

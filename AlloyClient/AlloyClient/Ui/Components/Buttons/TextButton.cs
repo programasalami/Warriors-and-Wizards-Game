@@ -9,6 +9,7 @@ public struct TextButtonConfig {
     public float FontSize = 1f;
     public Action OnClicked = null;
     public FontType FontType = FontType.Bold;
+    public FontGroup FontGroup = FontGroup.MyriadPro;
     public uint ActiveColor = 0xFFFFFF;
     public uint HoverColor = 0xFFDC85;
     public uint InactiveColor = 0x363636;
@@ -40,7 +41,7 @@ public class TextButton : Sprite {
         _activeColor = config.ActiveColor;
         _onHoverColor = config.HoverColor;
         _inactive = config.InactiveColor;
-        _text = new SimpleText(new TextConfig {Text = config.Text, FontSize = config.FontSize, FontType = config.FontType, Color = _activeColor, OutlineColor = config.OutlineColor, OutlineThickness = config.OutlineThickness});
+        _text = new SimpleText(new TextConfig {Text = config.Text, FontSize = config.FontSize, FontType = config.FontType, FontGroup = config.FontGroup, Color = _activeColor, OutlineColor = config.OutlineColor, OutlineThickness = config.OutlineThickness});
         _onClicked = config.OnClicked;
 
         X = config.X;

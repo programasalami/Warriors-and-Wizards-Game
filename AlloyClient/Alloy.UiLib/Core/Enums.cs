@@ -26,6 +26,16 @@ public enum TextureType : byte {
     TitleGraphic = 7,
     Minimap = 8,
     Ellipse = 9,
+    Text2 = 10,
+    Text3 = 11,
+    Text4 = 12,
+}
+
+public enum FontGroup : byte {
+    MyriadPro = 0,
+    NotJamSignature21 = 1,
+    CrunchyFont = 2,
+    Occular = 3,
 }
 
 public enum CollisionType : byte {

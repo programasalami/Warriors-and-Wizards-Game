@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using StbVorbisSharp;
 
 namespace Alloy.Audio;
 
@@ -89,7 +88,7 @@ internal class StaticBuffer(int id) {
     public int ActiveCount;
 }
 
-internal class StreamBuffer(string filePath, Vorbis vorbis) {
+internal class StreamBuffer(string filePath, IAudioStream audio) {
     public readonly string FilePath = filePath;
-    public readonly Vorbis Vorbis = vorbis;
+    public readonly IAudioStream Audio = audio;
 }

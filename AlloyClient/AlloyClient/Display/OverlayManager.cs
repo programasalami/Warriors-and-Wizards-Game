@@ -1,4 +1,5 @@
-﻿using AlloyClient.Ui.Components.Panels;
+﻿using System;
+using AlloyClient.Ui.Components.Panels;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
 using AlloyClient.Utils;
@@ -6,12 +7,20 @@ using AlloyClient.Utils;
 namespace AlloyClient.Display;
 
 public sealed class OverlayManager : Sprite {
-    
+
     private static readonly ColorRect Overlay = new (new ColorRectConfig { Width = Settings.DefaultScreenWidth, Height = Settings.DefaultScreenHeight, Color = 0x2B2B2B, Alpha = 0.8f });
 
     private static OverlayManager Instance;
 
-    private Sprite _current;
+    private Overlay _current;
+    private bool _dimActive;
+
+    // Fired only on a true none<->something transition, never when one overlay is swapped
+    // directly for another (e.g. login -> register) - screens behind the overlay (like
+    // TitleScreen's background/menu fade) should stay hidden throughout a swap, not flash back
+    // in between the two.
+    public static event Action OverlayOpened;
+    public static event Action OverlayClosed;
 
     public OverlayManager() {
         Instance = this;
@@ -20,28 +29,40 @@ public sealed class OverlayManager : Sprite {
     }
 
     public static void Set(Overlay sprite) => Instance.PrivateSet(sprite);
-    
+
     public static void Clear() => Instance.PrivateClear();
 
     private void PrivateSet(Overlay sprite) {
         if (_current is null) {
-            AddChild(Overlay);
-            Overlay.AddAlphaTween(0f, 0.8f, 250);
-            
+            OverlayOpened?.Invoke();
+
+            if (sprite.DimBackground) {
+                AddChild(Overlay);
+                Overlay.AddAlphaTween(0f, 0.8f, sprite.FadeInDurationMs);
+                _dimActive = true;
+            }
+
             AddChild(_current = sprite);
-            _current.AddAlphaTween(0f, 1f, 250);
+            PositionCurrent();
+            _current.AddAlphaTween(0f, 1f, sprite.FadeInDurationMs);
         } else {
-            _current.AddAlphaTween(1f, 0f, 150, onFinish: () => {
+            _current.AddAlphaTween(1f, 0f, 250, onFinish: () => {
                 RemoveChild(_current);
                 AddChild(_current = sprite);
-                _current.AddAlphaTween(0f, 1f, 150);
+                PositionCurrent();
+                _current.AddAlphaTween(0f, 1f, 250);
             });
         }
     }
 
     private void PrivateClear() {
-        Overlay.AddAlphaTween(0.8f, 0f, 250, onFinish: () => { RemoveChild(Overlay);});
-        _current.AddAlphaTween(1f, 0f, 175, onFinish: () => { RemoveChild(_current); _current = null; });
+        OverlayClosed?.Invoke();
+
+        if (_dimActive) {
+            Overlay.AddAlphaTween(0.8f, 0f, 450, onFinish: () => { RemoveChild(Overlay); });
+            _dimActive = false;
+        }
+        _current.AddAlphaTween(1f, 0f, 300, onFinish: () => { RemoveChild(_current); _current = null; });
     }
 
     private void OnStageEnter() {
@@ -54,13 +75,22 @@ public sealed class OverlayManager : Sprite {
     }
 
     private void OnResize(ResizeEvent args) {
-        if (_current is not null) {
-            _current.X = Stage.StageWidth / 2;
-            _current.Y = Stage.StageHeight / 2;
-            _current.Scale = Stage.ScreenScale;
+        PositionCurrent();
+        Overlay.Resize(args.Width, args.Height);
+    }
+
+    // Also called right when an overlay is set, not just on the next real resize event - the
+    // overlay's own constructor no longer hardcodes a centered position (that used the "default"
+    // design resolution, so it only looked centered if the actual window happened to match it).
+    private void PositionCurrent() {
+        if (_current is null) {
+            return;
         }
 
-        Overlay.Resize(args.Width, args.Height);
+        var scale = Stage.ScreenScale * _current.ScaleMultiplier;
+        _current.X = (int)(Stage.StageWidth * _current.HorizontalPositionFraction);
+        _current.Y = Stage.StageHeight / 2 + (int)(_current.VerticalNudge * scale.Y);
+        _current.Scale = scale;
     }
     
 }
