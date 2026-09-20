@@ -30,6 +30,7 @@ public class ObjectRect : Sprite {
     private int _height;
     private bool _outline;
     private bool _glow;
+    private bool _flipX;
 
     public ObjectRect(ObjectRectConfig config) {
         X = config.X;
@@ -55,11 +56,27 @@ public class ObjectRect : Sprite {
         Indices = [0, 1, 2, 0, 2, 3];
     }
 
+    // Mirrors the picture left-to-right (the sprite's own box and position are unchanged).
+    public bool FlipX {
+        get => _flipX;
+        set {
+            if (_flipX == value) {
+                return;
+            }
+
+            _flipX = value;
+            FillData();
+        }
+    }
+
     private void FillData() {
-        VertexData[0] = new VertexUi(new Vector2(0, _height), new Vector2(_texture.U, _texture.V + _texture.H));
-        VertexData[1] = new VertexUi(new Vector2(0, 0), new Vector2(_texture.U, _texture.V));
-        VertexData[2] = new VertexUi(new Vector2(_width, 0), new Vector2(_texture.U + _texture.W, _texture.V));
-        VertexData[3] = new VertexUi(new Vector2(_width, _height), new Vector2(_texture.U + _texture.W, _texture.V + _texture.H));
+        var left = _flipX ? _texture.U + _texture.W : _texture.U;
+        var right = _flipX ? _texture.U : _texture.U + _texture.W;
+
+        VertexData[0] = new VertexUi(new Vector2(0, _height), new Vector2(left, _texture.V + _texture.H));
+        VertexData[1] = new VertexUi(new Vector2(0, 0), new Vector2(left, _texture.V));
+        VertexData[2] = new VertexUi(new Vector2(_width, 0), new Vector2(right, _texture.V));
+        VertexData[3] = new VertexUi(new Vector2(_width, _height), new Vector2(right, _texture.V + _texture.H));
         
         SetGraphicsBuffer();
         

@@ -41,6 +41,14 @@ public class ObjectProperties {
     public readonly int MinSize;
     public readonly int MaxSize;
     public readonly int SizeStep = 5;
+
+    // Fraction of the sprite's cell height the art's visual base sits above the cell bottom
+    // (see RenderBase.TextureBottomInset). XML <BottomInset>; 0 for stock art that fills its cell.
+    public readonly float BottomInset;
+
+    // XML <FlatOnGround/>: draw the sprite lying in the ground plane (rotates with the world, no
+    // shadow, always behind standing objects) instead of as a camera-facing billboard.
+    public readonly bool FlatOnGround;
     
     public readonly string Description;
     
@@ -94,6 +102,8 @@ public class ObjectProperties {
         MinSize = e.GetValue<int>("MinSize");
         MaxSize = e.GetValue<int>("MaxSize");
         SizeStep = e.GetValue("SizeStep", 5);
+        BottomInset = e.GetValue("BottomInset", 0f);
+        FlatOnGround = e.HasElement("FlatOnGround");
         
         Description = e.GetValue<string>("Description");
         

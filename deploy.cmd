@@ -1,0 +1,3 @@
+@echo off
+rem Runs deploy.ps1 without needing to change PowerShell's script policy:   deploy -SetupWeb   /   deploy -Web   /   deploy -Server ...
+powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0deploy.ps1" %*

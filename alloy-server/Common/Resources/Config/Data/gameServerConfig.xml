@@ -3,7 +3,7 @@
     <MerchantsDir>Resources/Xml/Merchants/</MerchantsDir>
     <WorldsDir>Resources/World/Data/</WorldsDir>
     <Port>2050</Port>
-    <Address>127.0.0.1</Address>
+    <Address>104.152.50.196</Address>
     <ServerName>Localhost</ServerName>
     <TPS>20</TPS>
     <MaxPlayers>1000</MaxPlayers>

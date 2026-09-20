@@ -1,6 +1,8 @@
 ﻿using AlloyClient.Game.Components.Hud.Panels;
+using AlloyClient.Game.Components.Options;
 using AlloyClient.Game.Objects;
 using AlloyClient.Game.Objects.Util;
+using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
 using Alloy.UiLib.Signals;
 
@@ -18,7 +20,14 @@ public sealed class InteractPanel : Sprite {
 
     private readonly PartyPanel _partyPanel = new();
 
+    // the walnut backdrop behind a portal / loot bag panel (the old HUD's grey rectangle used to be that backdrop)
+    private readonly NineSliceRect _frame = OptionsStyle.Panel(Panel.PanelWidth, Panel.PanelHeight);
+
+    public bool ShowsFrame => _frame.Visible;
+
     public InteractPanel() {
+        _frame.Visible = false;
+        AddChild(_frame);
         AddOverride.Set(SetOverride);
     }
 
@@ -28,6 +37,7 @@ public sealed class InteractPanel : Sprite {
 
         _currentPanel.Visible = false;
         _overridePanel = panel;
+        _frame.Visible = true;
         AddChild(_overridePanel);
     }
     
@@ -58,6 +68,7 @@ public sealed class InteractPanel : Sprite {
         
         RemoveChild(_currentPanel);
         _currentPanel = panel;
+        _frame.Visible = panel != null && panel != _partyPanel;
 
         if (_currentPanel == null)
             return;

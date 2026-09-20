@@ -29,8 +29,8 @@ public sealed class Minimap : Sprite {
 
     private readonly MinimapLayer _layer;
 
-    private readonly IconButton _zoomIn;
-    private readonly IconButton _zoomOut;
+    private readonly Container _zoomIn;
+    private readonly Container _zoomOut;
     private readonly ObjectRect _arrow;
 
     public Minimap() {
@@ -45,26 +45,16 @@ public sealed class Minimap : Sprite {
         _layer = new MinimapLayer();
         AddChild(_layer);
 
-        _zoomIn = new IconButton(new IconButtonConfig {
-            Texture = TextureHelper.FromGameAtlas("lofiInterface", 54, false),
-            X = MapSize,
-            Y = 0,
-            Width = 24,
-            Height = 24,
-            Anchor = UiAnchor.RightTop,
-            OnClick = () => ZoomHandle(1)
-        });
+        // the pack's plus / minus in small slot buttons, top-right of the map
+        const int zoomSize = 32;
+        _zoomIn = WaWStyle.IconButton("WaW/Plus", 6, 6, 3, zoomSize, () => ZoomHandle(1));
+        _zoomIn.X = MapSize - zoomSize - 4;
+        _zoomIn.Y = 4;
         AddChild(_zoomIn);
-        
-        _zoomOut = new IconButton(new IconButtonConfig {
-            Texture = TextureHelper.FromGameAtlas("lofiInterface", 55, false),
-            X = MapSize,
-            Y = _zoomIn.Height + 4,
-            Width = 24,
-            Height = 24,
-            Anchor = UiAnchor.RightTop,
-            OnClick = () => ZoomHandle(-1)
-        });
+
+        _zoomOut = WaWStyle.IconButton("WaW/Minus", 6, 2, 3, zoomSize, () => ZoomHandle(-1));
+        _zoomOut.X = MapSize - zoomSize - 4;
+        _zoomOut.Y = 4 + zoomSize + 4;
         AddChild(_zoomOut);
 
         _arrow = new ObjectRect(new ObjectRectConfig {

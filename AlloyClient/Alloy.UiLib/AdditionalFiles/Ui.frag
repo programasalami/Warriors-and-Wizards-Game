@@ -31,9 +31,8 @@ uniform float PixelRange3;
 uniform vec2 TextTextureSize3;
 uniform sampler2D TextTexture3;
 
-uniform float PixelRange4;
-uniform vec2 TextTextureSize4;
-uniform sampler2D TextTexture4;
+
+
 
 uniform sampler2D TitleBackgroundTexture;
 uniform sampler2D TitleGraphicTexture;
@@ -54,7 +53,6 @@ const float IdMinimap = 8.0;
 const float IdEllipse = 9.0;
 const float IdText2 = 10.0;
 const float IdText3 = 11.0;
-const float IdText4 = 12.0;
 
 vec4 unpackColor(uint color) {
     return vec4(
@@ -289,8 +287,6 @@ void main() {
         pixel = RenderText(TextTexture2, PixelRange2, TextTextureSize2);
     } else if (type == IdText3) {
         pixel = RenderText(TextTexture3, PixelRange3, TextTextureSize3);
-    } else if (type == IdText4) {
-        pixel = RenderText(TextTexture4, PixelRange4, TextTextureSize4);
     } else if (type == IdTitleBackground) {
         pixel = RenderNoOutline(TitleBackgroundTexture);
     } else if (type == IdTitleGraphic) {
@@ -301,7 +297,7 @@ void main() {
         pixel = RenderEllipse();
     }
 
-    if (color.a > 0 && type != IdColor && type != IdText && type != IdText2 && type != IdText3 && type != IdText4 && type != IdEllipse)
+    if (color.a > 0 && type != IdColor && type != IdText && type != IdText2 && type != IdText3 && type != IdEllipse)
     pixel *= color;
 
     vec4 add = floor(inp.ColorTransform / 1000.0);

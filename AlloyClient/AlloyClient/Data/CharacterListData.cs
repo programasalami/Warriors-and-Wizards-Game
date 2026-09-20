@@ -37,7 +37,12 @@ public sealed class Character(XElement xml) {
     
     //
 
-    public readonly int CurrentFame = xml.GetValue("Fame", 0);
+    // The account server writes the character's fame as <CurrentFame> (there is no <Fame> element on a <Char>).
+    public readonly int CurrentFame = xml.GetValue("CurrentFame", 0);
+
+    public readonly int Level = xml.GetValue("Level", 1);
+
+    public readonly int Experience = xml.GetValue("Experience", 0);
     
     //
     
@@ -63,7 +68,7 @@ public sealed class Character(XElement xml) {
 
     public readonly int Wisdom = xml.GetValue("Wisdom", 0);
         
-    public readonly int Speed = xml.GetValue("Wisdom", 0);
+    public readonly int Speed = xml.GetValue("Speed", 0);
     
-    public readonly int Vitality = xml.GetValue("LifeRegeneration", 0);
+    public readonly int Vitality = xml.GetValue("Vitality", 0);
 }

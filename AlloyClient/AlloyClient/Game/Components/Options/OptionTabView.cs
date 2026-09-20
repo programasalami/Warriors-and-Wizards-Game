@@ -13,11 +13,13 @@ public class OptionTabView : Container {
     private static readonly string[] WindowLabels = ["Windowed", "Maximized", "Borderless", "Fullscreen"];
     private static readonly object[] WindowValues = [WindowMode.Normal, WindowMode.Maximized, WindowMode.WindowedFullscreen, WindowMode.ExclusiveFullscreen];
     
+    private const int RowHeight = 56;
+
     private readonly Container _container;
     private readonly List<Option> _options = [];
     private readonly VerticalScrollBar _scrollbar;
     
-    public OptionTabView(string name) : base(new ContainerConfig { Width = 1280, Height = 507, EnableClip = true }) {
+    public OptionTabView(string name) : base(new ContainerConfig { Width = OptionsView.ViewWidth, Height = OptionsView.ViewHeight, EnableClip = true }) {
         _container = new Container();
         AddChild(_container);
 
@@ -44,13 +46,16 @@ public class OptionTabView : Container {
 
         PositionChildren();
 
-        if (_container.Height >= Height) {
+        // The viewport is the fixed ViewHeight, NOT this.Height: a sprite's Height grows to include its children, so once the
+        // options overflow, this.Height == _container.Height and the scrollbar got a scroll range of 0 (drag -> divide by zero ->
+        // the options were flung off-screen for good).
+        if (_container.Height > OptionsView.ViewHeight) {
             _scrollbar = new VerticalScrollBar(this, new VerticalScrollBarConfig {
-                X = Settings.DefaultScreenWidth - 15,
+                X = OptionsView.ViewWidth - 30,
                 Width = 15,
-                Height = Height,
+                Height = OptionsView.ViewHeight,
                 TotalContentHeight = _container.Height,
-                VisibleContentHeight = Height,
+                VisibleContentHeight = OptionsView.ViewHeight,
                 OnValueChanged = val => _container.Y = -val
             });
             AddChild(_scrollbar);
@@ -64,8 +69,8 @@ public class OptionTabView : Container {
                 continue;
             }
 
-            option.X += i % 2 == 0 ? 32 : 664;
-            option.Y += (int) (i / 2) * 70 + 22;
+            option.X += i % 2 == 0 ? 48 : 628;
+            option.Y += (int) (i / 2) * RowHeight + 8;
 
             _container.AddChild(option);
 
@@ -85,6 +90,7 @@ public class OptionTabView : Container {
         _options.Add(new KeyMapperOption(Settings.MoveDown, "Move Down", "Key to will move character down"));
         _options.Add(new KeyMapperOption(Settings.MoveRight, "Move Right", "Key to will move character to the right"));
         _options.Add(new ChoiceOption<bool>(Settings.AllowRotation, OnOffLabels, OnOffValues, "Allow Camera Rotation", "Toggles whether to allow for camera rotation"));
+        _options.Add(new ChoiceOption<bool>(Settings.SnapRotation, OnOffLabels, OnOffValues, "Snap Camera Rotation", "Rotate in eased 45 degree steps instead of spinning continuously"));
         _options.Add(null);
         _options.Add(new KeyMapperOption(Settings.RotateLeft, "Rotate Left", "Key to will rotate the camera to the left"));
         _options.Add(new KeyMapperOption(Settings.RotateRight, "Rotate Right", "Key to will rotate the camera to the right"));

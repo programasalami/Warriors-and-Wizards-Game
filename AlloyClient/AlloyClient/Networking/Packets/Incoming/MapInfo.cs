@@ -1,5 +1,6 @@
 ﻿using AlloyClient.Data;
 using AlloyClient.Game;
+using AlloyClient.Loading;
 using AlloyClient.Networking.Packets.Outgoing;
 using Microsoft.Extensions.Logging;
 
@@ -54,6 +55,7 @@ public class MapInfo : IncomingPacket<MapInfo> {
         LoadOrCreate();
 
         Client.IsReconnecting = false;
+        WorldLoad.Mark(WorldMilestone.MapInfo);
     }
 
     private static void LoadOrCreate() {

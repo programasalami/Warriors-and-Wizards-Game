@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AlloyClient.Game.Components.Options;
 using AlloyClient.Assets.XmlStructs;
 using AlloyClient.Game.Objects;
 using Alloy.UiLib.BuiltIn;
@@ -7,6 +8,12 @@ using Alloy.UiLib.Core;
 namespace AlloyClient.Game.Components.Hud.Inventory;
 
 public sealed class EquippedGrid : Sprite {
+
+    // Same width as the inventory panel underneath, and the same 48px slots / 5px gaps (12px of padding inside the frame), so the columns line up.
+    public const int Width = 232;
+    public const int Height = 72;
+    private const int SlotSize = 48;
+    private const int Gap = 5;
 
     private const byte NumSlots = 4;
 
@@ -18,28 +25,26 @@ public sealed class EquippedGrid : Sprite {
     public EquippedGrid(Player owner) {
         _owner = owner;
         
-        var bg = new CutEdgeRect(new CutEdgeConfig { Width = 216, Height = 56, CutX = 6, CutY = 6, Cuts = CutEdges.All, Color = 0x676767 });
-        AddChild(bg);
+        AddChild(OptionsStyle.Panel(Width, Height));
         
         _owner.InventoryUpdate.Add(OnInventoryChange);
 
         for (byte i = 0; i < NumSlots; i++) {
-            var slot = new ItemTile(_owner, i, true, Cuts[i], false, (byte)_owner.Properties.SlotTypes[i], tileSize: 49, bgcolor: 0x454545);
-            slot.X = i % 4 * (49 + 4) + 4;
-            slot.Y = i / 4 * (49 + 4) + 3;
+            var slot = new ItemTile(_owner, i, true, Cuts[i], false, (byte)_owner.Properties.SlotTypes[i], tileSize: SlotSize);
+            slot.X = i % 4 * (SlotSize + Gap) + 12;
+            slot.Y = 12;
             AddChild(slot);
             _tileSlots[i] = slot;
         }
     }
     
     public EquippedGrid(ItemDesc[] items, List<int> slotTypes) {
-        var bg = new CutEdgeRect(new CutEdgeConfig { Width = 216, Height = 56, CutX = 6, CutY = 6, Cuts = CutEdges.All, Color = 0x676767 });
-        AddChild(bg);
+        AddChild(OptionsStyle.Panel(Width, Height));
 
         for (byte i = 0; i < NumSlots; i++) {
-            var slot = new ItemTile(null, i, false, Cuts[i], false, (byte)slotTypes[i], tileSize: 49, bgcolor: 0x454545);
-            slot.X = i % 4 * (49 + 4) + 4;
-            slot.Y = i / 4 * (49 + 4) + 3;
+            var slot = new ItemTile(null, i, false, Cuts[i], false, (byte)slotTypes[i], tileSize: SlotSize);
+            slot.X = i % 4 * (SlotSize + Gap) + 12;
+            slot.Y = 12;
             slot.SetItem(items[i]);
             AddChild(slot);
             _tileSlots[i] = slot;

@@ -1,5 +1,5 @@
 using AlloyClient.Display;
-using AlloyClient.Ui.Components.Graphics;
+using AlloyClient.Screens.Components.CharacterList;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
 using AlloyClient.Utils;
@@ -27,12 +27,12 @@ public abstract class TitleScreenBase : Screen {
 
     private readonly ColorRect _background;
 
-    // Only populated for ScreenType.Title - TitleScreenGraphic (the scroll/text/buttons art) sits
-    // on top of TitleScreenBackground (the same wallpaper minus the scroll, see
-    // Content/TitleScreen/TitleScreenBackground.png) and fades out/in as overlays (login,
-    // register, and future settings/servers/account frames) open/close, revealing the plain
-    // wallpaper underneath instead of the scroll fading to nothing.
-    private readonly ScreenGraphic _splashGraphic;
+    // Only for ScreenType.Title: a dark cave map (CaveBackdrop). It replaced the two wallpaper images the title screen
+    // used to swap between (one with a frame drawn INTO the picture, one without, switched whenever a popup opened) -
+    // overlays now just open over the map, and the title screen's own logo and menu block fade (see
+    // OnTitleContentVisibilityChanged). The character-select screen keeps the light forest map (ForestBackdrop).
+    private readonly CaveBackdrop _backdrop;
+    private readonly bool _isTitle;
 
     protected TitleScreenBase(ScreenType type = ScreenType.Other) {
         // Dark grey base for every screen type - on the title screen it shows through the
@@ -41,8 +41,8 @@ public abstract class TitleScreenBase : Screen {
         AddChild(_background);
 
         if (type == ScreenType.Title) {
-            AddChild(new ScreenGraphic(false));
-            AddChild(_splashGraphic = new ScreenGraphic(true));
+            _isTitle = true;
+            AddChild(_backdrop = new CaveBackdrop());
         }
 
         //Todo guild/stars
@@ -55,7 +55,7 @@ public abstract class TitleScreenBase : Screen {
         Stage.AddEventListener(ResizeEvent.Resize, OnResize);
         OnResize(new ResizeEvent(ResizeEvent.Resize, Stage.StageWidth, Stage.StageHeight));
 
-        if (_splashGraphic != null) {
+        if (_isTitle) {
             OverlayManager.OverlayOpened += OnOverlayOpened;
             OverlayManager.OverlayClosed += OnOverlayClosed;
         }
@@ -64,7 +64,7 @@ public abstract class TitleScreenBase : Screen {
     private void OnStageExit() {
         Stage.RemoveEventListener(ResizeEvent.Resize, OnResize);
 
-        if (_splashGraphic != null) {
+        if (_isTitle) {
             OverlayManager.OverlayOpened -= OnOverlayOpened;
             OverlayManager.OverlayClosed -= OnOverlayClosed;
         }
@@ -72,17 +72,12 @@ public abstract class TitleScreenBase : Screen {
 
     protected override void OnResize(ResizeEvent args) {
         _background?.Resize(args.Width, args.Height);
+        _backdrop?.Resize(args.Width, args.Height);
     }
 
-    private void OnOverlayOpened() {
-        _splashGraphic.AddAlphaTween(1f, 0f, ContentFadeDuration);
-        OnTitleContentVisibilityChanged(false);
-    }
+    private void OnOverlayOpened() => OnTitleContentVisibilityChanged(false);
 
-    private void OnOverlayClosed() {
-        _splashGraphic.AddAlphaTween(0f, 1f, ContentFadeDuration);
-        OnTitleContentVisibilityChanged(true);
-    }
+    private void OnOverlayClosed() => OnTitleContentVisibilityChanged(true);
 
     // Only invoked for ScreenType.Title. Lets TitleScreen fade its own row list/header alongside
     // the splash graphic above, without TitleScreenBase needing to know that content exists.

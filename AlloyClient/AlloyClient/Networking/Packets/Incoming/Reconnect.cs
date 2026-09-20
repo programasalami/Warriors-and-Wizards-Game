@@ -1,5 +1,6 @@
 ﻿using AlloyClient.Data;
 using AlloyClient.Game;
+using AlloyClient.Loading;
 using AlloyClient.Networking.Packets.Outgoing;
 
 namespace AlloyClient.Networking.Packets.Incoming;
@@ -18,6 +19,10 @@ public class Reconnect : IncomingPacket<Reconnect> {
     }
 
     public override void Handle() {
+        // A world switch: bring the loading cover back over the old world while the new one loads.
+        WorldLoad.Begin(true);
+        GameScreen.GameSprite?.OnWorldLoadBegan(true);
+
         Map.Entities.Clear();
         Map.EntityStorage.Clear();
 

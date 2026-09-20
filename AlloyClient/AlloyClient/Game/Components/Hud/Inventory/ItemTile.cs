@@ -1,4 +1,5 @@
 ﻿using System;
+using AlloyClient.Game.Components.Options;
 using AlloyClient.Assets.XmlStructs;
 using AlloyClient.Display;
 using AlloyClient.Game.Objects;
@@ -45,7 +46,9 @@ public sealed class ItemTile : Sprite {
     private readonly Timer _doubleTimer = new Timer(250, 1);
     private bool _pendingDouble;
 
-    private readonly CutEdgeRect _background;
+    private readonly NineSliceRect _background;
+    // an item your class can't use: the slot gets a red wash
+    private readonly ColorRect _unusable;
     private readonly ObjectRect _slotDetail;
     private readonly SimpleText _slotId;
 
@@ -60,8 +63,13 @@ public sealed class ItemTile : Sprite {
 
         _doubleTimer.AddEventListener(TimerEvent.TimerComplete, OnSingleClick);
 
-        _background = new CutEdgeRect(new CutEdgeConfig {Width = Size, Height = Size, CutX = 4, CutY = 4, Cuts = cut, Color = _bgColor});
+        // The walnut slot the options menu uses. `cut` / `bgcolor` are kept for the callers but the look is the slot's own.
+        _background = OptionsStyle.Slot(Size, Size);
         AddChild(_background);
+
+        _unusable = new ColorRect(new ColorRectConfig { X = 4, Y = 4, Width = Size - 8, Height = Size - 8, Color = 0xB74132, Alpha = 0.4f });
+        _unusable.Visible = false;
+        AddChild(_unusable);
 
         _slotDetail = new ObjectRect(new ObjectRectConfig {Texture = TextureHelper.FromGameAtlas(0x0096), Width = Size, Height = Size, OutlineEnabled = false, GlowEnabled = false});
         _slotDetail.Visible = false;
@@ -74,7 +82,7 @@ public sealed class ItemTile : Sprite {
             _slotDetail.Visible = true;
         }
 
-        _slotId = new SimpleText(new TextConfig {Text = "", X = Size / 2, Y = Size / 2, FontSize = 32, FontType = FontType.Bold, Color = 0x363636, OutlineColor = 0x363636, Anchor = UiAnchor.Middle});
+        _slotId = new SimpleText(new TextConfig {Text = "", X = Size / 2, Y = Size / 2, FontSize = 32, FontType = FontType.Bold, Color = 0x534664, OutlineColor = 0x120E23, Anchor = UiAnchor.Middle});
         _slotId.Visible = false;
         AddChild(_slotId);
 
@@ -112,12 +120,12 @@ public sealed class ItemTile : Sprite {
         ItemDesc = itemDesc;
         if (ItemDesc != null && ItemDesc.ObjectType > 0) {
             _sprite.ChangeTexture(TextureHelper.FromGameAtlas(ItemDesc.ObjectType));
-            _background.SetColor(IsUsableByPlayer(ItemDesc) ? _bgColor : 0x5C1D1Du);
+            _unusable.Visible = !IsUsableByPlayer(ItemDesc);
             _slotDetail.Visible = false;
             _slotId.Visible = false;
         } else {
             _sprite.ChangeTexture(TextureHelper.FromGameAtlas(0x0096));
-            _background.SetColor(_bgColor);
+            _unusable.Visible = false;
             if (SlotType != 0) _slotDetail.Visible = true;
             if (Owner is Player && SlotType == 0) _slotId.Visible = true;
             if (_tooltip != null) TooltipManager.RemoveTooltip(_tooltip);

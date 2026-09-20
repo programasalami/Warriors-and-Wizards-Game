@@ -1,4 +1,5 @@
 ﻿using System;
+using AlloyClient.Game.Components.Options.Ui;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
 
@@ -8,13 +9,7 @@ public class SliderOption : Option {
     private readonly SimpleText _text;
 
     public SliderOption(ValueSetting<float> setting, string text, Action<float> sliderCallback) : base(setting, null, null) {
-        _text = new SimpleText(new TextConfig {
-            Text = text,
-            FontSize = 22,
-            FontType = FontType.Bold,
-            OutlineThickness = 2,
-            Color = 0xABABAB
-        });
+        _text = OptionsStyle.Label(text, FontGroup.MyriadPro, 19f, 0, KeyCodeBox.BoxHeight / 2, UiAnchor.MiddleLeft, OptionsStyle.Tan);
         AddChild(_text);
     }
 

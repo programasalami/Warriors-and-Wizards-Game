@@ -8,7 +8,7 @@ namespace AlloyClient.Game.Components.Options.Ui;
 
 public class KeyCodeBox : Sprite {
     public const int BoxWidth = 128;
-    public const int BoxHeight = 51;
+    public const int BoxHeight = 44;
 
     private static readonly string[] CharCodes = [
         "[Unset]", "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "1", "2", "3", "4", "5", "6", "7", "8", "9", "0",
@@ -21,7 +21,7 @@ public class KeyCodeBox : Sprite {
 
     public InputSetting Value;
 
-    private readonly ColorRect _background;
+    private readonly NineSliceRect _background;
     private readonly SimpleText _char;
     private readonly Action _callback;
 
@@ -40,16 +40,14 @@ public class KeyCodeBox : Sprite {
 
         Value = setting;
 
-        _background = new ColorRect(new ColorRectConfig { Width = BoxWidth, Height = BoxHeight, Color = 0x444444 });
+        _background = OptionsStyle.Slot(BoxWidth, BoxHeight);
         AddChild(_background);
 
-        _char = new SimpleText(new TextConfig {
-            Text = CharCodes[(int)_keyCode], FontSize = 25, FontType = FontType.Bold, X = BoxWidth / 2, Y = BoxHeight / 2, OutlineThickness = 2, Anchor = UiAnchor.Middle
-        });
+        _char = OptionsStyle.Label(CharCodes[(int)_keyCode], FontGroup.MyriadPro, 20f, BoxWidth / 2, BoxHeight / 2, UiAnchor.Middle, OptionsStyle.Gold);
         AddChild(_char);
 
-        AddEventListener(MouseEvent.MouseOver, () => _background.SetColor(11776947));
-        AddEventListener(MouseEvent.MouseOut, () => _background.SetColor(4473924));
+        AddEventListener(MouseEvent.MouseOver, () => _background.ColorTransformation = OptionsStyle.SlotHoverTint);
+        AddEventListener(MouseEvent.MouseOut, () => _background.ColorTransformation = OptionsStyle.NormalTint);
         AddEventListener(MouseEvent.LeftClick, OnLeftClick);
         AddEventListener(Event.EnterFrame, OnFrameEnter);
     }

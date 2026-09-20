@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using AlloyClient.Display;
 using AlloyClient.Networking;
-using AlloyClient.Ui.Components.Buttons;
+using AlloyClient.Ui;
 using AlloyClient.Ui.Components.Panels;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
@@ -19,12 +19,32 @@ public sealed class OptionsView : Overlay {
     public const string ExtraTab = "Extra";
 
     private static readonly string[] Tabs = [ControlsTab, HotkeysTab, ChatTab, GraphicsTab, SoundTab, ExtraTab];
-    
+
+    // Layout on the 1280x720 design canvas: one big walnut panel, the title and a row of parchment tabs across its top, the
+    // active tab's options in the middle and three parchment buttons along the bottom.
+    private const int PanelX = 40;
+    private const int PanelY = 24;
+    private const int PanelWidth = 1200;
+    private const int PanelHeight = 672;
+    private const int PanelCut = 16;
+
+    private const int TitleY = 62;
+    private const int TabsY = 100;
+    private const int TabWidth = 170;
+    private const int TabHeight = 44;
+    private const int TabGap = 12;
+    public const int ViewX = PanelX;
+    public const int ViewY = 160;
+    public const int ViewWidth = PanelWidth;
+    public const int ViewHeight = 456;
+    private const int ButtonsY = 636;
+    private const int ButtonHeight = 48;
+
     private readonly Dictionary<string, OptionTabView> _tabViews = [];
 
     public static readonly SingleSignal RefreshOptions = new ();//TODO: holds refs, redo
 
-    private TextButton _selectedTab;
+    private ParchmentButton _selectedTab;
 
     public OptionsView() {
         // OverlayManager positions every overlay by its own CENTER at the stage's center (see
@@ -39,103 +59,62 @@ public sealed class OptionsView : Overlay {
 
         //todo:SetBaseDimensions(Settings.DefaultScreenWidth, Settings.DefaultScreenHeight);
 
-        var titleText = new SimpleText(new TextConfig {
-            Text = "Options",
-            FontSize = 57,
-            FontType = FontType.Bold,
-            X = Settings.DefaultScreenWidth / 2,
-            Y = 10,
-            OutlineThickness = 2,
-            Anchor = UiAnchor.MiddleTop
-        });
-        AddChild(titleText);
+        var panel = OptionsStyle.Panel(PanelWidth, PanelHeight);
+        panel.X = PanelX;
+        panel.Y = PanelY;
+        AddChild(panel);
 
-        var header = new ColorRect(new ColorRectConfig { X = 0, Y = 120, Width = Settings.DefaultScreenWidth, Height = 2, Color = 0x5E5E5E });
-        AddChild(header);
+        AddChild(OptionsStyle.Label("OPTIONS", FontGroup.MyriadPro, 44f, Settings.DefaultScreenWidth / 2, TitleY, UiAnchor.Middle, OptionsStyle.Gold, 2));
 
-        var continueButton = new MenuBarButton(new TextButtonConfig {
-            Text = "continue",
-            FontSize = 57,
-            OnClicked = OnContinue,
-            X = Settings.DefaultScreenWidth / 2,
-            Y = Settings.DefaultScreenHeight - 40,
-            Anchor = UiAnchor.Middle
-        }, true);
-        AddChild(continueButton);
-
-        var resetButton = new MenuBarButton(new TextButtonConfig {
-            Text = "reset to defaults",
-            FontSize = 35,
-            OnClicked = OnResetToDefaults,
-            Y = Settings.DefaultScreenHeight - 40,
-            Anchor = UiAnchor.MiddleLeft
-        });
-        resetButton.X = 20;
-        AddChild(resetButton);
-
-        var homeButton = new MenuBarButton(new TextButtonConfig {
-            Text = "home",
-            FontSize = 35,
-            OnClicked = OnHome,
-            X = Settings.DefaultScreenWidth - 100,
-            Y = Settings.DefaultScreenHeight - 40,
-            Anchor = UiAnchor.MiddleRight
-        });
-        homeButton.X = Settings.DefaultScreenWidth - homeButton.Width - 20;
-        AddChild(homeButton);
+        var centerX = Settings.DefaultScreenWidth / 2;
+        AddChild(new ParchmentButton("CONTINUE", "continue", 210, ButtonHeight, 26f, OnContinue) { X = centerX - 105, Y = ButtonsY });
+        AddChild(new ParchmentButton("RESET TO DEFAULTS", "reset", 320, ButtonHeight, 24f, OnResetToDefaults) { X = PanelX + 40, Y = ButtonsY });
+        AddChild(new ParchmentButton("HOME", "home", 170, ButtonHeight, 26f, OnHome) { X = PanelX + PanelWidth - 40 - 170, Y = ButtonsY });
 
         AddTabs();
     }
 
     private void AddTabs() {
         var first = true;
-        var xOffset = 22;
+        var xOffset = (Settings.DefaultScreenWidth - (Tabs.Length * TabWidth + (Tabs.Length - 1) * TabGap)) / 2;
         foreach (var tabName in Tabs) {
-            var tab = new TextButton(new TextButtonConfig {
-                Text = tabName,
-                FontSize = 25,
-                FontType = FontType.Bold,
-                ActiveColor = 0xB3B3B3,
-                HoverColor = 0xFFFFFF,
-                InactiveColor = 0xFFC800,
+            var tab = new ParchmentButton(tabName.ToUpperInvariant(), tabName, TabWidth, TabHeight, 22f, null, false) {
                 X = xOffset,
-                Y = 84,
-                Anchor = UiAnchor.LeftTop
-            });
+                Y = TabsY
+            };
             tab.AddEventListener(MouseEvent.LeftClick, OnSelectTab);
             AddChild(tab);
 
             var view = new OptionTabView(tabName) {
                 Visible = false,
-                Y = 120
+                X = ViewX,
+                Y = ViewY
             };
             _tabViews[tabName] = view;
             AddChild(view);
 
             if (first) {
                 first = false;
-
-                view.Visible = true;
                 SelectTab(tab);
             }
 
-            xOffset += 172;
+            xOffset += TabWidth + TabGap;
         }
     }
 
     private void OnSelectTab(MouseEvent args) {
-        SelectTab(args.CurrentTarget as TextButton);
+        SelectTab(args.CurrentTarget as ParchmentButton);
     }
 
-    private void SelectTab(TextButton tab) {
+    private void SelectTab(ParchmentButton tab) {
         if (_selectedTab != null) {
-            _selectedTab.Activate();
-            _tabViews[_selectedTab.Name].Visible = false;
+            _selectedTab.SetSelected(false);
+            _tabViews[_selectedTab.Key].Visible = false;
         }
 
         _selectedTab = tab;
-        _selectedTab!.Deactivate();
-        _tabViews[_selectedTab.Name].Visible = true;
+        _selectedTab!.SetSelected(true);
+        _tabViews[_selectedTab.Key].Visible = true;
     }
     
     public void Refresh() {

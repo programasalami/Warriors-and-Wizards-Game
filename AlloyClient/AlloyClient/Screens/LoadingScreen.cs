@@ -1,45 +1,21 @@
-﻿using System.Threading.Tasks;
-using AlloyClient.AppEngine;
-using AlloyClient.Assets;
-using AlloyClient.Display;
-using Alloy.UiLib.BuiltIn;
-using Alloy.UiLib.Core;
-using Alloy.UiLib.Extra;
-using AlloyClient.Screens.Components;
+﻿using AlloyClient.AppEngine;
+using AlloyClient.Loading;
 
 namespace AlloyClient.Screens;
 
-public class LoadingScreen : TitleScreenBase {
+// Client start-up: the logo loader (see LoaderScreen) running the startup plan built in Main.BuildStartupPlan - game
+// art, fonts, data parsing, account check, renderer setup - then the title screen. The bar is real: it moves only as
+// those steps actually finish.
+public class LoadingScreen : LoaderScreen {
 
-    private const int MinLoadingTime = 2000;
+    public LoadingScreen(LoadPlan plan) : base(plan, () => new TitleScreen(), 1000) { }
 
-    private readonly SimpleText _text;
-    
-    public LoadingScreen(bool isRetry = false) : base(Components.ScreenType.Loading) {
-        _text = new SimpleText(new TextConfig {
-            Text = "Loading...",
-            FontSize = 40,
-            FontType = FontType.Bold,
-            OutlineThickness = 4,
-            X = Settings.DefaultScreenWidth / 2,
-            Y = Settings.DefaultScreenHeight - 90,
-            Color = 0xFFFFFF,
-            Anchor = UiAnchor.Middle
-        });
-        AddChild(_text);
-        
-        AddEventListener(Task.WhenAll(
-            AppRequests.Startup(),
-            isRetry ? Task.CompletedTask : AssetParser.LoadAssetsAsync(),
-            Task.Delay(MinLoadingTime)
-        ), () => { ScreenManager.FadeToScreen(new TitleScreen(), Easing.SineInOut, 1000, 0x0); });
-    }
+    // Retry (from RetryLoadDialog): the game is already loaded, so only the account check runs again.
+    public LoadingScreen(bool isRetry) : this(BuildRetryPlan()) { }
 
-    protected override void OnResize(ResizeEvent args) {
-        _text.Scale = Stage.ScreenScale;
-        _text.X = Stage.StageWidth / 2;
-        _text.Y = Stage.StageHeight - (int)(90 * Stage.ScreenScale.Y);
-
-        base.OnResize(args);
+    private static LoadPlan BuildRetryPlan() {
+        var plan = new LoadPlan();
+        plan.AddTask("Your account", 1, AppRequests.Startup);
+        return plan;
     }
 }

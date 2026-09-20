@@ -82,3 +82,9 @@ CLAUDE.md
 .cursor/
 .windsurf/
 tmp-loadtest/
+
+# ===== Deploy + web build output (rebuilt by deploy.ps1 / build_web.py - never commit) =====
+/dist/
+/WebClient/dist/
+/WebClient/web/patched/
+/WebClient/web/patched.props

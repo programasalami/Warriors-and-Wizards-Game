@@ -29,13 +29,13 @@ public static class Settings {
     public const string BuildVersion = "0.3.3";
     public const string BuildLabel = $"Alloy v{BuildVersion}";
 
-    public const string AppEngineAddress = "127.0.0.1";
+    public const string AppEngineAddress = "104.152.50.196";
     public const string AppEnginePort = "8080";
     public const string AppEngineUrl = $"http://{AppEngineAddress}:{AppEnginePort}";
 
     public const int AppEngineTimeout = 10000;
 
-    public const string GameServerAddress = "127.0.0.1";
+    public const string GameServerAddress = "104.152.50.196";
     public const ushort GameServerPort = 2050;
 
     public const int DefaultScreenWidth = 1280;
@@ -102,6 +102,8 @@ public static class Settings {
     // Random
     public static readonly ValueSetting<PacketLogLevel> PacketLogging = new(PacketLogLevel.Off);
     public static readonly ValueSetting<ushort> SelectedGameServerPort = new(GameServerPort);
+    // Id of the character the player last pressed PLAY with - shown on the character book's "LAST PLAYED" page.
+    public static readonly ValueSetting<int> LastPlayedCharacterId = new(-1);
     
     // Camera
     public static readonly ValueSetting<int> MaxRenderDistance = new(20);
@@ -109,6 +111,7 @@ public static class Settings {
     public static readonly ValueSetting<float> CameraAngle = new(0f);
     public static readonly ValueSetting<float> CameraZoom = new(1f);
     public static readonly ValueSetting<bool> AllowRotation = new(true);
+    public static readonly ValueSetting<bool> SnapRotation = new(true);
     public static readonly ValueSetting<float> RotateSpeed = new(0.003f);
 
     // Screen

@@ -6,10 +6,6 @@ namespace AlloyClient.Ui.Components.Tooltips;
 
 public abstract class Tooltip : Sprite {
 
-    private NineSliceRect TooltipSprite;
-    private NineSliceConfig TooltipConfig;
-
-
     private Container Contain;
 
     public int ToolWidth;
@@ -30,21 +26,24 @@ public abstract class Tooltip : Sprite {
         AddChild(Contain);
     }
 
+    // The pack's frame is thick (8px borders at 2x), so it is drawn Pad pixels bigger than the content box on every side and the content is
+    // shifted in to match.
+    private const int Pad = 10;
+
     public virtual void DrawSprite()
     {
-        TooltipConfig = new NineSliceConfig
-        {
-            SliceData = SliceLibrary.TooltipBackgroundSmall,
-            CutX = 5,
-            CutY = 5,
-            Width = ToolWidth,
-            Height = ToolHeight
-        };
-        TooltipSprite = new NineSliceRect(TooltipConfig);
-        Contain.AddChild(TooltipSprite);
-        Width = ToolWidth;
-        Height = ToolHeight;
-        //todo:SetBaseDimensions(ToolWidth, ToolHeight);
+        for (var i = 0; i < NumChildren; i++) {
+            var child = GetChildAt(i);
+            if (child != Contain) {
+                child.X += Pad;
+                child.Y += Pad;
+            }
+        }
+
+        var panel = AlloyClient.Game.Components.Hud.WaWStyle.Panel(ToolWidth + Pad * 2, ToolHeight + Pad * 2);
+        Contain.AddChild(panel);
+        Width = ToolWidth + Pad * 2;
+        Height = ToolHeight + Pad * 2;
     }
-    
+
 }

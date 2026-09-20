@@ -18,7 +18,10 @@ public class BitmapFamily {
 
     public readonly float PixelRange;
 
-    public BitmapFamily(FontFamily data) {
+    // sizeScale: multiplies every em-relative metric (glyph advance and plane bounds, kerning, line height, ascender and
+    // descender) - NOT the atlas UVs. It exists so a font that is drawn small for its em size (a pixel font) can be
+    // brought up to the visual size the client's nominal font sizes were tuned for, without touching every call site.
+    public BitmapFamily(FontFamily data, float sizeScale = 1f) {
         Atlas = data.Texture;
         Sampler = new Sampler(Atlas, TextureFilter.Linear);
 
@@ -27,7 +30,7 @@ public class BitmapFamily {
                 throw new Exception($"No matching FontType value for font id : {kvp.Key}");
             }
             
-            Fonts[type] = new BitmapFont(kvp.Value, data.PixelRange);
+            Fonts[type] = new BitmapFont(kvp.Value, data.PixelRange, sizeScale);
         }
 
         PixelRange = data.PixelRange;
@@ -45,13 +48,35 @@ public class BitmapFont {
     public readonly Dictionary<char, FontGlyph> Glyphs;
     public readonly Dictionary<(char, char), float> Kernings;
 
-    public BitmapFont(FontData fontData, float range) {
-        LineHeight = fontData.LineHeight;
-        Ascender = fontData.Ascender;
-        Descender = fontData.Descender;
-        Glyphs = fontData.Glyphs;
-        Kernings = fontData.Kernings;
+    public BitmapFont(FontData fontData, float range, float sizeScale = 1f) {
+        LineHeight = fontData.LineHeight * sizeScale;
+        Ascender = fontData.Ascender * sizeScale;
+        Descender = fontData.Descender * sizeScale;
         PixelRange = range;
+
+        if (sizeScale == 1f) {
+            Glyphs = fontData.Glyphs;
+            Kernings = fontData.Kernings;
+            return;
+        }
+
+        Glyphs = new Dictionary<char, FontGlyph>(fontData.Glyphs.Count);
+        foreach (var kvp in fontData.Glyphs) {
+            var glyph = kvp.Value;
+            glyph.Advance *= sizeScale;
+            glyph.Position = new GlyphData {
+                X0 = glyph.Position.X0 * sizeScale,
+                X1 = glyph.Position.X1 * sizeScale,
+                Y0 = glyph.Position.Y0 * sizeScale,
+                Y1 = glyph.Position.Y1 * sizeScale
+            };
+            Glyphs[kvp.Key] = glyph;
+        }
+
+        Kernings = new Dictionary<(char, char), float>(fontData.Kernings.Count);
+        foreach (var kvp in fontData.Kernings) {
+            Kernings[kvp.Key] = kvp.Value * sizeScale;
+        }
     }
 
     //todo do this better

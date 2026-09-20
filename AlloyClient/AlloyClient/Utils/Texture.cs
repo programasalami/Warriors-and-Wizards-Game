@@ -16,6 +16,14 @@ public static class TextureHelper {
         return new TextureInfo(uv.ToPosition(), TextureType.UiAtlas);
     }
     
+    // Same lookup, sampled with the linear-filtered copy of the UI atlas - for smooth, non-pixel-art pictures that get
+    // drawn smaller than they are stored (the nearest-neighbour sampler would alias them).
+    public static TextureInfo FromUiAtlasLinear(string lookup, int index = 0, bool padding = true) {
+        var uv = Main.UiAtlas.GetAtlasData(lookup, index);
+        if (!padding) uv.RemovePadding();
+        return new TextureInfo(uv.ToPosition(), TextureType.UiAtlasLinear);
+    }
+
     public static TextureInfo FromGameAtlas(string lookup, int index, bool padding = true) {
         var uv = Main.Atlas.GetAtlasData(lookup, index);
         if (!padding) uv.RemovePadding();

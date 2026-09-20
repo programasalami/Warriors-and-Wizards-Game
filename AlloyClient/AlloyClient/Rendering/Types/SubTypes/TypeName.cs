@@ -36,8 +36,9 @@ public class TypeName : SubRenderBase {
     }
 
     public void SetTextures() {
-        const float size = 0.5f * 0.5f;
+        const float size = 0.34f;   // em size in tiles: MyriadPro caps are ~0.67 em, so ~0.23 tile tall
         
+        // Must be the family Render.FirstTimeInit bound to the object shader's text sampler (MyriadPro, the client's one font).
         var font = UiRender.GetFont(FontType.Normal);
         _glyphs = new GlyphData[Name.Length];
 
@@ -53,18 +54,23 @@ public class TypeName : SubRenderBase {
 
             var uv = glyph.UV;
             var pos = glyph.Position;
-            var w = (pos.X1 - pos.X0) / 2.0f * size;
-            var h = (pos.Y0 - pos.Y1) / 2.0f * size;
 
-            _glyphs[i] = new GlyphData(uv.ToVector4(), w, h, zero.X, zero.Y - pos.Y0 * size);
+            // The object shader's quad spans -0.5..0.5, so iScale.xy is the quad's FULL width/height (this used to pass half of
+            // each while still spacing letters by full advances -> tiny, thin, blurry letters with huge gaps). The offset is the
+            // quad's centre in the same units as the advances.
+            var w = (pos.X1 - pos.X0) * size;
+            var h = (pos.Y0 - pos.Y1) * size;
+            var cx = zero.X + (pos.X0 + pos.X1) / 2f * size;
+            var cy = zero.Y - (pos.Y0 + pos.Y1) / 2f * size;
+
+            _glyphs[i] = new GlyphData(uv.ToVector4(), w, h, cx, cy);
 
             if (i < len - 1) {
                 font.Kernings.TryGetValue((c, Name[i + 1]), out var kern);
-                zero.X += kern * size * 2f;
+                zero.X += kern * size;
             }
 
             zero.X += glyph.Advance * size;
-            zero.X += 12f / font.PixelRange * size * 2f;
         }
 
         for (var index = 0; index < _glyphs.Length; index++) {
@@ -85,7 +91,7 @@ public class TypeName : SubRenderBase {
     
     private struct GlyphData(Vector4 uv, float w, float h, float x, float y) {
         public Vector4 UV = uv;
-        public Vector4 Scale = new(w, h, 1f * w + x, 1f * h + y);
+        public Vector4 Scale = new(w, h, x, y);
 
         public void Center(float x) {
             Scale.Z -= x;

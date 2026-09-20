@@ -16,6 +16,9 @@ public sealed class DialogManager : Sprite {
 
     public static void Enqueue(Dialog dialog) => Dialogs.Enqueue(dialog);
 
+    // A dialog is up or waiting to come up.
+    public static bool Busy => _current != null || Dialogs.Count > 0;
+
     private void OnFrameEnter() {
         if (_current == null && !TryStart()) return;
         if (_current!.State == DialogState.Closed) OnClosed();

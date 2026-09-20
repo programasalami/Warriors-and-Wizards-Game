@@ -14,14 +14,7 @@ public abstract class Option : Sprite {
         Setting = setting;
         
         if (!string.IsNullOrEmpty(desc)) {
-            DescText = new SimpleText(new TextConfig {
-                Text = desc,
-                FontSize = 25,
-                OutlineThickness = 2,
-                Color = 0xB3B3B3,
-                X = KeyCodeBox.BoxWidth + 38,
-                Y = (KeyCodeBox.BoxHeight - 25) / 2,
-            });
+            DescText = OptionsStyle.Label(desc, FontGroup.MyriadPro, 19f, KeyCodeBox.BoxWidth + 22, KeyCodeBox.BoxHeight / 2, UiAnchor.MiddleLeft, OptionsStyle.Cream);
             AddChild(DescText);
         }
 

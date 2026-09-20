@@ -1,5 +1,6 @@
 ﻿using System;
 using AlloyClient.Networking;
+using AlloyClient.Ui;
 using AlloyClient.Networking.Packets.Outgoing;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
@@ -52,6 +53,7 @@ public class ChatBox : Sprite {
             FontType = FontType.Bold,
             OutlineThickness = 3,
             ClickToActivate = true,
+            BoxSlice = SliceLibrary.WaWSlot,
             Width = MaxWidth,
             OnFocus = FocusTextInput,
             OnUnfocus = UnfocusTextInput

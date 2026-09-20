@@ -147,7 +147,10 @@ public sealed class Projectile : IResettable { // TODO: make struct
         } else if (!_noRotation) {
             var direction = newPos - _position;
             var angle = MathF.Atan2(direction.Y, direction.X);
-            _rotation = angle + Settings.CameraAngle + _angleCorrection;
+            // Object.vert's billboard matrix already turns every sprite by +CameraAngle, so the sprite has to be pre-turned by
+            // -CameraAngle to end up pointing along the bullet's travel. With + it was only right at camera angles 0 and 180: at 45
+            // the bullet drew sideways (90 degrees off), at 90 backwards - i.e. off by 2x the camera angle whenever you rotated.
+            _rotation = angle - Settings.CameraAngle + _angleCorrection;
         }
 
         

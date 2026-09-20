@@ -1,4 +1,5 @@
 ﻿using AlloyClient.Game;
+using AlloyClient.Loading;
 
 namespace AlloyClient.Networking.Packets.Incoming;
 
@@ -20,6 +21,7 @@ public class CreateSuccess : IncomingPacket<CreateSuccess> {
 
     public override void Handle() {
         Map.LocalPlayerId = ObjectId;
+        WorldLoad.Mark(WorldMilestone.CreateSuccess);
     }
 
     public override string ToString() {

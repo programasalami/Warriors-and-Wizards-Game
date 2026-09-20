@@ -1,4 +1,5 @@
 using System;
+using AlloyClient.Game.Components.Options;
 using AlloyClient.Game.Objects;
 using AlloyClient.Networking;
 using AlloyClient.Networking.Packets.Outgoing;
@@ -17,7 +18,7 @@ public class PortalPanel : Panel {
     
     private readonly SimpleText _fullText;
 
-    private readonly TextButton _enterButton;
+    private readonly Container _enterButton;
 
     public PortalPanel(Entity entity) {
         _portal = entity;
@@ -30,18 +31,21 @@ public class PortalPanel : Panel {
         }
 
         var name = new SimpleText(new TextConfig {
-            X = Width / 2,
-            Y = 16,
+            X = PanelWidth / 2,
+            Y = 12,
             Text = txt,
             FontSize = 22,
             FontType = FontType.Bold,
-            OutlineColor = 0xFFFFFF,
-            Anchor = UiAnchor.MiddleTop
+            Color = WaWStyle.Highlight,
+            OutlineColor = OptionsStyle.OutlineDark,
+            OutlineThickness = 1,
+            Anchor = UiAnchor.MiddleTop,
+            MaxWidth = PanelWidth - 16
         });
         AddChild(name);
         
         _fullText = new SimpleText(new TextConfig {
-            X = Width / 2,
+            X = PanelWidth / 2,
             Y = name.Height + 50,
             Text = _locked ? "Locked" : "Full",
             FontSize = 20,
@@ -52,15 +56,10 @@ public class PortalPanel : Panel {
         });
         _fullText.Y = name.Height + 10;
 
-        _enterButton = new TextButton(new TextButtonConfig {
-            Text = "Enter",
-            FontSize = 20,
-            OnClicked = OnInteractKey,
-            FontType = FontType.Bold,
-            X = Width / 2,
-            Y = name.Height + 50,
-            Anchor = UiAnchor.MiddleTop
-        });
+        const int buttonWidth = 120;
+        _enterButton = WaWStyle.TextButton("Enter", buttonWidth, 36, 18f, OnInteractKey);
+        _enterButton.X = PanelWidth / 2 - buttonWidth / 2;
+        _enterButton.Y = name.Height + 46;
         AddChild(_enterButton);
         
         AddEventListener(Event.AddedToStage, () => { AddEventListener(Event.EnterFrame, OnFrameEnter);});

@@ -18,6 +18,7 @@ public class AppEngineConfig
         Port = e.GetValue<int>("Port");
         Address = e.GetValue<string>("Address");
         MaxConcurrentRequests = e.GetValue("MaxConcurrentRequests", 200);
+        DownloadUrl = e.GetValue("DownloadUrl", string.Empty).Trim();
     }
 
     public static AppEngineConfig Config
@@ -28,4 +29,7 @@ public class AppEngineConfig
     public int Port { get; private set; }
     public string Address { get; private set; }
     public int MaxConcurrentRequests { get; private set; }
+
+    // Where players get the newest desktop client (shown when their build is out of date). Empty = no download button.
+    public string DownloadUrl { get; private set; }
 }

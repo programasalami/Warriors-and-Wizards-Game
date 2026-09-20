@@ -498,6 +498,7 @@ public static class Map {
         MinimapLayer.SetFocus(player);
         GameScreen.GameSprite.CreatePlayerDependentAssets();
         OnPlayerUpdate.Dispatch(player);
+        Loading.WorldLoad.Mark(Loading.WorldMilestone.PlayerSpawned);
     }
 }
 

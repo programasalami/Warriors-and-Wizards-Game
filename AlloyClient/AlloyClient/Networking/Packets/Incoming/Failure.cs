@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using AlloyClient.AppEngine;
+using Microsoft.Extensions.Logging;
 
 namespace AlloyClient.Networking.Packets.Incoming;
 
@@ -20,6 +21,11 @@ public class Failure : IncomingPacket<Failure> {
 
     public override void Handle() {
         Client.Logger.Log(LogLevel.Information, $"Error: {ErrorId} - {ErrorDescription}");
+
+        // The server wants a different build than this client is: remember which, so the screen we land on can say so.
+        if (ErrorId == VersionCheck.IncorrectVersionFailureId) {
+            VersionCheck.ReportServerVersion(ErrorDescription);
+        }
 
         Client.Disconnect(ErrorDescription);
     }

@@ -121,13 +121,73 @@ public class Player : Entity {
         return new TypePlayer(this);
     }
 
-    private void HandleRelativeMovement(double time, double dt) {
+    // Snap rotation: Q/E queue 45-degree steps and the camera eases to the queued angle, instead of
+    // spinning continuously. Billboarded sprites (trees, bushes) keep their screen orientation while
+    // their bases orbit the player, which reads as "spinning with you" during a sustained spin;
+    // resting on discrete angles with short eased transitions hides that.
+    private const float SnapStep = MathHelper.PiOver4;
+    private const float SnapEaseMs = 70f;      // exponential time constant, ~250ms to settle
+    private const float SnapRepeatDelayMs = 260f; // holding a key queues another step after this long
+    private float _snapTarget;
+    private float _snapLastAngle = float.NaN;
+    private float _snapPrevRotate;
+    private float _snapHeldMs;
+
+    private static float WrapPi(float a) {
+        a %= MathHelper.TwoPi;
+        if (a > MathHelper.Pi) a -= MathHelper.TwoPi;
+        else if (a < -MathHelper.Pi) a += MathHelper.TwoPi;
+        return a;
+    }
+
+    private static float Wrap2Pi(float a) => (a % MathHelper.TwoPi + MathHelper.TwoPi) % MathHelper.TwoPi;
+
+    private void UpdateCameraRotation(double dt) {
         float angle = Settings.CameraAngle;
 
-        if (Rotate != 0) {
-            angle = (float) (angle + dt * Settings.RotateSpeed * Rotate);
-            Settings.CameraAngle.Set((angle % MathHelper.TwoPi + MathHelper.TwoPi) % MathHelper.TwoPi);
+        if (!Settings.SnapRotation) {
+            _snapLastAngle = float.NaN;
+            if (Rotate != 0) {
+                angle = (float) (angle + dt * Settings.RotateSpeed * Rotate);
+                Settings.CameraAngle.Set(Wrap2Pi(angle));
+            }
+            return;
         }
+
+        // Anything else that moved the camera (reset key, default-angle option) becomes the new resting target.
+        if (float.IsNaN(_snapLastAngle) || MathF.Abs(WrapPi(angle - _snapLastAngle)) > 1e-4f) {
+            _snapTarget = angle;
+        }
+
+        var diff = WrapPi(_snapTarget - angle);
+        if (Rotate != 0) {
+            _snapHeldMs = Rotate == _snapPrevRotate ? _snapHeldMs + (float) dt : 0f;
+            var pressed = _snapPrevRotate == 0;
+            var repeat = _snapHeldMs >= SnapRepeatDelayMs && MathF.Abs(diff) < 0.06f;
+            if (pressed || repeat) {
+                _snapTarget = Wrap2Pi(_snapTarget + Rotate * SnapStep);
+                _snapHeldMs = 0f;
+                diff = WrapPi(_snapTarget - angle);
+            }
+        } else {
+            _snapHeldMs = 0f;
+        }
+        _snapPrevRotate = Rotate;
+
+        if (MathF.Abs(diff) < 0.0008f) {
+            angle = _snapTarget;
+        } else {
+            angle += diff * (1f - MathF.Exp(-(float) dt / SnapEaseMs));
+        }
+
+        angle = Wrap2Pi(angle);
+        Settings.CameraAngle.Set(angle);
+        _snapLastAngle = angle;
+    }
+
+    private void HandleRelativeMovement(double time, double dt) {
+        UpdateCameraRotation(dt);
+        float angle = Settings.CameraAngle;
         
         var moveSpeed = GetMoveSpeed();
             var moveVectorAngle = MathF.Atan2(RelativeMoveVector.Y, RelativeMoveVector.X);

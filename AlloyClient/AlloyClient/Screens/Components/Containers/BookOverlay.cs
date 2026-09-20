@@ -204,13 +204,10 @@ public class BookOverlay : Overlay {
     private double _exitElapsedMs;
     private bool _exitHoldDone;
 
-    // No dim backdrop and a bigger overlay scale (see Overlay's virtuals) - the book replaces
-    // TitleScreen's scroll one-for-one rather than sitting over a darkened title screen, and
-    // spawns exactly where that scroll was (same HorizontalPositionFraction/VerticalNudge) instead
-    // of OverlayManager's usual dead-center.
+    // No dim backdrop and a bigger overlay scale (see Overlay's virtuals). It opens dead centre of the screen like every
+    // other popup - it used to sit flush left only because the old title wallpaper had the logo baked into its right
+    // side, and the position/scale of the drawn-in scroll had to be matched.
     public override bool DimBackground => false;
-    public override float HorizontalPositionFraction => TitleScreen.HorizontalPositionFraction;
-    public override int VerticalNudge => TitleScreen.VerticalNudge;
     public override float ScaleMultiplier => BookScaleMultiplier;
     public override int FadeInDurationMs => FadeInMs;
 
@@ -368,7 +365,7 @@ public class BookOverlay : Overlay {
         });
         card.AddChild(hitArea);
 
-        var label = new SimpleText(new TextConfig { Text = text, FontSize = HubCardFontSize, FontType = FontType.Normal, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, OutlineColor = 0x000000, OutlineThickness = 3, X = HubCardWidth / 2, Y = HubCardHeight / 2, Anchor = UiAnchor.Middle });
+        var label = new SimpleText(new TextConfig { Text = text, FontSize = HubCardFontSize, FontType = FontType.Normal, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, OutlineColor = 0x000000, OutlineThickness = 3, X = HubCardWidth / 2, Y = HubCardHeight / 2, Anchor = UiAnchor.Middle });
         card.AddChild(label);
 
         var leftDown = false;
@@ -401,21 +398,21 @@ public class BookOverlay : Overlay {
     }
 
     private void BuildRightPageForm(Container container, string titleText, Action<TextInput, TextInput> onSubmit) {
-        var title = new SimpleText(new TextConfig { Text = titleText, FontSize = PageTitleFontSize, FontType = FontType.Bold, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 24, Anchor = UiAnchor.Middle });
+        var title = new SimpleText(new TextConfig { Text = titleText, FontSize = PageTitleFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 24, Anchor = UiAnchor.Middle });
         container.AddChild(title);
 
-        var usernameLabel = new SimpleText(new TextConfig { Text = "Username:", FontSize = LabelFontSize, FontType = FontType.Bold, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 61, Anchor = UiAnchor.Middle });
+        var usernameLabel = new SimpleText(new TextConfig { Text = "Username:", FontSize = LabelFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 61, Anchor = UiAnchor.Middle });
         container.AddChild(usernameLabel);
 
         // Label-to-input gap bumped from 26 to 32 (below) - at 26 the label's descenders were
         // touching the box's top edge.
-        var usernameInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 93, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Anchor = UiAnchor.Middle });
+        var usernameInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 93, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Anchor = UiAnchor.Middle });
         container.AddChild(usernameInput);
 
-        var passwordLabel = new SimpleText(new TextConfig { Text = "Password:", FontSize = LabelFontSize, FontType = FontType.Bold, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 136, Anchor = UiAnchor.Middle });
+        var passwordLabel = new SimpleText(new TextConfig { Text = "Password:", FontSize = LabelFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 136, Anchor = UiAnchor.Middle });
         container.AddChild(passwordLabel);
 
-        var passwordInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 168, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.NotJamSignature21, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Password = true, Anchor = UiAnchor.Middle });
+        var passwordInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 168, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Password = true, Anchor = UiAnchor.Middle });
         container.AddChild(passwordInput);
 
         // One row, Back on the left and Proceed on the right of the form's own center line -

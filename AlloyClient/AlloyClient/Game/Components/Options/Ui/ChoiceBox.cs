@@ -13,7 +13,7 @@ public class ChoiceBox<T> : Sprite {
     private readonly object[] _values;
     private readonly Action _callback;
 
-    private readonly ColorRect _background;
+    private readonly NineSliceRect _background;
     private readonly SimpleText _char;
     private int _selected;
 
@@ -37,15 +37,14 @@ public class ChoiceBox<T> : Sprite {
             }
         }
 
-        _background = new ColorRect(new ColorRectConfig { Width = BoxWidth, Height = BoxHeight, Color = 0x444444 });
+        _background = OptionsStyle.Slot(BoxWidth, BoxHeight);
         AddChild(_background);
 
-        _char = new SimpleText(new TextConfig
-            { Text = labels[_selected], FontSize = 25, FontType = FontType.Bold, X = BoxWidth / 2, Y = BoxHeight / 2, OutlineThickness = 2, Anchor = UiAnchor.Middle });
+        _char = OptionsStyle.Label(labels[_selected], FontGroup.MyriadPro, 20f, BoxWidth / 2, BoxHeight / 2, UiAnchor.Middle, OptionsStyle.Gold);
         AddChild(_char);
 
-        AddEventListener(MouseEvent.MouseOver, () => _background.SetColor(11776947));
-        AddEventListener(MouseEvent.MouseOut, () => _background.SetColor(4473924));
+        AddEventListener(MouseEvent.MouseOver, () => _background.ColorTransformation = OptionsStyle.SlotHoverTint);
+        AddEventListener(MouseEvent.MouseOut, () => _background.ColorTransformation = OptionsStyle.NormalTint);
         AddEventListener(MouseEvent.LeftClick, OnClick);
     }
 

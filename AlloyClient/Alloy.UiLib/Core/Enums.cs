@@ -28,14 +28,11 @@ public enum TextureType : byte {
     Ellipse = 9,
     Text2 = 10,
     Text3 = 11,
-    Text4 = 12,
 }
 
+// The client has ONE font family (MyriadPro); this stays as an enum so every text config keeps a font-group field.
 public enum FontGroup : byte {
     MyriadPro = 0,
-    NotJamSignature21 = 1,
-    CrunchyFont = 2,
-    Occular = 3,
 }
 
 public enum CollisionType : byte {

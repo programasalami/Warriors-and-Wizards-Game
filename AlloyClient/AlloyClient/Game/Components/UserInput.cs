@@ -72,7 +72,7 @@ public sealed class UserInput : Sprite {
     private static bool IsInputDisabled() => !(_windowFocus && _manualFocus);
 
     private void OnLeftDown(MouseEvent args) {
-        if (args.Coords.X > Stage.StageWidth - HudView.HudWidth * Stage.ScreenScale.X) {
+        if (GameScreen.GameSprite != null && GameScreen.GameSprite.IsOverHud(args.Coords.X, args.Coords.Y)) {
             return;
         }
         _mouseDown = true;
@@ -187,10 +187,17 @@ public sealed class UserInput : Sprite {
             case true when Settings.ResetCameraAngle.Equals(key):
                 Settings.CameraAngle.Set(0f);
                 break;
+            case true when Settings.PerformanceStats.Equals(key):
+                GameScreen.GameSprite?.ToggleDebugStats();
+                break;
             case true when Settings.Options.Equals(key):
-                ClearMovement();
-                SetManualFocus(false);
-                OverlayManager.Set(new OptionsView());
+                if (GameScreen.GameSprite != null) {
+                    GameScreen.GameSprite.OpenOptions();
+                } else {
+                    ClearMovement();
+                    SetManualFocus(false);
+                    OverlayManager.Set(new OptionsView());
+                }
                 break;
             // Inventory //
             case true when Settings.InvOne.Equals(key):

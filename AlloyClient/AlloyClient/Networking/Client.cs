@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using AlloyClient.Data;
 using AlloyClient.Display;
 using AlloyClient.Game;
+using AlloyClient.Loading;
 using AlloyClient.Logging;
 using AlloyClient.Networking.Packets;
 using AlloyClient.Networking.Packets.Outgoing;
@@ -86,6 +87,7 @@ public static class Client {
         }
 
         State = ConnectionState.Connected;
+        WorldLoad.Mark(WorldMilestone.Connected);
 
         Logger.Log(LogLevel.Information, "Connected to server.");
 
@@ -226,7 +228,7 @@ public static class Client {
         }
 
         Map.Reset();
-        ScreenManager.FadeTo(new CharacterListScreen());
+        LoaderFlows.ToCharacterList();
     }
 
     private static void SendHello() {

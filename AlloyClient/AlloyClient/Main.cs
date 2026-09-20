@@ -16,7 +16,9 @@ using Alloy.Common;
 using Alloy.ContentReader;
 using Alloy.Engine;
 using Alloy.UiLib.Core;
+using AlloyClient.AppEngine;
 using AlloyClient.Game;
+using AlloyClient.Loading;
 using AlloyClient.Logging;
 using Microsoft.Extensions.Logging;
 using OpenTK.Graphics.OpenGL;
@@ -97,50 +99,70 @@ public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
     
     [SuppressMessage("ReSharper.DPA", "DPA0003: Excessive memory allocations in LOH")]
     protected override void LoadContent() {
-        // Load content/textures
-        Atlas = ContentLoader.LoadAtlas("Game.atlas");
+        // Only what the loader itself needs to draw (its logo lives in the UI atlas) happens before the first frame.
+        // Everything else is a real step of the startup plan, run by the loader screen while its bar fills.
         UiAtlas = ContentLoader.LoadAtlas("Ui.atlas");
-        MinimapTexture.Init(out var mapTexture);
-        var titleBackground = ContentLoader.LoadTexture("TitleScreen/TitleScreenBackground.png");
-        var titleGraphic = ContentLoader.LoadTexture("TitleScreen/TitleScreenGraphic.png");
-        var font = new BitmapFamily(ContentLoader.LoadFont("Fonts/MyriadPro/MyriadPro.msdf"));
-        var notJamSignature21Font = new BitmapFamily(ContentLoader.LoadFont("Fonts/NotJamSignature21/NotJamSignature21.msdf"));
-        var crunchyFont = new BitmapFamily(ContentLoader.LoadFont("Fonts/CrunchyFont/CrunchyFont.msdf"));
-        var occularFont = new BitmapFamily(ContentLoader.LoadFont("Fonts/Occular/Occular.msdf"));
-        
-        // Init content that depends on any atlas
-        ModelData.Load();
-        SliceLibrary.Load();
-        ConditionEffects.Init();
-        
-        // Set texture units
-        var gameAtlasSampler = new Sampler(Atlas.Texture, 0);
         var uiAtlasSampler = new Sampler(UiAtlas.Texture, 1);
         var uiAtlasLinear = new Sampler(UiAtlas.Texture, TextureFilter.Linear, 2);
-        var mapTextureSampler = new Sampler(mapTexture, 3);
-        var titleBackgroundSampler = new Sampler(titleBackground, 4);
-        var titleGraphicSampler = new Sampler(titleGraphic, 5);
-        font.Sampler.Bind(6);
-        notJamSignature21Font.Sampler.Bind(7);
-        crunchyFont.Sampler.Bind(8);
-        occularFont.Sampler.Bind(9);
-
-        // Render setup
-        Render.FirstTimeInit(gameAtlasSampler, font);
-        UiRender.RegisterFont(font);
-        UiRender.RegisterSecondaryFont(notJamSignature21Font);
-        UiRender.RegisterTertiaryFont(crunchyFont);
-        UiRender.RegisterQuaternaryFont(occularFont);
-        UiRender.RegisterTexture(TextureType.GameAtlas, gameAtlasSampler);
         UiRender.RegisterTexture(TextureType.UiAtlas, uiAtlasSampler);
         UiRender.RegisterTexture(TextureType.UiAtlasLinear, uiAtlasLinear);
-        UiRender.RegisterTexture(TextureType.Minimap, mapTextureSampler);
-        UiRender.RegisterTexture(TextureType.TitleBackground, titleBackgroundSampler);
-        UiRender.RegisterTexture(TextureType.TitleGraphic, titleGraphicSampler);
-        
-        Audio.MusicChannel.FadeTo("Music/Main_Music.wav", 2f);
-        
-        ScreenManager.FadeToScreen(new LoadingScreen(), Easing.SineInOut, 1000, 0x0);
+
+        ScreenManager.FadeToScreen(new LoadingScreen(BuildStartupPlan()), Easing.SineInOut, 1000, 0x0);
+    }
+
+
+    // The client's start-up work as real, weighted steps. GL work has to stay on the main thread (one step per frame,
+    // so the loader keeps drawing between them); parsing and network calls run on the thread pool.
+    private LoadPlan BuildStartupPlan() {
+        Texture mapTexture = null;
+        BitmapFamily font = null;   // MyriadPro - the client's one font
+        Texture titleLogoSheet = null;
+        Texture titleMap = null;
+
+        var plan = new LoadPlan();
+
+        var gameAtlas = plan.AddMainThread("Game art", 30, () => Atlas = ContentLoader.LoadAtlas("Game.atlas"));
+
+        var fonts = plan.AddMainThread("Fonts", 12, () => {
+            font = new BitmapFamily(ContentLoader.LoadFont("Fonts/MyriadPro/MyriadPro.msdf"));
+        });
+
+        // The animated title logo's sprite sheet (one big texture, kept out of the nearly-full UI atlas).
+        var titleLogo = plan.AddMainThread("Title logo", 6, () => titleLogoSheet = ContentLoader.LoadTexture(AlloyClient.Screens.Components.TitleLogoAnimData.SheetPath));
+
+        // The main menu's cave map (one baked picture, also outside the UI atlas).
+        var titleMapStep = plan.AddMainThread("Title map", 3, () => titleMap = ContentLoader.LoadTexture("Title/TitleMap.png"));
+
+        // Content that depends on the atlases.
+        var models = plan.AddMainThread("Models and effects", 6, () => {
+            MinimapTexture.Init(out mapTexture);
+            ModelData.Load();
+            SliceLibrary.Load();
+            ConditionEffects.Init();
+        }, gameAtlas);
+
+        // Parsing every ground/object definition into the game libraries - on the thread pool, needs the game atlas.
+        plan.AddTask("Game data", 20, AssetParser.LoadAssetsAsync, gameAtlas);
+
+        // Account check + character list against the account server.
+        plan.AddTask("Your account", 10, AppRequests.Startup);
+
+        plan.AddMainThread("Renderer", 8, () => {
+            var gameAtlasSampler = new Sampler(Atlas.Texture, 0);
+            var mapTextureSampler = new Sampler(mapTexture, 3);
+            font.Sampler.Bind(6);
+
+            Render.FirstTimeInit(gameAtlasSampler, font);
+            UiRender.RegisterFont(font);
+            UiRender.RegisterTexture(TextureType.GameAtlas, gameAtlasSampler);
+            UiRender.RegisterTexture(TextureType.Minimap, mapTextureSampler);
+            UiRender.RegisterTexture(TextureType.TitleGraphic, new Sampler(titleLogoSheet, TextureFilter.Linear, 5));
+            UiRender.RegisterTexture(TextureType.TitleBackground, new Sampler(titleMap, TextureFilter.Linear, 4));
+        }, gameAtlas, fonts, models, titleLogo, titleMapStep);
+
+        plan.AddMainThread("Music", 4, () => Audio.MusicChannel.FadeTo("Music/Main_Music.wav", 2f));
+
+        return plan;
     }
 
     protected override void Update(GameTime gameTime) => DisplayManager.Update(GameTime = gameTime);

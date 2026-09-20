@@ -39,15 +39,15 @@ public class VerticalScrollBar : Sprite {
 
         _scrollStep = config.ScrollStep == -1 ? config.Height / 20 : config.ScrollStep;
 
-        var scrollBarTexture = new NineSliceRect(new NineSliceConfig {
-            SliceData = SliceLibrary.ScrollBarBg, Width = config.Width, Height = config.Height, Anchor = UiAnchor.MiddleTop, MouseEnabled = true
-        });
+        var scrollBarTexture = Game.Components.Hud.WaWStyle.Scaled(SliceLibrary.WaWScrollTrack, 1, 7, config.Width, config.Height, 2);
+        scrollBarTexture.SetAnchor(UiAnchor.MiddleTop);
+        scrollBarTexture.MouseEnabled = true;
         AddChild(scrollBarTexture);
 
         var handleHeight = CalculateHandleHeight(config.Height, config.TotalContentHeight, config.VisibleContentHeight);
-        _scrollBarHandleTexture = new NineSliceRect(new NineSliceConfig {
-            SliceData = SliceLibrary.ScrollBar, CutX = 4, CutY = 4, Width = config.Width, Height = handleHeight, Anchor = UiAnchor.MiddleTop, MouseEnabled = true
-        });
+        _scrollBarHandleTexture = Game.Components.Hud.WaWStyle.Scaled(SliceLibrary.WaWScrollHandle, 1, 4, config.Width, handleHeight, 2);
+        _scrollBarHandleTexture.SetAnchor(UiAnchor.MiddleTop);
+        _scrollBarHandleTexture.MouseEnabled = true;
         AddChild(_scrollBarHandleTexture);
 
         _scrollHeight = config.Height - handleHeight;
@@ -80,6 +80,9 @@ public class VerticalScrollBar : Sprite {
     }
 
     private void UpdateScrollHandlePosition(float newY) {
+        // Nothing to scroll (handle fills the track): dividing by _scrollHeight below would give NaN -> int.MinValue.
+        if (_scrollHeight <= 0 || _heightDifference <= 0) return;
+
         newY = Math.Clamp(newY, 0, _scrollHeight);
         _scrollBarHandleTexture.Y = (int) newY;
         var scrollY = (int) (newY / _scrollHeight * _heightDifference);
@@ -96,14 +99,14 @@ public class VerticalScrollBar : Sprite {
     }
 
     private void Scroll(MouseEvent args) {
-        if (_heightDifference < 0) return;
+        if (_heightDifference <= 0) return;
         
         var newScrollY = _lastScrollY - args.VerticalDelta * _scrollStep;
         newScrollY = Math.Clamp(newScrollY, 0, _heightDifference);
     
         _onValueChanged((int) newScrollY);
     
-        var handleY = newScrollY / _heightDifference * _scrollHeight;
+        var handleY = (float) newScrollY / _heightDifference * _scrollHeight;
         UpdateScrollHandlePosition(handleY);
     
         _lastScrollY = (int) newScrollY;

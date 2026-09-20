@@ -20,22 +20,25 @@ public static class SliceLibrary {
     public const string TooltipBackgroundSmall = "tooltipBackgroundSmall";
 
     public const string ButtonFrameRed = "Buttons/ButtonFrameRed";
-    public const string TitleButtonsFrame = "Buttons/TitleButtonsFrame";
     public const string LoginFrame = "Frames/LoginFrame";
+
     public const string PageButtonFrame = "Buttons/PageButtonFrame";
 
-    // "Dark Dwellers" pack (CC0, from the user's Desktop/GUI folder) - character select + class
-    // creation redesign. Picked over the pack's other, blue/gold "manaSoul" set because its
-    // purple/gold palette is a near-exact match for the BookOverlay cover art already in the
-    // game (Content/Ui/Book/BookCover.png). Source cells cropped out of the pack's sprite sheets
-    // into Content/Ui/DarkDwellers/*.png via a one-off script, not hand-edited.
-    public const string DarkDwellersFrame = "DarkDwellers/Frame";
-    public const string DarkDwellersFrameAccent = "DarkDwellers/FrameAccent";
-    public const string DarkDwellersHorizFrame = "DarkDwellers/HorizFrame";
-    public const string DarkDwellersButton = "DarkDwellers/Button";
-    public const string DarkDwellersButtonAccent = "DarkDwellers/ButtonAccent";
-    public const string DarkDwellersTab = "DarkDwellers/Tab";
-    public const string DarkDwellersTabActive = "DarkDwellers/TabActive";
+    // Pieces of the "Dark Ages UI" pack (Hypnobius; cut by Tools/DarkAges/build_darkages_assets.ps1) that stretch: the
+    // character creation popup's two tall cards (a rounded dark box with a grey border), its description box and gear slots (the
+    // same box, a shade lighter) and the parchment scroll its CANCEL / CREATE buttons are made from.
+    public const string DarkAgesPanel = "DarkAges/Panel";
+    public const string DarkAgesSlot = "DarkAges/Slot";
+    public const string DarkAgesParchment = "DarkAges/Parchment";
+    // The in-game GUI (HUD, popups, options menu) is built from the "Mini Medieval User Interface" pack (Tools/WaWGui/build_waw_gui.py): a gem-cornered
+    // orange frame over dark brown, the inventory-slot outline, the portrait frame and the bar frame. See Game/Components/Hud/WaWStyle.cs for the scales they are drawn at.
+    public const string WaWPanel = "WaW/Panel";
+    public const string WaWSlot = "WaW/Slot";
+    public const string WaWPortrait = "WaW/PortraitFrame";
+    public const string WaWBar = "WaW/BarFrame";
+    public const string WaWScrollTrack = "WaW/ScrollTrack";
+    public const string WaWScrollHandle = "WaW/ScrollHandle";
+    public const string WaWButton = "WaW/Button";
 
     public static void Load() {
         CreateSlice(TextInput.BoxLookup, 2, 2, "textBox", false);
@@ -49,24 +52,25 @@ public static class SliceLibrary {
         CreateSlice(TooltipBackgroundSmall, 10, 10, "tooltipBackgroundSmall");
 
         CreateSlice(ButtonFrameRed, 3, 3, "Buttons/ButtonFrameRed");
-        CreateSlice(TitleButtonsFrame, 50, 140, "Buttons/TitleButtonsFrame");
         CreateSlice(LoginFrame, 14, 28, "Frames/LoginFrame");
+
+        // The boxes' 8px rounded, bevelled corners stay fixed; their plain edges and fill stretch.
+        CreateSlice(DarkAgesPanel, 8, 8, "DarkAges/Panel", false);
+        CreateSlice(DarkAgesSlot, 8, 8, "DarkAges/Slot", false);
+        CreateSlice(DarkAgesParchment, 10, 10, "DarkAges/Parchment", false);
+        // the pack's fixed corners (gems / studs) stay put, the plain edges and fill stretch
+        CreateSlice(WaWPanel, 8, 8, "WaW/Panel", false);
+        CreateSlice(WaWSlot, 6, 6, "WaW/Slot", false);
+        CreateSlice(WaWPortrait, 7, 7, "WaW/PortraitFrame", false);
+        CreateSlice(WaWBar, 4, 2, "WaW/BarFrame", false);
+        CreateSlice(WaWScrollTrack, 1, 7, "WaW/ScrollTrack", false);
+        CreateSlice(WaWScrollHandle, 1, 4, "WaW/ScrollHandle", false);
+        CreateSlice(WaWButton, 4, 4, "WaW/Button", false);
 
         // Cut measured directly from the 224x96 source: an 8px transparent margin around the
         // shape, then an ~18px diagonal corner cut - 26px covers both, so the fixed corner slice
         // stops right where the shape becomes a clean flat-sided rectangle.
         CreateSlice(PageButtonFrame, 26, 26, "Buttons/PageButtonFrame");
-
-        // Cuts sized to preserve each source's corner/end-cap ornamentation at any stretched
-        // size (NineSliceRect clamps the cut's on-screen size to at most half the stretched
-        // width/height, so oversizing these is safe - it just clamps rather than overlapping).
-        CreateSlice(DarkDwellersFrame, 30, 30, "DarkDwellers/Frame", false);
-        CreateSlice(DarkDwellersFrameAccent, 30, 30, "DarkDwellers/FrameAccent", false);
-        CreateSlice(DarkDwellersHorizFrame, 20, 10, "DarkDwellers/HorizFrame", false);
-        CreateSlice(DarkDwellersButton, 16, 8, "DarkDwellers/Button", false);
-        CreateSlice(DarkDwellersButtonAccent, 16, 8, "DarkDwellers/ButtonAccent", false);
-        CreateSlice(DarkDwellersTab, 20, 10, "DarkDwellers/Tab", false);
-        CreateSlice(DarkDwellersTabActive, 20, 10, "DarkDwellers/TabActive", false);
     }
     
     private static void CreateSlice(string lookup, int x, int y, string atlasLookup, bool padding = true, int lookupIndex = 0) {

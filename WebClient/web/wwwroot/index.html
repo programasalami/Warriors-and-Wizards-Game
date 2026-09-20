@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Warriors &amp; Wizards</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0d0a08; overflow: hidden; }
+  #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; outline: none; touch-action: none; }
+  #loading { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+             color: #e8d8b0; font: 20px/1.3 Georgia, serif; background: #0d0a08; z-index: 5; transition: opacity .5s; }
+  #loading.done { opacity: 0; pointer-events: none; }
+  #bar { width: min(420px, 70vw); height: 10px; border: 2px solid #9c7246; border-radius: 6px; overflow: hidden; }
+  #bar > div { height: 100%; width: 0%; background: #dcc47c; transition: width .15s; }
+  #status { font-size: 15px; opacity: .8; min-height: 1.3em; text-align: center; padding: 0 20px; }
+</style>
+</head>
+<body>
+<canvas id="game-canvas" tabindex="0"></canvas>
+<div id="loading">
+  <div>Warriors &amp; Wizards</div>
+  <div id="bar"><div></div></div>
+  <div id="status">Starting…</div>
+</div>
+<script type="module" src="./main.js?v=__BUILD__"></script>
+</body>
+</html>

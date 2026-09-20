@@ -50,12 +50,7 @@ public sealed class SimpleText : Sprite {
         SetColorSecondary(config.OutlineColor);
         SetAnchor(config.Anchor);
 
-        TextureId = config.FontGroup switch {
-            FontGroup.NotJamSignature21 => TextureType.Text2,
-            FontGroup.CrunchyFont => TextureType.Text3,
-            FontGroup.Occular => TextureType.Text4,
-            _ => TextureType.Text
-        };
+        TextureId = TextureType.Text;
         
         ResizeBackBuffer();
         FillData();

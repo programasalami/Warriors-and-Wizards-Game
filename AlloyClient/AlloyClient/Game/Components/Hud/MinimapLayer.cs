@@ -1,4 +1,5 @@
-﻿using Alloy.Common;
+﻿using System;
+using Alloy.Common;
 using AlloyClient.Game.Objects;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
@@ -9,6 +10,9 @@ namespace AlloyClient.Game.Components.Hud;
 
 public sealed class MinimapLayer : Container {
 
+    // |ratio| beyond this puts the dot (3.25px radius) partly or wholly outside the 230px map
+    private const float DotLimit = 1f - 4f / (Minimap.MapSize / 2f);
+
     private const int MaxEntities = 1000;
     private const int VertexSize = MaxEntities * 4;
     private const int IndexSize = MaxEntities * 6;
@@ -18,8 +22,9 @@ public sealed class MinimapLayer : Container {
 
     private static Entity _focus;
 
-    public MinimapLayer() : base(new ContainerConfig { EnableClip = true }) {
-        //todo:SetBaseDimensions(Minimap.MapSize, Minimap.MapSize);
+    public MinimapLayer() : base(new ContainerConfig { EnableClip = true, Width = Minimap.MapSize, Height = Minimap.MapSize }) {
+        // Not mouse-enabled: Container turns that on for clip containers, and this layer must not swallow clicks meant for the map.
+        MouseEnabled = false;
         TextureId = TextureType.Color;
         
         AddEventListener(Event.EnterFrame, OnFrameEnter);
@@ -31,6 +36,12 @@ public sealed class MinimapLayer : Container {
         VertexData = new VertexUi[VertexSize];
         Indices = new ushort[IndexSize];
         OverridePrimCount = 0;
+
+        // A sprite only draws once SetGraphicsBuffer() has run (it starts with "no render data"), and this layer never called it,
+        // so the dots were computed every frame but never drawn. SetGraphicsBuffer also sizes the clip rect from the largest vertex
+        // position, so park one unused vertex in the far corner to make that the full map size instead of 0x0.
+        VertexData[0] = new VertexUi(new Vector2(Minimap.MapSize, Minimap.MapSize));
+        SetGraphicsBuffer();
     }
 
     public static void SetFocus(Entity entity) {
@@ -94,9 +105,15 @@ public sealed class MinimapLayer : Container {
 
             var ratio = (entity.Position - Map.LocalPlayer.Position) / _size;
 
+            // Only entities inside the map window get a dot (kept a dot's radius inside the edge). Relying on the clip rectangle alone
+            // left dots for far-away entities floating around the screen instead of being hidden.
+            if (MathF.Abs(ratio.X) > DotLimit || MathF.Abs(ratio.Y) > DotLimit) {
+                continue;
+            }
+
             var pos = new Vector2(Minimap.MapSize / 2f) + new Vector2(Minimap.MapSize / 2f) * ratio;
             AddObject(pos, fillColor);
         }
-        
+
     }
 }

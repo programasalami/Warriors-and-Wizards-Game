@@ -19,6 +19,7 @@ public struct InputConfig {
     public uint OutlineColor = 0x0;
     public uint OutlineThickness = 4;
     public uint BoxColor = 0xFFFFFF;
+    public string BoxSlice = TextInput.BoxLookup;
     public int Width = 100;
     public string DefaultText = "";
     public byte MaxCharacters = byte.MaxValue;
@@ -86,12 +87,7 @@ public sealed class TextInput : Sprite {
 
         MouseEnabled = true;
 
-        TextureId = config.FontGroup switch {
-            FontGroup.NotJamSignature21 => TextureType.Text2,
-            FontGroup.CrunchyFont => TextureType.Text3,
-            FontGroup.Occular => TextureType.Text4,
-            _ => TextureType.Text
-        };
+        TextureId = TextureType.Text;
 
         Extra1.X = _outlineThickness;
 
@@ -102,7 +98,7 @@ public sealed class TextInput : Sprite {
         _caret.Visible = false;
         AddChild(_caret);
         
-        var rectConfig = new NineSliceConfig { Width = _width, Height = (int)(_font.LineHeight * _fontScale) + CutY * 3, SliceData = BoxLookup, CutX = CutX, CutY = CutY};
+        var rectConfig = new NineSliceConfig { Width = _width, Height = (int)(_font.LineHeight * _fontScale) + CutY * 3, SliceData = config.BoxSlice, CutX = CutX, CutY = CutY};
         _textBox = new NineSliceRect(rectConfig);
         _textBox.SetColor(config.BoxColor);
         AddChild(_textBox);

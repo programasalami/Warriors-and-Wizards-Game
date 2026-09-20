@@ -32,6 +32,10 @@ public struct PortalData : IEntityIdentifiable, IDisposable {
     
     private readonly World _world;
     private World _worldLink;
+
+    // A persistent world this portal leads to that did not exist yet when the portal was created (e.g. the Realm's exit to the Nexus, made while the
+    // Nexus is still being built and not yet registered). Resolved the first time someone uses the portal.
+    private int _pendingWorldId;
     
     public PortalData(World world, ref Entity en) {
         Id = en.Id;
@@ -56,10 +60,14 @@ public struct PortalData : IEntityIdentifiable, IDisposable {
             return;
         }
         
-        var worldInstance = worldConfig.Id == 0
-            ? (World)Activator.CreateInstance(worldType, worldConfig.Id, -1, worldConfig)
-            : RealmManager.Worlds[worldConfig.Id];
-        
+        World worldInstance;
+        if (worldConfig.Id == 0) {
+            worldInstance = (World)Activator.CreateInstance(worldType, worldConfig.Id, -1, worldConfig);
+        } else if (!RealmManager.Worlds.TryGetValue(worldConfig.Id, out worldInstance)) {
+            _pendingWorldId = worldConfig.Id;
+            return;
+        }
+
         Init(worldInstance);
     }
 
@@ -73,6 +81,9 @@ public struct PortalData : IEntityIdentifiable, IDisposable {
     }
 
     public World GetWorldInstance(User user) {
+        if (_worldLink == null && _pendingWorldId != 0 && RealmManager.Worlds.TryGetValue(_pendingWorldId, out var pending))
+            LinkTo(pending);
+
         if (_worldLink == null)
             return null;
         return _worldLink.GetInstance(user);

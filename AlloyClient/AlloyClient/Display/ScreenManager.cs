@@ -52,9 +52,23 @@ public sealed class ScreenManager : Sprite {
 
         FadeScreen.Visible = true;
         FadeScreen.SetFadeColor(color);
-        screen.Alpha = 0f;
-        GTween.Add(Tween.New(_currScreen, ease, durationMs / 2, 0f, EaseType.Alpha, 0, () => { onFinish?.Invoke(); SetScreen(screen); }));
-        GTween.Add(Tween.New(screen, ease, durationMs / 2, 1f, EaseType.Alpha, durationMs / 2, () => { FadeScreen.Visible = false; }));
+
+        // The game screen brings its own opaque black loading cover (WorldLoadCover), and the world under it is drawn with GL code that
+        // ignores sprite alpha. Fading the screen in from alpha 0 therefore let the world and HUD show through a mostly transparent
+        // cover for the whole second half of the fade (the server has usually answered by then) before the loader appeared. So it goes
+        // on screen fully opaque instead: the old screen has already faded to black and the cover keeps it black until the world is ready.
+        var opaqueEntry = screen is GameScreen;
+        screen.Alpha = opaqueEntry ? 1f : 0f;
+        GTween.Add(Tween.New(_currScreen, ease, durationMs / 2, 0f, EaseType.Alpha, 0, () => {
+            onFinish?.Invoke();
+            SetScreen(screen);
+            if (opaqueEntry) {
+                FadeScreen.Visible = false;
+            }
+        }));
+        if (!opaqueEntry) {
+            GTween.Add(Tween.New(screen, ease, durationMs / 2, 1f, EaseType.Alpha, durationMs / 2, () => { FadeScreen.Visible = false; }));
+        }
     }
 
     public static void FadeTo(Screen screen, Action callback = null) => FadeToScreen(screen, Easing.SineInOut, 1000, 0x0, callback);

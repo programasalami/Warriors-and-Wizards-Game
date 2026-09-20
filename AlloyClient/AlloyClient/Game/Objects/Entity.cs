@@ -91,7 +91,9 @@ public class Entity {
 
     public int CustomTexture;
 
-    public bool PortalUsable;
+    // The server never sends a PortalUsable stat, so portals are usable unless it says otherwise (a false default made
+    // every portal panel show a red "Full" instead of the Enter button).
+    public bool PortalUsable = true;
 
     #endregion
 
@@ -392,6 +394,7 @@ public class Entity {
         MovementVector.Y = 0;
 
         Tile = null;
+        PortalUsable = true;
     }
 
     public AtlasData GetTexture() {
