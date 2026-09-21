@@ -16,7 +16,7 @@ public sealed class StatsPopup : HudPopup {
     public const int PopupW = PlayerPlate.Width;
     private const int MinHeight = 300;
 
-    private const int FirstRowY = 62;
+    private const int FirstRowY = 42;         // no header any more: the rows start just under the close button
     private const int RowHeight = 30;
     private const int BarX = 150;
     private const int BarWidth = 120;
@@ -40,9 +40,6 @@ public sealed class StatsPopup : HudPopup {
         }
 
         ObjectLibrary.TypeToClassProps.TryGetValue(p.Type, out var cls);
-
-        // the header is the class and level (the level bar already shows the experience)
-        SetTitle($"{p.Properties?.DisplayName?.ToUpperInvariant()} - LEVEL {p.Level}");
 
         // (value shown, boost on it, class maximum). HP / MP show the max the character has, not the current pool.
         (int Value, int Boost, int Max)[] data = [

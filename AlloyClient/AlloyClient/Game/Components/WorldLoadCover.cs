@@ -11,7 +11,6 @@ namespace AlloyClient.Game.Components;
 // fills, holds a moment, and the cover fades away to reveal the world.
 public sealed class WorldLoadCover : Container {
 
-    private const double SwitchFadeInMs = 300;      // fade in over the old world when switching (first entry is already black)
     private const double HoldFullMs = 350;
     private const double FadeOutMs = 650;
 
@@ -19,9 +18,7 @@ public sealed class WorldLoadCover : Container {
     private readonly Container _root;
     private readonly LoaderPanel _panel;
 
-    private double _fadeInMs;
     private double _fullForMs;
-    private bool _fadingIn;
     private bool _fadingOut;
 
     public WorldLoadCover() {
@@ -37,13 +34,13 @@ public sealed class WorldLoadCover : Container {
         AddEventListener(Event.EnterFrame, OnFrame);
     }
 
-    // First entry: opaque immediately (the screen fade brings us in from black). Switch: fades in over the old world.
+    // Opaque immediately, for the first entry AND for a world switch. A switch used to fade in over the old world, but the old world is wiped the moment
+    // the Reconnect arrives and the new one starts appearing within a few frames, so the fade showed an empty / half-built world flashing through the
+    // see-through cover (measured: one bright frame in the middle of the black). A hard cut to black has nothing to flash.
     public void Begin(bool switching) {
         _fadingOut = false;
         _fullForMs = 0;
-        _fadingIn = switching;
-        _fadeInMs = 0;
-        Alpha = switching ? 0f : 1f;
+        Alpha = 1f;
         Visible = true;
     }
 
@@ -63,14 +60,6 @@ public sealed class WorldLoadCover : Container {
 
         var dt = Stage.GameTime.ElapsedMs;
 
-        if (_fadingIn) {
-            _fadeInMs += dt;
-            Alpha = (float) Math.Clamp(_fadeInMs / SwitchFadeInMs, 0.0, 1.0);
-            if (_fadeInMs >= SwitchFadeInMs) {
-                _fadingIn = false;
-            }
-        }
-
         _panel.Advance(dt, WorldLoad.Progress);
 
         if (_fadingOut) {
@@ -82,7 +71,7 @@ public sealed class WorldLoadCover : Container {
             return;
         }
 
-        if (!_fadingIn && WorldLoad.IsComplete && _panel.Displayed >= 1f) {
+        if (WorldLoad.IsComplete && _panel.Displayed >= 1f) {
             _fullForMs += dt;
             if (_fullForMs >= HoldFullMs) {
                 _fadingOut = true;

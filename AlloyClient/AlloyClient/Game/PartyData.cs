@@ -26,6 +26,8 @@ public static class PartyData {
 
     private static readonly PartyComparison PartyComparer = new();
 
+    private static readonly List<PartyInfo> Scratch = [];
+
     public static void Clear() {
         LockedPlayers.Clear();
         IgnoredPlayers.Clear();
@@ -44,17 +46,20 @@ public static class PartyData {
         Array.Clear(Members);
 
         var localPosition = Map.LocalPlayer.Position;
-        var i = 0;
-        
+
+        Scratch.Clear();
         foreach (var player in Map.Players.Values) {
             Vector2.DistanceSquared(localPosition, player.Position, out var dist);
             if (dist < MaxDistance) {
-                Members[i] = new PartyInfo(player, player.Locked, dist, player.ObjectId);
-                i++;
+                Scratch.Add(new PartyInfo(player, player.Locked, dist, player.ObjectId));
             }
         }
-        
-        // Array.Sort(Members, 0, i, PartyComparer);
+
+        // closest first (the nearby-players panel shows the first MaxVisibleMembers)
+        Scratch.Sort(PartyComparer);
+        for (var i = 0; i < Scratch.Count && i < Members.Length; i++) {
+            Members[i] = Scratch[i];
+        }
     }
 
     public static void SetData(int id, int[] list) {
@@ -118,7 +123,12 @@ public static class PartyData {
     
     private class PartyComparison : IComparer<PartyInfo> {
         public int Compare(PartyInfo self, PartyInfo other) {
-            return (self!.Locked && !other!.Locked) || (self.Dist < other!.Dist) || (self.ObjectId < other.ObjectId) ? -1 : 1;
+            if (self!.Locked != other!.Locked) {
+                return self.Locked ? -1 : 1;
+            }
+
+            var byDistance = self.Dist.CompareTo(other!.Dist);
+            return byDistance != 0 ? byDistance : self.ObjectId.CompareTo(other.ObjectId);
         }
     }
 }

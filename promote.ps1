@@ -15,7 +15,7 @@
   It NEVER touches .git, and leaves build output (bin, obj, dist), logs and databases alone on both sides.
   It runs no git commands: afterwards open the Game folder, look at `git status`, and commit it yourself.
 
-  Note: the copy is exact, so the Game folder gets this folder's server addresses (the VPS), not 127.0.0.1.
+  Note: the copy is exact. The source keeps 127.0.0.1 as its server address (deploy swaps in the VPS address only for what it publishes), so Game does too.
 #>
 param(
     [switch]$Apply,

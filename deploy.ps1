@@ -100,6 +100,38 @@ Write-Host "Game version $clientVersion" -ForegroundColor DarkGray
 function Step($text) { Write-Host "`n=== $text ===" -ForegroundColor Cyan }
 function Check($what) { if ($LASTEXITCODE -ne 0) { throw "$what failed (exit code $LASTEXITCODE)" } }
 
+# ---- addresses: the everyday source points at THIS PC (127.0.0.1); what gets published points at the VPS ---------------------------------------
+# The two server config files carry the address the servers listen on / tell clients about. The source keeps 127.0.0.1, and the copy that is
+# packed for the VPS gets $VpsHost written into it (the source files are never touched). The client is the same idea at compile time:
+# -p:DeployTarget=vps defines TARGET_VPS, which switches the addresses in Core\Settings.cs. Each step is checked, so a build that still
+# points at 127.0.0.1 can never be published by accident.
+function Set-ConfigAddress([string]$path, [string]$address) {
+    $bytes = [IO.File]::ReadAllBytes($path)
+    $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF
+    $text = [IO.File]::ReadAllText($path)
+    if ($text -notmatch '<Address>[^<]*</Address>') { throw "No <Address> found in $path" }
+    $new = [regex]::Replace($text, '(<Address>)[^<]*(</Address>)', ('${1}' + $address + '${2}'))
+    [IO.File]::WriteAllText($path, $new, (New-Object Text.UTF8Encoding($hasBom)))
+}
+function Find-Bytes([byte[]]$hay, [byte[]]$needle) {
+    $first = $needle[0]
+    $last = $hay.Length - $needle.Length
+    $i = [Array]::IndexOf($hay, $first, 0)
+    while ($i -ge 0 -and $i -le $last) {
+        $ok = $true
+        for ($j = 1; $j -lt $needle.Length; $j++) { if ($hay[$i + $j] -ne $needle[$j]) { $ok = $false; break } }
+        if ($ok) { return $i }
+        $i = if ($i + 1 -lt $hay.Length) { [Array]::IndexOf($hay, $first, $i + 1) } else { -1 }
+    }
+    return -1
+}
+function Assert-BinaryHasAddress([string]$path, [string]$address) {
+    # C# string constants are stored as UTF-16 in the compiled dll
+    $bytes = [IO.File]::ReadAllBytes($path)
+    if ((Find-Bytes $bytes ([Text.Encoding]::Unicode.GetBytes($address))) -lt 0) { throw "$path does not contain the VPS address $address - the build did not switch to the VPS (is -VpsHost different from the address in Core\Settings.cs?)" }
+    if ((Find-Bytes $bytes ([Text.Encoding]::Unicode.GetBytes('127.0.0.1'))) -ge 0) { throw "$path still contains 127.0.0.1 - it would point players at their own PC" }
+}
+
 # Runs one command line on the VPS (or just prints it with -DryRun).
 function Invoke-Remote([string]$command) {
     if ($DryRun) { Write-Host "[dry run] ssh $remote $command" -ForegroundColor DarkYellow; return }
@@ -149,10 +181,23 @@ if ($Server) {
 
     Step 'Packing the servers'
     $bin = Join-Path $root 'alloy-server\bin\debug\net10.0'
+    $stage = Join-Path $dist 'server-stage'
+    if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
+    robocopy $bin $stage /E /NFL /NDL /NJH /NJS /NP | Out-Null
+    if ($LASTEXITCODE -ge 8) { throw "Copying the server build failed (robocopy exit code $LASTEXITCODE)" }
+    $global:LASTEXITCODE = 0
+    $cfgDir = Join-Path $stage 'Resources\Config\Data'
+    foreach ($name in 'appEngineConfig.xml', 'gameServerConfig.xml') {
+        $f = Join-Path $cfgDir $name
+        Set-ConfigAddress $f $VpsHost
+        if ([IO.File]::ReadAllText($f) -notmatch [regex]::Escape("<Address>$VpsHost</Address>")) { throw "$name did not get the VPS address" }
+    }
+    Write-Host "Server configs in the package now say $VpsHost (your source files still say 127.0.0.1)." -ForegroundColor DarkGray
     $pack = Join-Path $dist 'alloy-server.tgz'
     if (Test-Path $pack) { Remove-Item $pack -Force }
-    tar -czf $pack -C $bin .
+    tar -czf $pack -C $stage .
     Check 'Packing'
+    Remove-Item $stage -Recurse -Force
     '{0:N1} MB -> {1}' -f ((Get-Item $pack).Length / 1MB), $pack
 
     if (-not $NoUpload) {
@@ -177,9 +222,12 @@ if ($Client) {
     if (Test-Path $out) { Remove-Item $out -Recurse -Force }
     Push-Location $clientDir
     try {
-        dotnet publish 'AlloyClient\AlloyClient.csproj' -c Release -r win-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" -o $out --nologo -v:q
+        dotnet publish 'AlloyClient\AlloyClient.csproj' -c Release -r win-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" "-p:DeployTarget=vps" -o $out --nologo -v:q
         Check 'Client publish'
     } finally { Pop-Location }
+
+    Assert-BinaryHasAddress (Join-Path $out 'AlloyClient.dll') $VpsHost
+    Write-Host "Client build points at $VpsHost." -ForegroundColor DarkGray
 
     # The game's art / sound / fonts are built by the project's post-build step next to the built exe, and 'publish' does not
     # carry that folder along - copy it in or the client starts with no content.

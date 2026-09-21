@@ -6,7 +6,8 @@ using Alloy.UiLib.Extra;
 
 namespace AlloyClient.Game.Components.Hud;
 
-// A walnut frame with a gold title and a close button that fades in over the game when its side tab is clicked.
+// A walnut frame with a gold title (and the line under it) and a close button that fades in over the game when its side tab is clicked. A popup made with an
+// empty title has no header at all: no title text and no line.
 public abstract class HudPopup : Sprite {
     private const int FadeMs = 170;
 
@@ -34,6 +35,7 @@ public abstract class HudPopup : Sprite {
         _title = OptionsStyle.Label(title, FontGroup.MyriadPro, 24f, width / 2, 26, UiAnchor.Middle, OptionsStyle.Gold, 2);
         AddChild(_title);
         _divider = new ColorRect(new ColorRectConfig { X = 16, Y = 48, Width = width - 32, Height = 2, Color = OptionsStyle.Tan, Alpha = 0.5f });
+        _divider.Visible = !string.IsNullOrEmpty(title);
         AddChild(_divider);
         _close = WaWStyle.CloseButton(Close);
         _close.X = width - _close.Width - 12;

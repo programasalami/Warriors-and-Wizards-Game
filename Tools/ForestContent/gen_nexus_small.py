@@ -112,6 +112,8 @@ FIXTURES = {
     (X(29), FIX_ROW_Y): 'Guild Register',
     (X(33), FIX_ROW_Y): 'Guild Chronicle',
     (X(36), FIX_ROW_Y): 'Guild Board',
+    (X(35), Y(23)): 'Bug Board',                  # the players' bug board, two tiles east of the spawn square
+    (X(37), Y(23)): 'Jukebox',                    # the shared music player, next to the bug board
     (X(27), PORTAL_ROW_Y): 'Guild Hall Portal',
     (X(35), PORTAL_ROW_Y): 'Vault Portal',
 }
@@ -434,7 +436,7 @@ print('dict entries:', len(dict_list))
 # ---------------------------------------------------------------- preview (uses the real sheets, 16px tiles)
 if len(sys.argv) > 2:
     from PIL import Image
-    S = ROOT + 'AlloyClient/AlloyClient/Content/Sheets/'
+    S = ROOT + 'Tools/Sheets/source_old/'      # the old (pre-2026-09-20) sheets, only used for this preview
     gsheet = Image.open(S + 'ForestGround.png').convert('RGBA')
     dsheet = Image.open(S + 'ForestDecor.png').convert('RGBA')
     fsheet = Image.open(S + 'ForestFlat.png').convert('RGBA')

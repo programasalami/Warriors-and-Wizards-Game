@@ -1,15 +1,15 @@
 <?xml version='1.0' encoding='utf-8'?>
 <Objects>
-    <Object type="0xa00" id="Short Sword">
+    <Object type="0xa00" id="Used Sword">
         <Class>Equipment</Class>
         <Item />
         <Texture>
-            <File>lofiObj5</File>
-            <Index>0x30</Index>
+            <File>equipAndConsume</File>
+            <Index>0x00</Index>
         </Texture>
         <SlotType>1</SlotType>
         <Tier>0</Tier>
-        <Description>A steel short sword.</Description>
+        <Description>A chipped, well-worn blade. It has seen a lot of use, but it still cuts.</Description>
         <RateOfFire>0.8</RateOfFire>
         <Sound>weapon/blunt_sword</Sound>
         <Projectile>
@@ -23,12 +23,104 @@
         <OldSound>bladeSwing</OldSound>
         <feedPower>5</feedPower>
     </Object>
+    <Object type="0xa01" id="Iron Sword">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x0c</Index>
+        </Texture>
+        <SlotType>1</SlotType>
+        <Tier>1</Tier>
+        <Description>A plain, sturdy sword forged from iron.</Description>
+        <RateOfFire>0.8</RateOfFire>
+        <Sound>weapon/blunt_sword</Sound>
+        <Projectile>
+            <ObjectId>Blade</ObjectId>
+            <Speed>100</Speed>
+            <MinDamage>65</MinDamage>
+            <MaxDamage>115</MaxDamage>
+            <LifetimeMS>400</LifetimeMS>
+        </Projectile>
+        <BagType>1</BagType>
+        <OldSound>bladeSwing</OldSound>
+        <feedPower>5</feedPower>
+    </Object>
+    <Object type="0xa02" id="Steel Sword">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x18</Index>
+        </Texture>
+        <SlotType>1</SlotType>
+        <Tier>2</Tier>
+        <Description>A well-made blade of hardened steel, keener and lighter than iron.</Description>
+        <RateOfFire>0.8</RateOfFire>
+        <Sound>weapon/blunt_sword</Sound>
+        <Projectile>
+            <ObjectId>Blade</ObjectId>
+            <Speed>100</Speed>
+            <MinDamage>75</MinDamage>
+            <MaxDamage>130</MaxDamage>
+            <LifetimeMS>400</LifetimeMS>
+        </Projectile>
+        <BagType>1</BagType>
+        <OldSound>bladeSwing</OldSound>
+        <feedPower>5</feedPower>
+    </Object>
+    <Object type="0xa03" id="Bronze Sword">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x24</Index>
+        </Texture>
+        <SlotType>1</SlotType>
+        <Tier>3</Tier>
+        <Description>A bronze sword with a warm, gleaming edge and a heavy swing.</Description>
+        <RateOfFire>0.8</RateOfFire>
+        <Sound>weapon/blunt_sword</Sound>
+        <Projectile>
+            <ObjectId>Blade</ObjectId>
+            <Speed>100</Speed>
+            <MinDamage>85</MinDamage>
+            <MaxDamage>145</MaxDamage>
+            <LifetimeMS>400</LifetimeMS>
+        </Projectile>
+        <BagType>1</BagType>
+        <OldSound>bladeSwing</OldSound>
+        <feedPower>5</feedPower>
+    </Object>
+    <Object type="0xa04" id="Gold Sword">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x30</Index>
+        </Texture>
+        <SlotType>1</SlotType>
+        <Tier>4</Tier>
+        <Description>A gleaming golden sword, as beautiful as it is deadly.</Description>
+        <RateOfFire>0.8</RateOfFire>
+        <Sound>weapon/blunt_sword</Sound>
+        <Projectile>
+            <ObjectId>Blade</ObjectId>
+            <Speed>100</Speed>
+            <MinDamage>95</MinDamage>
+            <MaxDamage>160</MaxDamage>
+            <LifetimeMS>400</LifetimeMS>
+        </Projectile>
+        <BagType>1</BagType>
+        <OldSound>bladeSwing</OldSound>
+        <feedPower>5</feedPower>
+    </Object>
     <Object type="0xa22" id="Health Potion">
         <Class>Equipment</Class>
         <Item />
         <Texture>
-            <File>lofiObj2</File>
-            <Index>0x32</Index>
+            <File>equipAndConsume</File>
+            <Index>0x08</Index>
         </Texture>
         <SlotType>10</SlotType>
         <Tier>1</Tier>
@@ -41,16 +133,16 @@
         <feedPower>5</feedPower>
         <DropTradable />
     </Object>
-    <Object type="0xa2e" id="Fire Spray Spell">
+    <Object type="0xa2e" id="Old Spell">
         <Class>Equipment</Class>
         <Item />
         <Texture>
-            <File>lofiObj6</File>
-            <Index>0x40</Index>
+            <File>equipAndConsume</File>
+            <Index>0x04</Index>
         </Texture>
         <SlotType>11</SlotType>
         <Tier>0</Tier>
-        <Description>A spell that shoots fire in all directions.</Description>
+        <Description>It's old and not as strong as it used to be, but it's the easiest spell to come by.</Description>
         <Sound>spell/fire_spray</Sound>
         <Projectile>
             <ObjectId>Fire Bolt</ObjectId>
@@ -74,16 +166,16 @@
         <feedPower>5</feedPower>
         <DropTradable />
     </Object>
-    <Object type="0xa66" id="Combat Helm">
+    <Object type="0xa66" id="Broken Helmet">
         <Class>Equipment</Class>
         <Item />
         <Texture>
-            <File>lofiObj6</File>
-            <Index>0x60</Index>
+            <File>equipAndConsume</File>
+            <Index>0x01</Index>
         </Texture>
         <SlotType>16</SlotType>
         <Tier>0</Tier>
-        <Description>A sturdy helm used by battlefield sergeants to improve morale in nearby allies.</Description>
+        <Description>It used to be broken, but you hammered out the worst of the dents. It's ugly, but it keeps your head where it belongs.</Description>
         <ActivateOnEquip stat="21" amount="2">IncrementStat</ActivateOnEquip>
         <Usable />
         <BagType>1</BagType>
@@ -101,16 +193,16 @@
         <feedPower>5</feedPower>
         <DropTradable />
     </Object>
-    <Object type="0xa97" id="Energy Staff">
+    <Object type="0xa97" id="Used Staff">
         <Class>Equipment</Class>
         <Item />
         <Texture>
-            <File>lofiObj5</File>
-            <Index>0x70</Index>
+            <File>equipAndConsume</File>
+            <Index>0x03</Index>
         </Texture>
         <SlotType>17</SlotType>
         <Tier>0</Tier>
-        <Description>A magical wooden staff topped with a white crystal.</Description>
+        <Description>A crooked wooden staff, worn smooth by many hands. It still remembers a spell or two.</Description>
         <RateOfFire>1</RateOfFire>
         <Sound>weapon/fire_wand</Sound>
         <Projectile>
@@ -118,6 +210,118 @@
             <Speed>180</Speed>
             <MinDamage>10</MinDamage>
             <MaxDamage>25</MaxDamage>
+            <LifetimeMS>475</LifetimeMS>
+            <Amplitude>0.5</Amplitude>
+            <Frequency>2</Frequency>
+        </Projectile>
+        <BagType>1</BagType>
+        <NumProjectiles>2</NumProjectiles>
+        <ArcGap>0</ArcGap>
+        <OldSound>magicShoot</OldSound>
+        <feedPower>5</feedPower>
+        <DropTradable />
+    </Object>
+    <Object type="0xa98" id="Iron Staff">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x0f</Index>
+        </Texture>
+        <SlotType>17</SlotType>
+        <Tier>1</Tier>
+        <Description>A staff of plain iron that crackles faintly with lightning.</Description>
+        <RateOfFire>1</RateOfFire>
+        <Sound>weapon/fire_wand</Sound>
+        <Projectile>
+            <ObjectId>Grey Missile</ObjectId>
+            <Speed>180</Speed>
+            <MinDamage>15</MinDamage>
+            <MaxDamage>30</MaxDamage>
+            <LifetimeMS>475</LifetimeMS>
+            <Amplitude>0.5</Amplitude>
+            <Frequency>2</Frequency>
+        </Projectile>
+        <BagType>1</BagType>
+        <NumProjectiles>2</NumProjectiles>
+        <ArcGap>0</ArcGap>
+        <OldSound>magicShoot</OldSound>
+        <feedPower>5</feedPower>
+        <DropTradable />
+    </Object>
+    <Object type="0xa99" id="Steel Staff">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x1b</Index>
+        </Texture>
+        <SlotType>17</SlotType>
+        <Tier>2</Tier>
+        <Description>A steel staff that channels lightning with very little waste.</Description>
+        <RateOfFire>1</RateOfFire>
+        <Sound>weapon/fire_wand</Sound>
+        <Projectile>
+            <ObjectId>Grey Missile</ObjectId>
+            <Speed>180</Speed>
+            <MinDamage>20</MinDamage>
+            <MaxDamage>35</MaxDamage>
+            <LifetimeMS>475</LifetimeMS>
+            <Amplitude>0.5</Amplitude>
+            <Frequency>2</Frequency>
+        </Projectile>
+        <BagType>1</BagType>
+        <NumProjectiles>2</NumProjectiles>
+        <ArcGap>0</ArcGap>
+        <OldSound>magicShoot</OldSound>
+        <feedPower>5</feedPower>
+        <DropTradable />
+    </Object>
+    <Object type="0xa9a" id="Bronze Staff">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x27</Index>
+        </Texture>
+        <SlotType>17</SlotType>
+        <Tier>3</Tier>
+        <Description>A bronze staff humming with stored lightning.</Description>
+        <RateOfFire>1</RateOfFire>
+        <Sound>weapon/fire_wand</Sound>
+        <Projectile>
+            <ObjectId>Grey Missile</ObjectId>
+            <Speed>180</Speed>
+            <MinDamage>25</MinDamage>
+            <MaxDamage>40</MaxDamage>
+            <LifetimeMS>475</LifetimeMS>
+            <Amplitude>0.5</Amplitude>
+            <Frequency>2</Frequency>
+        </Projectile>
+        <BagType>1</BagType>
+        <NumProjectiles>2</NumProjectiles>
+        <ArcGap>0</ArcGap>
+        <OldSound>magicShoot</OldSound>
+        <feedPower>5</feedPower>
+        <DropTradable />
+    </Object>
+    <Object type="0xa9b" id="Gold Staff">
+        <Class>Equipment</Class>
+        <Item />
+        <Texture>
+            <File>equipAndConsume</File>
+            <Index>0x33</Index>
+        </Texture>
+        <SlotType>17</SlotType>
+        <Tier>4</Tier>
+        <Description>A golden staff that throws lightning as bright as the sun.</Description>
+        <RateOfFire>1</RateOfFire>
+        <Sound>weapon/fire_wand</Sound>
+        <Projectile>
+            <ObjectId>Grey Missile</ObjectId>
+            <Speed>180</Speed>
+            <MinDamage>30</MinDamage>
+            <MaxDamage>45</MaxDamage>
             <LifetimeMS>475</LifetimeMS>
             <Amplitude>0.5</Amplitude>
             <Frequency>2</Frequency>

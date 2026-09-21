@@ -151,6 +151,10 @@ public class BookOverlay : Overlay {
     private const int OpenAnimationDurationMs = 4 * OpenCloseFrameMs; // 5-frame Open animation = 4 frame transitions
     private const int CloseButtonAppearDelayMs = 800;
 
+    // Whatever is written on the pages (the Register / Sign In words, the forms) fades in over this long once the book has finished opening / flipping,
+    // instead of popping into place.
+    private const int PageFadeInMs = 300;
+
     private const float PageTitleFontSize = 28f;
     private const float LabelFontSize = 22f;
     private const float InputFontSize = 26f;
@@ -201,6 +205,14 @@ public class BookOverlay : Overlay {
     private Vector2 _entranceTargetScale;
     private bool _entranceScaleCaptured;
     private double _entranceElapsedMs;
+
+    // The open-up sequence (cover hold -> Open animation -> close icon) is driven by the SAME clock as the entrance spin (_entranceElapsedMs, advanced
+    // one frame at a time). It used to run on separate wall-clock Timers started in the constructor: building the book takes a moment and frames can be
+    // slow, so those timers ran ahead of the spin and the Register / Sign In words showed up before the book had finished growing in.
+    private bool _openStarted;
+    private bool _closeButtonShown;
+    private double _closeButtonAtMs;
+
     private double _exitElapsedMs;
     private bool _exitHoldDone;
 
@@ -265,25 +277,8 @@ public class BookOverlay : Overlay {
         _pageContent = new Container();
         AddChild(_pageContent);
 
-        // CoverHoldMs folded in here (not a separate timer) - the closed cover (already the
-        // texture _bookSprite was constructed with, above) just sits on screen this much longer
-        // after the fade-in finishes before the Open animation starts.
-        var openDelay = new Timer(FadeInMs + CoverHoldMs, 1);
-        openDelay.AddEventListener(TimerEvent.Timer, () => {
-            _coverArt.Visible = false;
-            PlayAnimation("Open", 5, OpenCloseFrameMs, ShowHubPage);
-        });
-        openDelay.Start();
-
-        // A sibling top-level timer (started here, alongside openDelay), not one created from
-        // inside openDelay's own callback - a Timer constructed and Start()-ed from within
-        // another Timer's TimerEvent.Timer callback never actually renders its target visible
-        // (reproduced directly: identical setup minus the nesting works fine). Total delay folds
-        // FadeInMs + CoverHoldMs + OpenAnimationDurationMs in directly so the close icon still
-        // only appears once the hub page is visually "there" to hold it, same intent as before.
-        var closeButtonDelay = new Timer(FadeInMs + CoverHoldMs + OpenAnimationDurationMs + CloseButtonAppearDelayMs, 1);
-        closeButtonDelay.AddEventListener(TimerEvent.Timer, () => _closeButton.Visible = true);
-        closeButtonDelay.Start();
+        // The closed cover just sits on screen for CoverHoldMs after the spin-in finishes, then the Open animation starts, then the close icon appears:
+        // all of that is timed in OnEntranceFrame (one clock), not here.
     }
 
     // Tucked into the book's actual top-right corner. Built on top of the shared BuildIconButton
@@ -431,6 +426,11 @@ public class BookOverlay : Overlay {
     // (see Sprite's InternalUpdate), so animating them here on the overlay root spins/grows the
     // whole book as one piece rather than needing this on every child individually.
     private void OnEntranceFrame() {
+        if (_closing) {
+            RemoveEventListener(Event.EnterFrame, OnEntranceFrame);
+            return;
+        }
+
         if (!_entranceScaleCaptured) {
             _entranceTargetScale = Scale;
             _entranceScaleCaptured = true;
@@ -440,19 +440,42 @@ public class BookOverlay : Overlay {
         var t = Math.Clamp(_entranceElapsedMs / FadeInMs, 0.0, 1.0);
         var eased = 1.0 - Math.Pow(1.0 - t, 3.0);
 
-        Scale = _entranceTargetScale * (float)eased;
-        Rotation = (float)((1.0 - eased) * EntranceSpinRotations * MathHelper.TwoPi);
-
-        if (t >= 1.0) {
+        if (t < 1.0) {
+            Scale = _entranceTargetScale * (float)eased;
+            Rotation = (float)((1.0 - eased) * EntranceSpinRotations * MathHelper.TwoPi);
+        } else {
             Scale = _entranceTargetScale;
             Rotation = 0f;
+        }
+
+        // Everything after the spin runs off this same clock, so nothing can appear before the book has finished growing in.
+        if (!_openStarted && _entranceElapsedMs >= FadeInMs + CoverHoldMs) {
+            _openStarted = true;
+            _closeButtonAtMs = _entranceElapsedMs + OpenAnimationDurationMs + CloseButtonAppearDelayMs;
+            _coverArt.Visible = false;
+            PlayAnimation("Open", 5, OpenCloseFrameMs, ShowHubPage);
+        }
+
+        if (_openStarted && !_closeButtonShown && _entranceElapsedMs >= _closeButtonAtMs) {
+            _closeButtonShown = true;
+            _closeButton.Visible = true;
+        }
+
+        if (_closeButtonShown) {
             RemoveEventListener(Event.EnterFrame, OnEntranceFrame);
         }
     }
 
+    // Puts a page's content on the book and fades it in (the words / forms do not pop into place).
+    private void ShowPage(Container page) {
+        _pageContent.Alpha = 0f;
+        _pageContent.AddChild(page);
+        _pageContent.AddAlphaTween(0f, 1f, PageFadeInMs);
+    }
+
     private void ShowHubPage() {
         _bookSprite.ChangeTexture(TextureHelper.FromUiAtlas("Book/Static", 0, false));
-        _pageContent.AddChild(_hubPage);
+        ShowPage(_hubPage);
     }
 
     // Named for the direction of travel (hub -> Register/Sign In is "forward", Back -> hub is
@@ -471,7 +494,7 @@ public class BookOverlay : Overlay {
 
         PlayAnimation(animationName, 9, PageFlipFrameMs, () => {
             _bookSprite.ChangeTexture(TextureHelper.FromUiAtlas("Book/Static", 0, false));
-            _pageContent.AddChild(nextPage);
+            ShowPage(nextPage);
         });
     }
 

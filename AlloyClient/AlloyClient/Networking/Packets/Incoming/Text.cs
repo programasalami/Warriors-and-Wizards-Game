@@ -33,6 +33,7 @@ public class Text : IncomingPacket<Text> {
     }
 
     public override void Handle() {
+        AlloyClient.Game.Components.Admin.AdminReplies.Add(Name, Txt);
         ChatBox.AddChatLine.Dispatch(new ChatBoxLineData(Main.GetTime(), Name, NumStars, Recipient, Txt));
 
         if (Map.Entities.TryGetValue(ObjectId, out var en)) {

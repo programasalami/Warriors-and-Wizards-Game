@@ -46,15 +46,10 @@ public sealed class OptionsView : Overlay {
 
     private ParchmentButton _selectedTab;
 
-    public OptionsView() {
-        // OverlayManager positions every overlay by its own CENTER at the stage's center (see
-        // PositionCurrent), but every child below is laid out assuming this sprite's own local
-        // origin (0,0) is its top-left corner (same as ClassContainer's own popup). Without this,
-        // that top-left corner itself was what landed at screen-center, pushing almost this whole
-        // 1280x720-wide menu off-screen to the bottom-right - only a sliver near the true center
-        // was ever visible.
-        SetAnchor(UiAnchor.Middle);
+    // Every child below is laid out on the 1280x720 design canvas from this sprite's own top-left corner, so the whole canvas is centred (see Overlay.FixedSize).
+    public override (int Width, int Height)? FixedSize => (Settings.DefaultScreenWidth, Settings.DefaultScreenHeight);
 
+    public OptionsView() {
         RefreshOptions.Set(Refresh);
 
         //todo:SetBaseDimensions(Settings.DefaultScreenWidth, Settings.DefaultScreenHeight);

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Common.Database;
 using Common.Utilities;
 using GameServer.Game.Entities.Extensions;
 using GameServer.Game.Systems.Chat;
@@ -39,9 +40,9 @@ public static class CommandManager {
             return;
         }
 
-        if (cmd.PermissionLevel == CommandPermissionLevel.Admin && (!user.GameInfo.Account.IsAdmin ||
-                                                                            (int)cmd.PermissionLevel >
-                                                                            user.GameInfo.Account.Rank)) {
+        // Every command needs a rank: the account's real rank (Ranks.Of - Owner / Moderator / Player) must reach the command's level. (This used to be checked only
+        // for Admin commands, which left every Moderator command open to everybody.)
+        if (!IsAllowed(Ranks.Of(user.GameInfo.Account), cmd.PermissionLevel)) {
             user.SendError("You're not authorized to use this command.");
             return;
         }
@@ -49,9 +50,11 @@ public static class CommandManager {
         _ = cmd.ExecuteAsync(user, args);
     }
 
+    public static bool IsAllowed(int accountRank, CommandPermissionLevel required) => accountRank >= (int)required;
+
     public static IEnumerable<string> GetCommandList(int accRank) {
-        foreach (var kvp in _commands) {
-            if (kvp.Value.PermissionLevel > (CommandPermissionLevel)accRank)
+        foreach (var kvp in _commands.OrderBy(k => k.Key)) {
+            if (!IsAllowed(accRank, kvp.Value.PermissionLevel))
                 continue;
             yield return kvp.Key;
         }

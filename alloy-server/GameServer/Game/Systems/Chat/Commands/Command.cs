@@ -13,7 +13,8 @@ public enum CommandPermissionLevel {
     Creative = 50,
     Moderator = 80,
     Developer = 90,
-    Admin = 100
+    Admin = 100,
+    Owner = 100     // same as Admin: the top rank (see Common.Database.Ranks)
 }
 
 public class Command {

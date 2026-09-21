@@ -2,6 +2,7 @@ using Common.Network;
 using GameServer.Game.Network.Messaging;
 using Common.Utilities;
 using Common.Utilities.Collections;
+using GameServer.Game;
 using GameServer.Game.Entities;
 using GameServer.Game.Network;
 
@@ -33,7 +34,12 @@ public record PlayerHit : IIncomingPacket {
         ref var proj = ref user.GameInfo.World.Projectiles.Get(projId);
         if (proj.Id == EntityId.Null)
             return;
-        
+
+        if (!proj.IsHitPlausible(user.GameInfo.PlayerId, GameLogic.WorldTime.TotalElapsedMs)) {
+            _log.Debug($"IMPLAUSIBLE HIT on player {user.GameInfo.PlayerId} by projectile {ProjectileId}");
+            return;
+        }
+
         proj.TryHitEntity(user.GameInfo.PlayerId);
     }
 

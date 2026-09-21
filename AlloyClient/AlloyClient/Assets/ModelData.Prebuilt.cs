@@ -9,7 +9,11 @@ public static partial class ModelData {
         
         ParseModel(Wall());
         ParseModel(DoubleWall());
-        
+
+        // the interactive props (ModelData.Props.cs)
+        ParseModel(BugBoardModel());
+        ParseModel(JukeboxModel());
+
         // TODO: Add all models
     }
 

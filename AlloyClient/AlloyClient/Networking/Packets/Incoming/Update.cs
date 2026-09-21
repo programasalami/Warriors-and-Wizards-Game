@@ -14,9 +14,13 @@ public class Update : IncomingPacket<Update> {
     
     public override PacketId PacketId => PacketId.Update;
     
-    private static TileDef[]  _tilesBuffer   = new TileDef[256];
-    private static ObjectDef[] _newObjsBuffer = new ObjectDef[256];
-    private static int[]       _dropsBuffer   = new int[256];
+    // Owned by THIS packet, never shared: it is parsed on the network thread and applied on the main thread a little later, so several Updates can be
+    // waiting at once. These used to be static, and a newer Update overwrote an older one's tiles before they were applied - short runs of tiles
+    // (a line, often diagonal) never reached the map and were drawn black. (Pooled packets keep their arrays, so this does not allocate per packet.)
+    private TileDef[]  _tilesBuffer   = new TileDef[256];
+    private ObjectDef[] _newObjsBuffer = new ObjectDef[256];
+    private int[]       _dropsBuffer   = new int[256];
+    private readonly StatPool _stats = new();
 
     public int TileCount;
     public int NewObjCount;
@@ -31,8 +35,8 @@ public class Update : IncomingPacket<Update> {
     }
 
     public override void Read(ref SpanReader reader) {
-        ObjectDef.StatsPoolIndex = 0;
-        
+        _stats.Reset();
+
         TileCount = reader.ReadInt16();
         EnsureCapacity(ref _tilesBuffer, TileCount);
         for (int i = 0; i < TileCount; i++)
@@ -40,8 +44,10 @@ public class Update : IncomingPacket<Update> {
 
         NewObjCount = reader.ReadInt16();
         EnsureCapacity(ref _newObjsBuffer, NewObjCount);
-        for (int i = 0; i < NewObjCount; i++)
+        for (int i = 0; i < NewObjCount; i++) {
+            _newObjsBuffer[i].Pool = _stats;
             _newObjsBuffer[i].Read(ref reader);
+        }
 
         DropCount = reader.ReadInt16();
         EnsureCapacity(ref _dropsBuffer, DropCount);
@@ -103,7 +109,7 @@ public class Update : IncomingPacket<Update> {
 
             entity.SetPos(newObj.Position.X, newObj.Position.Y);
 
-            entity.UpdateStats(ObjectDef.StatsPool, newObj.StatOffset, newObj.StatCount);
+            entity.UpdateStats(newObj.Pool.Data, newObj.StatOffset, newObj.StatCount);
             entity.OnTickPosition(newObj.Position.X, newObj.Position.Y, 0, 0, props.IsPlayer);
 
             Client.Logger.Log(LogLevel.Debug,

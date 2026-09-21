@@ -64,6 +64,10 @@ public static class EntityUtils {
         return closestEntity;
     }
     
+    // distanceSqr is a SQUARED distance (what Vector2.DistanceSquared gives), radius is in tiles. Comparing the squared distance straight against the radius (as this
+    // used to) made a "0.5 tile" hit really reach 0.71 tiles, while the server only accepts 0.5 (HitValidation.HitRadius).
+    public static bool IsWithinHitRadius(float distanceSqr, float radius) => distanceSqr <= radius * radius;
+
     public static Entity GetClosestPlayer(Vector2 position, float radius) {
         var entities = Map.Entities.Values;
         Entity en = null;
@@ -75,7 +79,7 @@ public static class EntityUtils {
             
             Vector2.DistanceSquared(position, entity.Position, out var dist);
             
-            if (dist > radius || dist >= enDist)
+            if (!IsWithinHitRadius(dist, radius) || dist >= enDist)
                 continue;
             en = entity;
             enDist = dist;
@@ -95,7 +99,7 @@ public static class EntityUtils {
             
             Vector2.DistanceSquared(position, entity.Position, out var dist);
             
-            if (dist > radius || dist >= enDist)
+            if (!IsWithinHitRadius(dist, radius) || dist >= enDist)
                 continue;
             en = entity;
             enDist = dist;

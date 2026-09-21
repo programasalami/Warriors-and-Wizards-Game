@@ -58,7 +58,7 @@ public sealed class Minimap : Sprite {
         AddChild(_zoomOut);
 
         _arrow = new ObjectRect(new ObjectRectConfig {
-            Texture = TextureHelper.FromGameAtlas("lofiInterface", 54, false),
+            Texture = TextureHelper.FromGameAtlas("icons", 48, false),
             X = MapSize / 2,
             Y = MapSize / 2,
             Width = 9,

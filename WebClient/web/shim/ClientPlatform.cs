@@ -11,6 +11,9 @@ public static class ClientPlatform {
     public static bool IsHttpUrl(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
+    // A browser page cannot open files on the player's PC: there is no editor here.
+    public static bool OpenLocalPage(string path) => false;
+
     public static void OpenUrl(string url) {
         if (IsHttpUrl(url)) {
             WebHost.OpenUrl(url);

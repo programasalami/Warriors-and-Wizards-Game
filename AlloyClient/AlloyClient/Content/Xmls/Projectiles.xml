@@ -3,30 +3,30 @@
     <Object type="0x0006" id="Blade">
         <Class>Projectile</Class>
         <Texture>
-            <File>lofiObj</File>
-            <Index>0xf6</Index>
+            <File>icons</File>
+            <Index>0x10</Index>
         </Texture>
     </Object>
     <Object type="0x000f" id="Fire Bolt">
         <Class>Projectile</Class>
         <Texture>
-            <File>lofiObj</File>
-            <Index>0x9a</Index>
+            <File>icons</File>
+            <Index>0x11</Index>
         </Texture>
         <AngleCorrection>1</AngleCorrection>
     </Object>
     <Object type="0x0029" id="Grey Missile">
         <Class>Projectile</Class>
         <Texture>
-            <File>lofiObj2</File>
-            <Index>0x9c</Index>
+            <File>icons</File>
+            <Index>0x12</Index>
         </Texture>
         <AngleCorrection>1</AngleCorrection>
     </Object>
     <Object type="0x0096" id="Invisible">
         <Class>Projectile</Class>
         <Texture>
-            <File>invisible</File>
+            <File>icons</File>
             <Index>0</Index>
         </Texture>
         <ShadowSize>0</ShadowSize>

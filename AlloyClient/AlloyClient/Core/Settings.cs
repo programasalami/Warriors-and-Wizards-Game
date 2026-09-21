@@ -26,16 +26,26 @@ public static class Settings {
     private static readonly string AccountFilePath;
     private static readonly string SettingsFilePath;
 
-    public const string BuildVersion = "0.3.3";
+    public const string BuildVersion = "0.3.4";
     public const string BuildLabel = $"Alloy v{BuildVersion}";
 
+    // Where the servers are. In the everyday source this is your own PC; `deploy` builds the public client with -p:DeployTarget=vps, which defines
+    // TARGET_VPS and swaps in the VPS address (see deploy.ps1). Never edit these back and forth by hand.
+#if TARGET_VPS
     public const string AppEngineAddress = "104.152.50.196";
+#else
+    public const string AppEngineAddress = "127.0.0.1";
+#endif
     public const string AppEnginePort = "8080";
     public const string AppEngineUrl = $"http://{AppEngineAddress}:{AppEnginePort}";
 
     public const int AppEngineTimeout = 10000;
 
+#if TARGET_VPS
     public const string GameServerAddress = "104.152.50.196";
+#else
+    public const string GameServerAddress = "127.0.0.1";
+#endif
     public const ushort GameServerPort = 2050;
 
     public const int DefaultScreenWidth = 1280;
@@ -116,7 +126,8 @@ public static class Settings {
 
     // Screen
     public static readonly ValueSetting<int> FpsCap = new(-1);
-    public static readonly ValueSetting<bool> VSync = new(false);
+    // ON by default: with it off the client runs uncapped and unsynced, which shows as screen tearing that looks like GUI flicker (worst on the weak Intel HD 4400).
+    public static readonly ValueSetting<bool> VSync = new(true);
     public static readonly ValueSetting<WindowMode> LastWindowMode = new(WindowMode.Normal);
     public static readonly ValueSetting<int> LastWindowPositionX = new(0);
     public static readonly ValueSetting<int> LastWindowPositionY = new(0);

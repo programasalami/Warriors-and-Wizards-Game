@@ -5,8 +5,8 @@
         <Enemy />
         <Class>Character</Class>
         <AnimatedTexture>
-            <File>chars8x8rBeach</File>
-            <Index>1</Index>
+            <File>npcs</File>
+            <Index>0</Index>
         </AnimatedTexture>
         <HitSound>monster/pirates_hit</HitSound>
         <DeathSound>monster/pirates_death</DeathSound>

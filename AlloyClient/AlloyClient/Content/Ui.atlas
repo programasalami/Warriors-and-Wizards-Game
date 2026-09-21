@@ -29,6 +29,7 @@
     <Image name="Tabs/MenuTab">Tabs/MenuTab.png</Image>
     <Image name="Tabs/DevTab">Tabs/DevTab.png</Image>
     <Image name="Tabs/BackpackTab">Tabs/BackpackTab.png</Image>
+    <Image name="Tabs/AdminTab">Tabs/AdminTab.png</Image>
     <Image name="Icons/BookCloseIcon">Icons/BookCloseIcon.png</Image>
     <Image name="Icons/BookBackIcon">Icons/BookBackIcon.png</Image>
     <Image name="Icons/BookProceedIcon">Icons/BookProceedIcon.png</Image>

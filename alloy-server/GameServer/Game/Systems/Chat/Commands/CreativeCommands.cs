@@ -7,7 +7,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Chat.Commands;
 
-[Command("spawn", CommandPermissionLevel.Player)]
+[Command("spawn", CommandPermissionLevel.Owner)]
 public class SpawnCommand : Command {
     public override async Task ExecuteAsync(User user, string args) {
         // if (user.GameInfo.Account.Rank < (int)CommandPermissionLevel.Moderator && player.World is not TestWorld) {

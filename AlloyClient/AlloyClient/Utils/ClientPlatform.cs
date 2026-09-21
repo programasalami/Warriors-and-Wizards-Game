@@ -16,6 +16,21 @@ public static class ClientPlatform {
     public static bool IsHttpUrl(string url) =>
         Uri.TryCreate(url, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps);
 
+    // Opens a page from this PC's own disk (the developer editor in Tools/Editor) in the default browser. Only .html files that exist are opened.
+    public static bool OpenLocalPage(string path) {
+        if (string.IsNullOrEmpty(path) || !path.EndsWith(".html", StringComparison.OrdinalIgnoreCase) || !System.IO.File.Exists(path)) {
+            return false;
+        }
+
+        try {
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+            return true;
+        } catch (Exception e) {
+            Logger.Log(LogLevel.Warning, e, $"Could not open {path}");
+            return false;
+        }
+    }
+
     public static void OpenUrl(string url) {
         if (!IsHttpUrl(url)) {
             return;

@@ -2,33 +2,33 @@
 namespace AlloyClient.Screens.Components.CharacterList;
 
 internal static class BackdropData {
-    // Index = ForestDecor sheet cell; Base = where it stands (1280x720 design px); Width/Height = drawn cell size;
+    // Sheet/Index = the decor cell (SmallPlants/MediumPlants/SmallTrees/MediumTrees); Base = where it stands (1280x720 design px); Width/Height = drawn cell size;
     // InsetPx = how far the cell bottom hangs below the base (per-object BottomInset).
-    internal readonly record struct Decor(int Index, int BaseX, int BaseY, int Width, int Height, int InsetPx, bool Sway);
+    internal readonly record struct Decor(string Sheet, int Index, int BaseX, int BaseY, int Width, int Height, int InsetPx, bool Sway);
 
     internal static readonly Decor[] Items = [
-        new(0, 62, 168, 120, 180, 12, true),
-        new(2, 26, 200, 120, 180, 6, true),
-        new(11, 150, 92, 120, 180, 12, true),
-        new(7, 66, 338, 120, 180, 6, false),
-        new(14, 30, 392, 120, 180, 5, false),
-        new(15, 96, 500, 120, 180, 7, false),
-        new(14, 44, 566, 120, 180, 5, false),
-        new(5, 112, 676, 120, 180, 5, false),
-        new(5, 64, 662, 120, 180, 5, false),
-        new(3, 150, 690, 120, 180, 5, true),
-        new(11, 1236, 248, 120, 180, 12, true),
-        new(1, 1176, 214, 120, 180, 11, true),
-        new(13, 1196, 262, 120, 180, 6, true),
-        new(7, 1230, 402, 120, 180, 6, false),
-        new(14, 1252, 470, 120, 180, 5, false),
-        new(10, 1196, 330, 120, 180, 5, false),
-        new(12, 1262, 610, 120, 180, 11, true),
-        new(2, 1240, 696, 120, 180, 6, true),
-        new(6, 640, 30, 120, 180, 5, false),
-        new(8, 700, 44, 120, 180, 5, false),
-        new(10, 420, 24, 120, 180, 5, false),
-        new(6, 880, 700, 120, 180, 5, false),
-        new(9, 560, 706, 120, 180, 5, false),
+        new("mediumTrees", 0, 62, 168, 120, 180, 12, true),
+        new("mediumPlants", 1, 26, 200, 60, 90, 6, true),
+        new("mediumTrees", 1, 150, 92, 120, 180, 12, true),
+        new("mediumPlants", 4, 66, 338, 60, 90, 6, false),
+        new("mediumPlants", 3, 30, 392, 60, 90, 5, false),
+        new("mediumPlants", 6, 96, 500, 60, 90, 7, false),
+        new("mediumPlants", 3, 44, 566, 60, 90, 5, false),
+        new("mediumPlants", 5, 112, 676, 60, 90, 5, false),
+        new("mediumPlants", 5, 64, 662, 60, 90, 5, false),
+        new("mediumPlants", 0, 150, 690, 60, 90, 5, true),
+        new("mediumTrees", 1, 1236, 248, 120, 180, 12, true),
+        new("smallTrees", 0, 1176, 214, 84, 126, 11, true),
+        new("mediumPlants", 2, 1196, 262, 60, 90, 6, true),
+        new("mediumPlants", 4, 1230, 402, 60, 90, 6, false),
+        new("mediumPlants", 3, 1252, 470, 60, 90, 5, false),
+        new("smallPlants", 2, 1196, 330, 36, 54, 5, false),
+        new("smallTrees", 1, 1262, 610, 84, 126, 11, true),
+        new("mediumPlants", 1, 1240, 696, 60, 90, 6, true),
+        new("smallPlants", 3, 640, 30, 36, 54, 5, false),
+        new("smallPlants", 0, 700, 44, 36, 54, 5, false),
+        new("smallPlants", 2, 420, 24, 36, 54, 5, false),
+        new("smallPlants", 3, 880, 700, 36, 54, 5, false),
+        new("smallPlants", 1, 560, 706, 36, 54, 5, false),
     ];
 }

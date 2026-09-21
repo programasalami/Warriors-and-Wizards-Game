@@ -117,6 +117,7 @@ public record Hello : IIncomingPacket {
         
         var seed = (uint)new Random().Next(1, int.MaxValue);
         user.SetGameInfo(acc, seed, world);
+        user.GameInfo.MuteEndUnix = (await Program.AccountServerRpc.GetMuteState(acc.Id)).MuteEndUnix;
         
         user.SendPacket(new MapInfo(
             world.Map.Data.Width,

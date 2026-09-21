@@ -214,6 +214,11 @@ public static class DbClient {
             // optimization here costs nothing.
             await UpsertAccountAsync(conn, acc);
             await UpsertLoginAsync(conn, login);
+
+            // A first message in the Inbox (with a small gift), so the new player finds the Inbox is real.
+            await RewardsDb.AddMailAsync(conn, acc.Id, "Warriors & Wizards", "Welcome, adventurer!",
+                "Thank you for joining Warriors & Wizards. Open your Daily Gift every day for a bigger reward, and spin the wheel once a day for a chance at the jackpot. Here is a little gold to start you off.",
+                500, 0);
         }
 
         return status;

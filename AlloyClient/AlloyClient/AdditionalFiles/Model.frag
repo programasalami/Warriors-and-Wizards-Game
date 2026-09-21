@@ -18,7 +18,12 @@ vec2 map(vec2 base, vec2 uvMin, vec2 uvMax) {
 void main() {
     vec2 uv = map(input1.BaseUV, input1.UV.xy, input1.UV.xy + input1.UV.zw);
     vec4 color = texture(GameTexture, uv);
-    
+
+    // The props' pictures have see-through parts (the pixel art's background): cut them out instead of dividing by an alpha of 0.
+    if (color.a < 0.5) {
+        discard;
+    }
+
     color /= color.a;
     color.rgb -= input1.Extra.z * 0.241 * clamp(0.6 - input1.Zed, 0.0 , 0.6);
     

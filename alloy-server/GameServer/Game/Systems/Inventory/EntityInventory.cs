@@ -69,6 +69,20 @@ public struct EntityInventory : IEntityIdentifiable, IDisposable {
         _itemUpdates.Set(slot);
     }
     
+    // Puts the item in the first free general slot (not an equipment slot). Returns the slot, or -1 when the inventory is full.
+    public int TryAdd(Item item) {
+        for (var i = 0; i < _size; i++) {
+            if (_items[i] != null || _slotTypes[i] != 0)
+                continue;
+
+            _items[i] = item;
+            _itemUpdates.Set(i);
+            return i;
+        }
+
+        return -1;
+    }
+
     public void SetItems(IEnumerable<Item> items) {
         var slot = 0;
         foreach (var item in items) {
@@ -150,6 +164,23 @@ public struct EntityInventory : IEntityIdentifiable, IDisposable {
             }
 
         _itemUpdates.Clear();
+    }
+
+    // Puts items into the slots (types; -1 or unknown = empty) and tells the client about every slot. Used to fill a Vault Chest from the account.
+    public void LoadItems(int[] itemTypes) {
+        for (var i = 0; i < _size; i++) {
+            var type = itemTypes != null && i < itemTypes.Length ? itemTypes[i] : -1;
+            _items[i] = type >= 0 && XmlLibrary.ItemDescs.TryGetValue((ushort)type, out var desc) ? new Item(desc.Root) : null;
+            _itemUpdates.Set(i);
+        }
+    }
+
+    // The item type in every slot, -1 for an empty one.
+    public int[] ItemTypes() {
+        var types = new int[_size];
+        for (var i = 0; i < _size; i++)
+            types[i] = _items[i]?.ObjectType ?? -1;
+        return types;
     }
 
     public void Save(Character chr) {

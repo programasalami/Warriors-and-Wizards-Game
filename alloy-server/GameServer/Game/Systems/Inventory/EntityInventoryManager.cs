@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Common;
 using Common.Resources.World;
+using Common.Resources.Xml;
 using Common.Resources.Xml.Descriptors;
 using Common.Structs;
 using Common.Utilities.Collections;
@@ -145,7 +146,7 @@ public class EntityInventoryManager(World world, int capacity) : ManagerBase<Ent
         var playerSlot = playerIsEnt1 ? cmd.SlotA.SlotId : cmd.SlotB.SlotId;
         var containerSlot = playerIsEnt1 ? cmd.SlotB.SlotId : cmd.SlotA.SlotId;
         var playerItem = playerInv[playerSlot];
-        var containerItem = playerInv[playerSlot];
+        var containerItem = containerInv[containerSlot];      // was playerInv[playerSlot]: the container's own item was never read, so items vanished or were copied
 
         if (cmd.SlotA.SlotId is 255 or 254) { // Handle potion stacking
             if (!playerIsEnt1) // Illegal action
@@ -199,12 +200,18 @@ public class EntityInventoryManager(World world, int capacity) : ManagerBase<Ent
         return true;
     }
 
+    private bool IsPersistent(EntityId id) {
+        ref var en = ref _world.Entities.Get(id);
+        return en.Id != EntityId.Null && en.Type == EntityType.Container && XmlLibrary.ContainerDescs.TryGetValue(en.Desc.ObjectType, out var desc) && desc.Persistent;
+    }
+
     private void Swap(ref EntityInventory invA, ref EntityInventory invB, int slotA, int slotB, Item itemA, Item itemB) {
         invA.SetItem(slotA, itemB);
         invB.SetItem(slotB, itemA);
         
-        if (invB.IsEmpty()) // Careful, assumed to be a bag
+        if (invB.IsEmpty() && !IsPersistent(invB.Id)) // An empty loot bag disappears; a Vault Chest stays (it is where the player keeps things)
             _world.LeaveWorld(invB.Id);
+
     }
     
     public override void Tick(ref RealmTime time) {

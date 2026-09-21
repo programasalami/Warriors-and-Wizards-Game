@@ -66,34 +66,34 @@ public static class ConditionEffects {
 
     private static readonly ConditionEffectData[] EffectTable = [
         new("Nothing", ConditionEffect.None, null),
-        new("Dead", ConditionEffect.Dead, [0]),
-        new("Quiet", ConditionEffect.Quiet, [32]),
-        new("Weak", ConditionEffect.Weak, [34, 35, 36, 37]),
-        new("Slowed", ConditionEffect.Slowed, [1]),
-        new("Sick", ConditionEffect.Sick, [39]),
-        new("Dazed", ConditionEffect.Dazed, [44]),
-        new("Stunned", ConditionEffect.Stunned, [45]),
-        new("Blind", ConditionEffect.Blind, [41]),
-        new("Hallucinating", ConditionEffect.Hallucinating, [42]),
-        new("Drunk", ConditionEffect.Drunk, [43]),
-        new("Confused", ConditionEffect.Confused, [2]),
+        new("Dead", ConditionEffect.Dead, [64]),
+        new("Quiet", ConditionEffect.Quiet, [65]),
+        new("Weak", ConditionEffect.Weak, [66, 67, 68, 69]),
+        new("Slowed", ConditionEffect.Slowed, [70]),
+        new("Sick", ConditionEffect.Sick, [71]),
+        new("Dazed", ConditionEffect.Dazed, [72]),
+        new("Stunned", ConditionEffect.Stunned, [73]),
+        new("Blind", ConditionEffect.Blind, [74]),
+        new("Hallucinating", ConditionEffect.Hallucinating, [75]),
+        new("Drunk", ConditionEffect.Drunk, [76]),
+        new("Confused", ConditionEffect.Confused, [77]),
         new("Stun Immune", ConditionEffect.StunImmune, null),
         new("Invisible", ConditionEffect.Invisible, null),
-        new("Paralyzed", ConditionEffect.Paralyzed, [53, 54]),
-        new("Speedy", ConditionEffect.Speedy, [0]),
-        new("Bleeding", ConditionEffect.Bleeding, [46]),
-        new("Healing", ConditionEffect.Healing, [47]),
-        new("Damaging", ConditionEffect.Damaging, [49]),
-        new("Berserk", ConditionEffect.Berserk, [50]),
+        new("Paralyzed", ConditionEffect.Paralyzed, [78, 79]),
+        new("Speedy", ConditionEffect.Speedy, [64]),
+        new("Bleeding", ConditionEffect.Bleeding, [80]),
+        new("Healing", ConditionEffect.Healing, [81]),
+        new("Damaging", ConditionEffect.Damaging, [82]),
+        new("Berserk", ConditionEffect.Berserk, [83]),
         new("Paused", ConditionEffect.Paused, null),
         new("Stasis", ConditionEffect.Stasis, null),
         new("Stasis Immune", ConditionEffect.StasisImmune, null),
         new("Invincible", ConditionEffect.Invincible, null),
-        new("Invulnerable", ConditionEffect.Invulnerable, [17]),
-        new("Armored", ConditionEffect.Armored, [16]),
-        new("Armor Broken", ConditionEffect.ArmorBroken, [55]),
-        new("Hexed", ConditionEffect.Hexed, [42]),
-        new("Ninja Speedy", ConditionEffect.NinjaSpeedy, [0])
+        new("Invulnerable", ConditionEffect.Invulnerable, [84]),
+        new("Armored", ConditionEffect.Armored, [85]),
+        new("Armor Broken", ConditionEffect.ArmorBroken, [86]),
+        new("Hexed", ConditionEffect.Hexed, [75]),
+        new("Ninja Speedy", ConditionEffect.NinjaSpeedy, [64])
     ];
 
     public static Span<BucketType> IconlessEffects => new BucketType[MaxEffectBuckets];
@@ -105,7 +105,7 @@ public static class ConditionEffects {
     public static void Init() {
         foreach (var effect in EffectTable) {
             if (effect.IconLookup != null) {
-                EffectIcons[effect.Index] = effect.IconLookup.Select(i => Main.Atlas.GetAtlasData("lofiInterface2", i).ToVector4()).ToArray();
+                EffectIcons[effect.Index] = effect.IconLookup.Select(i => Main.Atlas.GetAtlasData("icons", i).ToVector4()).ToArray();
             } else {
                 IconlessEffects[(EffectType) effect.Index / MaxBucketSize] |= (1 << ((EffectType) effect.Index % MaxBucketSize));
             }

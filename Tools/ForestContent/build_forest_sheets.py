@@ -1,3 +1,8 @@
+# OBSOLETE since 2026-09-20: the game's art sheets are now edited directly (see Tools/Sheets/README.md), so this script would recreate sheets that no longer
+# exist. Kept as the record of how the old art was made / where it came from. Run with --force only if you know why.
+import sys
+if '--force' not in sys.argv:
+    raise SystemExit('obsolete: see Tools/Sheets/README.md (run with --force to run it anyway)')
 import random
 from PIL import Image
 SRC = 'C:/Users/cbart/Desktop/Assets and GUI/TopDownFantasy-Forest'

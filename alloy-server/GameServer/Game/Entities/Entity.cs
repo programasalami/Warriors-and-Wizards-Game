@@ -56,7 +56,8 @@ public struct Entity : IEntityIdentifiable, IEquatable<Entity>, IDisposable {
                     if (desc.Enemy)
                         return EntityType.Enemy;
                     return EntityType.Character;
-                case "ClosedVaultChest":
+                case "ClosedVaultChest":     // a spot with no chest yet: it has no inventory (mapping it to Container made the server look for one and crash)
+                    return EntityType.GameObject;
                 case "Container":
                     return EntityType.Container;
                 case "Merchant":

@@ -1,28 +1,20 @@
 ﻿<Atlas source="Sheets">
 
-    <!-- Every sheet the game actually uses right now: the forest ground/decor, the player sheet, the sheets behind the
-         objects and items in the Nexus / Vault / Guild Hall and the two starting classes, and the HUD sheets. Anything else
-         was removed on purpose - add new sheets here as they are made. -->
-    <Image name="tileAlphaBlend"   w="8"  h="8" >AlphaTileBlends.png</Image>
-    <Image name="invisible"        w="8"  h="8" >invisible.png</Image>
-    <Image name="lofiChar216x16"   w="16" h="16">LofiChar2.png</Image>
-    <Image name="lofiEnvironment"  w="8"  h="8" >LofiEnvironment.png</Image>
-    <Image name="lofiEnvironment2" w="8"  h="8" >LofiEnvironment2.png</Image>
-    <Image name="lofiEnvironment3" w="8"  h="8" >LofiEnvironment3.png</Image>
-    <Image name="forestGround"     w="16" h="16">ForestGround.png</Image>
-    <Image name="forestDecor"      w="80" h="120">ForestDecor.png</Image>
-    <Image name="forestGroundEdge" w="16" h="16">ForestGroundEdge.png</Image>
-    <Image name="forestFlat"       w="48" h="48">ForestFlat.png</Image>
-    <Image name="lofiInterface"    w="8"  h="8" >LofiInterface.png</Image>
-    <Image name="lofiInterface2"   w="8"  h="8" >LofiInterface2.png</Image>
-    <Image name="lofiInterfaceBig" w="16" h="16">LofiInterfaceBig.png</Image>
-    <Image name="lofiObj"          w="8"  h="8" >LofiObj.png</Image>
-    <Image name="lofiObj2"         w="8"  h="8" >LofiObj2.png</Image>
-    <Image name="lofiObj3"         w="8"  h="8" >LofiObj3.png</Image>
-    <Image name="lofiObj4"         w="8"  h="8" >LofiObj4.png</Image>
-    <Image name="lofiObj5"         w="8"  h="8" >LofiObj5.png</Image>
-    <Image name="lofiObj6"         w="8"  h="8" >LofiObj6.png</Image>
-    <Image name="lofiObjBig"       w="16" h="16">LofiObjBig.png</Image>
-    <Animated name="chars8x8rBeach"          w="8"  h="8" >Chars8x8rBeach.png</Animated>
-    <Animated name="players"                 w="32" h="32" group="Full">Players.png</Animated>
+    <!-- Every sheet the game uses (rebuilt 2026-09-20 by Tools/Sheets/migrate_sheets.py; see Tools/Sheets/README.md). Each sheet is ONE uniform grid, split by
+         cell size. Add new sheets here as they are made. Decoration cells keep the 2:3 width:height ratio on purpose (the game scales a sprite from it). -->
+    <Image name="tileAlphaBlend" w="8" h="8">AlphaTileBlends.png</Image>
+    <Image name="grasslands" w="16" h="16">Grasslands_16x16.png</Image>
+    <Image name="smallPlants" w="24" h="36">SmallPlants_24x36.png</Image>
+    <Image name="mediumPlants" w="40" h="60">MediumPlants_40x60.png</Image>
+    <Image name="smallTrees" w="56" h="84">SmallTrees_56x84.png</Image>
+    <Image name="mediumTrees" w="80" h="120">MediumTrees_80x120.png</Image>
+    <Image name="flatProps" w="48" h="48">FlatProps_48x48.png</Image>
+    <Image name="largeObjects" w="80" h="120">LargeObjects_80x120.png</Image>
+    <Image name="equipAndConsume" w="16" h="16">EquipAndConsume_16x16.png</Image>
+    <Image name="guildHall" w="8" h="8">GuildHall_8x8.png</Image>
+    <Image name="guildHallLarge" w="16" h="16">GuildHallLarge_16x16.png</Image>
+    <Image name="icons" w="8" h="8">Icons_8x8.png</Image>
+    <Image name="caveMonsters" w="16" h="16">CaveMonsters_16x16.png</Image>
+    <Animated name="npcs" w="8" h="8">Npcs_8x8.png</Animated>
+    <Animated name="players" w="32" h="32" group="Full">Players.png</Animated>
 </Atlas>

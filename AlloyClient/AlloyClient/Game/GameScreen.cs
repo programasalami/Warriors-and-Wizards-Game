@@ -6,6 +6,7 @@ using Alloy.UiLib.Core;
 using AlloyClient.Game.Components.Hud;
 using AlloyClient.Game.Components.Hud.Chat;
 using AlloyClient.Game.Components.Options;
+using AlloyClient.Game.Music;
 using AlloyClient.Loading;
 using AlloyClient.Rendering;
 using AlloyClient.Ui.Character;
@@ -51,13 +52,14 @@ public sealed class GameScreen : Screen {
         // The FPS / memory readout is off until the DEV tab (or F5) turns it on; the MENU tab does what the options hotkey does.
         _debugStats.Visible = false;
         _hud.OnOpenMenu = OpenOptions;
+        _hud.OnOpenAdmin = OpenAdmin;
         _hud.OnDevChanged = OnDevChanged;
         _cover.Begin(false);
         
         GameSprite = this;
     }
 
-    // A world switch (Reconnect): fade the cover back in while the new world loads.
+    // A world switch (Reconnect): the loading cover goes up at once (no fade, see WorldLoadCover.Begin) while the new world loads.
     public void OnWorldLoadBegan(bool switching) => _cover.Begin(switching);
 
     public void CreatePlayerDependentAssets() => _hud.CreatePlayerDependentAssets();
@@ -73,6 +75,30 @@ public sealed class GameScreen : Screen {
         OverlayManager.Set(new OptionsView());
     }
 
+    // The Nexus Bug Board: like the options menu it closes any open tab, stops the player and takes the keyboard while it is open.
+    public void OpenBugBoard() {
+        _hud.CloseTabs();
+        _userInput.ClearMovement();
+        UserInput.SetManualFocus(false);
+        OverlayManager.Set(new Components.BugBoard.BugBoardView());
+    }
+
+    // The admin dashboard (ADMIN tab, moderators and owners): opens like the Bug Board - closes the tabs, stops the player, takes the keyboard.
+    public void OpenAdmin() {
+        _hud.CloseTabs();
+        _userInput.ClearMovement();
+        UserInput.SetManualFocus(false);
+        OverlayManager.Set(new Components.Admin.AdminDashboardView());
+    }
+
+    // The Nexus Jukebox: the same way as the Bug Board (closes tabs, stops the player, takes the keyboard while it is open).
+    public void OpenJukebox() {
+        _hud.CloseTabs();
+        _userInput.ClearMovement();
+        UserInput.SetManualFocus(false);
+        OverlayManager.Set(new Components.Jukebox.JukeboxView());
+    }
+
     public void ToggleDebugStats() => _hud.ToggleTab("dev");
 
     private void OnDevChanged(bool on) {
@@ -80,14 +106,14 @@ public sealed class GameScreen : Screen {
         PlaceDebugStats();
     }
 
-    // The FPS / memory readout goes in the bottom-right corner, flush with both edges (its text is static-width, so it doesn't drift as
-    // the numbers change), well out of the way of the action.
+    // The FPS / memory readout hangs to the LEFT of the minimap, level with its top (the bottom-right corner is the chat's). Its text is
+    // static-width, so it doesn't drift as the numbers change.
     private void PlaceDebugStats() {
         var scale = Stage.ScreenScale;
         _debugStats.Scale = scale;
-        var pad = (int) (6 * scale.X);   // a little room for the text outline
-        _debugStats.X = Stage.StageWidth - _debugStats.Width - pad;
-        _debugStats.Y = Stage.StageHeight - _debugStats.Height - pad;
+        var gap = (int) (8 * scale.X);   // a little room for the text outline
+        _debugStats.X = (int) (_hud.MinimapLeft * scale.X) - _debugStats.Width - gap;
+        _debugStats.Y = (int) (_hud.MinimapTop * scale.Y);
     }
 
     public void SetChatVisible(bool visible) => _chat.Visible = visible;
@@ -96,6 +122,7 @@ public sealed class GameScreen : Screen {
 
     public override void Update(GameTime gameTime) {
         Client.Tick();
+        InGameMusic.Update();      // the shared in-game playlist (follows the server, crossfades between songs)
         
         if (Map.LocalPlayer is null) {
             return;

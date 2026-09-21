@@ -13,14 +13,14 @@ public static class ModelUtils {
         public XElement ToXml() {
             return new XElement("Account",
                 new XElement("AccountId", acc.Id),
-                new XElement("Rank", acc.Rank),
+                new XElement("Rank", Common.Database.Ranks.Of(acc)),
                 new XElement("Name", acc.Name),
                 !string.IsNullOrEmpty(acc.GuildName)
                     ? new XElement("Guild",
                         new XElement("Name", acc.GuildName),
                         new XElement("Rank", acc.GuildRank))
                     : null,
-                acc.IsAdmin ? new XElement("Admin") : null,
+                Common.Database.Ranks.IsOwner(acc) ? new XElement("Admin") : null,
                 acc.Stats.ToXml(acc)
             );
         }

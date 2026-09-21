@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AlloyClient.Data;
 using AlloyClient.Display;
 using AlloyClient.Game.Components.Hud.Inventory;
 using AlloyClient.Game.Components.Hud.Panels;
@@ -14,7 +15,7 @@ namespace AlloyClient.Game.Components.Hud;
 //   top-right    the minimap in a walnut frame
 //   bottom-left  equipment, with the inventory directly under it
 //   top edge     parchment tabs (stats / pack / menu / dev) hanging from the top of the screen, just right of the plate and growing toward the minimap
-//   bottom       the interact panel (portals, loot bags), to the right of the gear
+//   bottom       the nearby-players frame (always there), to the right of the gear, and the interact panel (portals, loot bags) to the right of that
 // All positions are in the 1280x720 design space; GameScreen scales this whole sprite by Stage.ScreenScale and calls Layout with the
 // screen size divided by that scale.
 public sealed class HudView : Sprite {
@@ -34,10 +35,12 @@ public sealed class HudView : Sprite {
     private HudTabs _tabs;
     private StatsPopup _stats;
     private PackPopup _pack;
+    private NearbyPlayersPanel _nearby;
     private InteractPanel _interact;
 
     // set by GameScreen: the MENU tab opens the options, the DEV tab shows / hides the FPS and memory readout
     public System.Action OnOpenMenu;
+    public System.Action OnOpenAdmin;
     public System.Action<bool> OnDevChanged;
 
     private bool _hadBackpack;
@@ -59,6 +62,7 @@ public sealed class HudView : Sprite {
         RemoveChild(_tabs);
         RemoveChild(_stats);
         RemoveChild(_pack);
+        RemoveChild(_nearby);
         RemoveChild(_interact);
 
         _gear = new Sprite();
@@ -68,10 +72,14 @@ public sealed class HudView : Sprite {
         _gear.AddChild(_inventory);
         AddChild(_gear);
 
+        _nearby = new NearbyPlayersPanel();
+        AddChild(_nearby);
+
         _interact = new InteractPanel();
         AddChild(_interact);
 
         _tabs = new HudTabs { OnTabClicked = ToggleTab };
+        _tabs.SetTabVisible("admin", Admin.AdminRules.IsStaff(GlobalData.Get<AccountData>()?.Rank ?? 0));       // the server still checks every command
         AddChild(_tabs);
 
         _stats = new StatsPopup { OnClosed = () => _tabs.SetActive("stats", false) };
@@ -127,6 +135,9 @@ public sealed class HudView : Sprite {
             case "menu":
                 OnOpenMenu?.Invoke();
                 break;
+            case "admin":
+                OnOpenAdmin?.Invoke();
+                break;
         }
     }
 
@@ -147,6 +158,7 @@ public sealed class HudView : Sprite {
 
         _plate.Update();
         _equipped.UpdateAbilitySlot();
+        _nearby.Update();
         _interact.Update();
         if (Map.LocalPlayer.HasBackPack != _hadBackpack) {
             _hadBackpack = Map.LocalPlayer.HasBackPack;
@@ -157,6 +169,10 @@ public sealed class HudView : Sprite {
             _stats.Refresh();
         }
     }
+
+    // The minimap frame's left edge and top edge in design units - the FPS / memory readout hangs off them.
+    public float MinimapLeft => _minimapBox.X;
+    public float MinimapTop => _minimapBox.Y;
 
     // Positions everything for a screen of designW x designH design units (the real size divided by the HUD's scale).
     public void Layout(int designW, int designH) {
@@ -177,8 +193,11 @@ public sealed class HudView : Sprite {
         _gear.X = Margin;
         _gear.Y = designH - gearHeight - Margin;
 
-        _interact.X = Margin + EquippedGrid.Width + 12;
-        _interact.Y = designH - Panel.PanelHeight - Margin;
+        // the nearby-players frame sits where the interact panel used to pop up; the interact panel slides over to its right, on the same line
+        _nearby.X = Margin + EquippedGrid.Width + 12;
+        _nearby.Y = designH - Panel.PanelHeight - Margin;
+        _interact.X = _nearby.X + NearbyPlayersPanel.Width + 12;
+        _interact.Y = _nearby.Y;
 
         // the tabs hang from the top edge in the middle; the popups open in the gap between the plate and the gear, lined up with the plate's sides
         _tabs.X = Margin + PlayerPlate.Width + TabsGap;
@@ -218,6 +237,10 @@ public sealed class HudView : Sprite {
 
         yield return (_gear.X, _gear.Y, EquippedGrid.Width, EquippedGrid.Height + GearGap + InventoryGrid.Height);
         yield return (_tabs.X, 0, _tabs.TotalWidth, HudTabs.ReachHeight);
+        yield return (_nearby.X, _nearby.Y, NearbyPlayersPanel.Width, NearbyPlayersPanel.Height);
+        if (_nearby.MenuRect is { } menu) {
+            yield return menu;
+        }
         if (_interact.ShowsFrame) {
             yield return (_interact.X, _interact.Y, Panel.PanelWidth, Panel.PanelHeight);
         }

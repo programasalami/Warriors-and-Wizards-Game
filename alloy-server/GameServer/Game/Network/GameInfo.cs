@@ -26,6 +26,11 @@ public class GameInfo {
     public EntityId PlayerId;
     
     public ref Entity Player => ref World.Entities.Get(PlayerId);
+    // When this account's mute ends (unix seconds, UTC): 0 = not muted, long.MaxValue = no end. Set at login and whenever a moderator mutes / unmutes them.
+    public long MuteEndUnix;
+
+    public bool IsMuted => MuteEndUnix != 0 && (MuteEndUnix == long.MaxValue || MuteEndUnix > DateTimeOffset.UtcNow.ToUnixTimeSeconds());
+
     public GameInfoDto Data => new GameInfoDto(Account.Id, World.Id, World.DisplayName, World.EntityStats.Get(PlayerId).Pos);
 
     public GameInfo(User user) {

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using AlloyClient.Utils;
 using Alloy.Common.Structs;
@@ -18,7 +18,7 @@ namespace AlloyClient.Screens.Components;
 // always something going on somewhere.
 //
 // Everything here is drawn from art the game already has: the players sheet (Wizard/Warrior), the 16x16 monster sheet
-// (lofiChar216x16), the effect/projectile sprites in lofiObj, and the soft glow sprites of the cave map (CaveBackdrop). It
+// (the "caveMonsters" sheet), the effect/projectile sprites in the "icons" sheet, and the soft glow sprites of the cave map (CaveBackdrop). It
 // is all in the cave's 1280x720 design space (the backdrop scales it to the window). Tune with the constants below.
 public sealed class CaveBattle : Container {
 
@@ -47,21 +47,21 @@ public sealed class CaveBattle : Container {
     private const float OrbSpeed = 175f;
     private const float FlashMs = 110f;
 
-    // ---- Effect sprite indices in lofiObj (8x8 art; see the sheet) -------------------------------------------------------
-    private const int FxBoltPurple = 0xEA;          // horizontal purple bolt (bright head on the left)
-    private const int FxBladeSwing = 0xF6;          // the Blade projectile's picture, used as the Warrior's swing
-    private const int FxOrbFire = 0x69;
-    private const int FxOrbBlue = 0x6B;
-    private const int FxOrbPurple = 0x72;
-    private const int FxImpactX = 0x98;             // orange X burst
-    private const int FxImpactWhite = 0x88;
-    private const int FxSplatRed = 0x62;
+    // ---- Effect sprite indices in the "icons" sheet (8x8 art; see the sheet; moved there 2026-09-20) -------------------------------------------------------
+    private const int FxBoltPurple = 21;          // horizontal purple bolt (bright head on the left)
+    private const int FxBladeSwing = 16;          // the Blade projectile's picture, used as the Warrior's swing
+    private const int FxOrbFire = 11;
+    private const int FxOrbBlue = 12;
+    private const int FxOrbPurple = 13;
+    private const int FxImpactX = 20;             // orange X burst
+    private const int FxImpactWhite = 19;
+    private const int FxSplatRed = 8;
 
     // Glow kinds of the cave's glow strip: teal, green, amber, purple, white, fog.
     private const int GlowTeal = 0, GlowGreen = 1, GlowAmber = 2, GlowPurple = 3, GlowWhite = 4, GlowFog = 5;
 
     // The dust/spark burst sprite that goes with each glow colour (for hits and deaths).
-    private static readonly int[] SparkByGlow = [0x65, 0x75, 0x78, 0x72, 0x68];
+    private static readonly int[] SparkByGlow = [9, 14, 15, 13, 10];
 
     private readonly record struct Arena(float MinX, float MaxX, float MinY, float MaxY, int EdgeDir) {
         public float MidY => (MinY + MaxY) / 2f;
@@ -71,31 +71,31 @@ public sealed class CaveBattle : Container {
     private static readonly Arena LeftArena = new(105f, 445f, 335f, 640f, -1);
     private static readonly Arena RightArena = new(835f, 1175f, 335f, 640f, 1);
 
-    // ---- The monster roster: cell in lofiChar216x16, hit points, speed, glow colour, ranged (orb sprite) or melee (-1) ----
+    // ---- The monster roster: cell in caveMonsters, hit points, speed, glow colour, ranged (orb sprite) or melee (-1) ----
     private readonly record struct Species(int Cell, float Hp, float Speed, int Glow, int Orb);
 
     private static readonly Species[] Monsters = [
-        new(36, 110, 32, GlowWhite, -1),    // grey stone golem
-        new(37, 120, 30, GlowAmber, -1),    // brown ogre
-        new(38, 110, 30, GlowTeal, -1),     // ice golem
-        new(43, 100, 36, GlowGreen, -1),    // green ogre
-        new(44, 130, 26, GlowGreen, -1),    // mossy golem
-        new(45, 90, 44, GlowPurple, -1),    // dark blue demon
-        new(47, 85, 22, GlowGreen, FxOrbFire),  // olive beholder
-        new(49, 70, 58, GlowGreen, -1),     // green spider
-        new(50, 75, 48, GlowAmber, -1),     // winged sprite
-        new(51, 80, 34, GlowPurple, FxOrbPurple),   // purple naga
-        new(59, 90, 40, GlowAmber, -1),     // tan ghoul
-        new(60, 120, 28, GlowAmber, -1),    // sand golem
-        new(64, 70, 58, GlowTeal, -1),      // ice spider
-        new(65, 100, 36, GlowTeal, -1),     // ice knight
-        new(66, 110, 30, GlowTeal, -1),     // frost giant
-        new(62, 60, 62, GlowAmber, -1),     // hawk
-        new(48, 75, 30, GlowTeal, FxOrbBlue),       // ghost
-        new(52, 70, 34, GlowPurple, FxOrbPurple),   // purple imp
-        new(53, 80, 34, GlowAmber, FxOrbFire),      // flaming skull
-        new(54, 75, 34, GlowAmber, FxOrbFire),      // flame wraith
-        new(42, 95, 30, GlowAmber, FxOrbFire),      // phoenix
+        new(0, 110, 32, GlowWhite, -1),    // grey stone golem
+        new(1, 120, 30, GlowAmber, -1),    // brown ogre
+        new(2, 110, 30, GlowTeal, -1),     // ice golem
+        new(3, 100, 36, GlowGreen, -1),    // green ogre
+        new(4, 130, 26, GlowGreen, -1),    // mossy golem
+        new(5, 90, 44, GlowPurple, -1),    // dark blue demon
+        new(6, 85, 22, GlowGreen, FxOrbFire),  // olive beholder
+        new(7, 70, 58, GlowGreen, -1),     // green spider
+        new(8, 75, 48, GlowAmber, -1),     // winged sprite
+        new(9, 80, 34, GlowPurple, FxOrbPurple),   // purple naga
+        new(10, 90, 40, GlowAmber, -1),     // tan ghoul
+        new(11, 120, 28, GlowAmber, -1),    // sand golem
+        new(12, 70, 58, GlowTeal, -1),      // ice spider
+        new(13, 100, 36, GlowTeal, -1),     // ice knight
+        new(14, 110, 30, GlowTeal, -1),     // frost giant
+        new(15, 60, 62, GlowAmber, -1),     // hawk
+        new(16, 75, 30, GlowTeal, FxOrbBlue),       // ghost
+        new(17, 70, 34, GlowPurple, FxOrbPurple),   // purple imp
+        new(18, 80, 34, GlowAmber, FxOrbFire),      // flaming skull
+        new(19, 75, 34, GlowAmber, FxOrbFire),      // flame wraith
+        new(20, 95, 30, GlowAmber, FxOrbFire),      // phoenix
     ];
 
     private enum State { Walking, Fighting, Cheering, Leaving, Spawning, Dying, Gone }
@@ -103,7 +103,7 @@ public sealed class CaveBattle : Container {
     private sealed class Actor {
         public bool IsHero;
         public bool IsWizard;
-        public int Art;                 // hero: index in the players sheet; enemy: cell in lofiChar216x16
+        public int Art;                 // hero: index in the players sheet; enemy: cell in caveMonsters
         public Species Species;
         public Encounter Enc;
 
@@ -450,7 +450,7 @@ public sealed class CaveBattle : Container {
         actor.Shadow = MakeShadow(EnemySize - 8, 20);
         actor.Root.AddChild(actor.Shadow);
         actor.Body = new ObjectRect(new ObjectRectConfig {
-            Texture = TextureHelper.FromGameAtlas("lofiChar216x16", species.Cell),
+            Texture = TextureHelper.FromGameAtlas("caveMonsters", species.Cell),
             Width = EnemySize,
             Height = EnemySize,
             Anchor = UiAnchor.Middle,
@@ -1060,7 +1060,7 @@ public sealed class CaveBattle : Container {
     // Effects
     // ==================================================================================================================
 
-    private static TextureInfo LofiObj(int index) => TextureHelper.FromGameAtlas("lofiObj", index);
+    private static TextureInfo LofiObj(int index) => TextureHelper.FromGameAtlas("icons", index);
 
     private ObjectRect Rent(TextureInfo texture, int width, int height) {
         ObjectRect rect;

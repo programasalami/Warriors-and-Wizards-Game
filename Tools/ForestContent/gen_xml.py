@@ -1,3 +1,8 @@
+# OBSOLETE since 2026-09-20: the game's art sheets are now edited directly (see Tools/Sheets/README.md), so this script would recreate sheets that no longer
+# exist. Kept as the record of how the old art was made / where it came from. Run with --force only if you know why.
+import sys
+if '--force' not in sys.argv:
+    raise SystemExit('obsolete: see Tools/Sheets/README.md (run with --force to run it anyway)')
 """Regenerates the forest <Object> block in both Objects.xml copies and the forest <Ground> block in
 both Ground.xml copies. Idempotent: replaces from its own start marker to the end of the file's
 container element."""
@@ -39,6 +44,8 @@ OBJECTS = [
 # an upright billboard. TypeGameObject.DrawFlat had the camera-angle sign backwards (fixed 2026-09-19), which is likely why
 # flat props looked wrong when they were first tried.
 FLAT = {'Forest Log': 5, 'Forest Log Mossy': 6}
+# (Bushes and rocks were tried flat on 2026-09-20 and looked worse: they stay upright. NOTE: never run this script against Objects.xml - it rewrites everything after
+# its marker and would cut off the hand-added objects such as the Bug Board.)
 
 
 def obj_xml(t, oid, idx, size, inset, kind):

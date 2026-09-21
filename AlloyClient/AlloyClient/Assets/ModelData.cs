@@ -54,6 +54,8 @@ public enum ModelType {
     Tetrahedron,
     Tower,
     Web,
+    BugBoard,
+    Jukebox,
     PbTile,
     PbObject,
     PbWall,

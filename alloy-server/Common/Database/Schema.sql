@@ -54,3 +54,46 @@ CREATE TABLE IF NOT EXISTS mutes (
     expires_at       TIMESTAMPTZ
 );
 CREATE INDEX IF NOT EXISTS idx_mutes_target_acc_id ON mutes (target_acc_id);
+
+-- The Bug Board in the Nexus: anyone signed in can post, everyone can read, admins check / mark / delete (see BugBoardRules).
+CREATE TABLE IF NOT EXISTS bug_posts (
+    id          SERIAL PRIMARY KEY,
+    account_id  INT NOT NULL,
+    author      TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    status      TEXT NOT NULL DEFAULT 'new',
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS idx_bug_posts_created_at ON bug_posts (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bug_posts_account_id ON bug_posts (account_id, created_at DESC);
+
+-- The Inbox (Character Book): messages to a player, optionally with gold / fame to claim (see RewardsDb).
+CREATE TABLE IF NOT EXISTS inbox_messages (
+    id          SERIAL PRIMARY KEY,
+    acc_id      INT NOT NULL,
+    sender      TEXT NOT NULL,
+    subject     TEXT NOT NULL,
+    body        TEXT NOT NULL,
+    gold        INT NOT NULL DEFAULT 0,
+    fame        INT NOT NULL DEFAULT 0,
+    created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    is_read     BOOLEAN NOT NULL DEFAULT false,
+    claimed     BOOLEAN NOT NULL DEFAULT false
+);
+CREATE INDEX IF NOT EXISTS idx_inbox_acc_id ON inbox_messages (acc_id, created_at DESC);
+
+-- Daily Gift streak and Daily Spin (each usable once every 24 hours), see DailyCooldown / DailyGiftRules / SpinWheel.
+-- last_gift_at / last_spin_at are the exact moments of the last claim. last_gift_day / last_spin_day are the OLD "which UTC day" columns: still read when the
+-- new column is empty (a claim made before the change), never written any more.
+CREATE TABLE IF NOT EXISTS daily_rewards (
+    acc_id         INT PRIMARY KEY,
+    last_gift_day  DATE,
+    gift_streak    INT NOT NULL DEFAULT 0,
+    last_spin_day  DATE
+);
+ALTER TABLE daily_rewards ADD COLUMN IF NOT EXISTS last_gift_at TIMESTAMPTZ;
+ALTER TABLE daily_rewards ADD COLUMN IF NOT EXISTS last_spin_at TIMESTAMPTZ;
+-- A claim made today (before the exact time was recorded) counts from the moment this runs, so its timer starts at a full 24 hours instead of a guess. Runs at every
+-- start but only touches rows that still have no exact time; older claims fall back to noon UTC of their day (RewardsDb.ReadDailyAsync).
+UPDATE daily_rewards SET last_gift_at = now() WHERE last_gift_at IS NULL AND last_gift_day = (now() AT TIME ZONE 'UTC')::date;
+UPDATE daily_rewards SET last_spin_at = now() WHERE last_spin_at IS NULL AND last_spin_day = (now() AT TIME ZONE 'UTC')::date;

@@ -7,11 +7,11 @@ public struct ObjectDef : IDataObject {
     public ushort ObjectType;
     public int Id;
     public Position Position;
-    public int StatOffset; // where in StatsPool this entity's stats begin
+    public int StatOffset; // where in Pool this entity's stats begin
     public int StatCount;
-    
-    public static StatData[] StatsPool = new StatData[4096];
-    public static int StatsPoolIndex = 0; // resets each packet
+
+    // The stat list of the packet this object is read from (set by that packet before Read; never shared between packets).
+    public StatPool Pool;
 
     public void Reset() {
         ObjectType = 0;
@@ -27,14 +27,12 @@ public struct ObjectDef : IDataObject {
         Position.Read(ref reader);
 
         var len = reader.ReadByte();
-        StatOffset = StatsPoolIndex;
+        StatOffset = Pool.Count;
         StatCount = len;
 
-        if (StatsPoolIndex + len > StatsPool.Length)
-            Array.Resize(ref StatsPool, (StatsPoolIndex + len) * 2);
-
+        Pool.EnsureRoomFor(len);
         for (int i = 0; i < len; i++)
-            StatsPool[StatsPoolIndex++].Read(ref reader);
+            Pool.Data[Pool.Count++].Read(ref reader);
     }
 
     public void Write(ref SpanWriter writer) {
@@ -45,7 +43,7 @@ public struct ObjectDef : IDataObject {
         writer.Write((short)StatCount);
 
         for (var i = 0; i < StatCount; i++) {
-            StatsPool[StatOffset + i].Write(ref writer);
+            Pool.Data[StatOffset + i].Write(ref writer);
         }
     }
 

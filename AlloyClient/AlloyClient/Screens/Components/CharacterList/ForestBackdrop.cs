@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using AlloyClient.Ui;
 using AlloyClient.Utils;
 using Alloy.UiLib.BuiltIn;
@@ -10,7 +10,7 @@ namespace AlloyClient.Screens.Components.CharacterList;
 // Replaces MilkyWayBackground (2026-09-18) - the sci-fi starfield didn't fit the parchment/scroll/
 // book aesthetic the rest of the menus were rebuilt around, per direct feedback ("the character
 // selection is a nintendo switch basically"). Built from the user's own TopDownFantasy-Forest pack
-// (see Content/Sheets/ForestGround.png, ForestDecor.png and the matching "Forest *" Ground/Objects
+// (see Content/Sheets/Grasslands_16x16.png, SmallPlants/MediumPlants/SmallTrees/MediumTrees and the matching "Forest *" Ground/Objects
 // entries added for the Nexus reskin - this backdrop reuses those exact same registered textures
 // rather than a separate copy, so the character-select world and the actual in-game Nexus read as
 // the same place). A *still* scene per explicit request ("no more animationssss" has come up
@@ -55,7 +55,7 @@ public sealed class ForestBackdrop : Container {
             var y = d.BaseY - d.Height + d.InsetPx;
 
             var sprite = new ObjectRect(new ObjectRectConfig {
-                Texture = TextureHelper.FromGameAtlas("forestDecor", d.Index, false),
+                Texture = TextureHelper.FromGameAtlas(d.Sheet, d.Index, false),
                 Width = d.Width,
                 Height = d.Height,
                 X = x,

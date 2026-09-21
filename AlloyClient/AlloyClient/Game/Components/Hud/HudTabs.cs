@@ -9,7 +9,7 @@ using Alloy.UiLib.Extra;
 namespace AlloyClient.Game.Components.Hud;
 
 // The parchment tabs hanging from the top edge of the screen, in the middle. Each one is mostly above the screen; hovering slides it down and
-// clicking it opens (or closes) its popup - Stats, Backpack, Menu (the options) - or toggles the DEV readout. The icons are the user's own art
+// clicking it opens (or closes) its popup - Stats, Backpack, Menu (the options) - or toggles the DEV readout; staff also get an ADMIN tab (the dashboard). The icons are the user's own art
 // (Content/Ui/Tabs).
 public sealed class HudTabs : Sprite {
     public const int TabWidth = 60;
@@ -33,7 +33,9 @@ public sealed class HudTabs : Sprite {
         Add("pack", "Tabs/BackpackTab", null);
         Add("menu", "Tabs/MenuTab", null);
         Add("dev", "Tabs/DevTab", null);
+        Add("admin", "Tabs/AdminTab", null);
         SetTabVisible("pack", false);
+        SetTabVisible("admin", false);       // shown only to moderators and owners (see HudView)
     }
 
     private void Add(string key, string iconLookup, string text) {

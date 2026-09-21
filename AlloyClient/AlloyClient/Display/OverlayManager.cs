@@ -90,6 +90,13 @@ public sealed class OverlayManager : Sprite {
         var scale = Stage.ScreenScale * _current.ScaleMultiplier;
         _current.X = (int)(Stage.StageWidth * _current.HorizontalPositionFraction);
         _current.Y = Stage.StageHeight / 2 + (int)(_current.VerticalNudge * scale.Y);
+
+        // A fixed-size window (Overlay.FixedSize) is placed by its top-left corner so its middle is exactly the centre point above, whatever its children measure.
+        if (_current.FixedSize is { } size) {
+            _current.X -= (int)(size.Width / 2f * scale.X);
+            _current.Y -= (int)(size.Height / 2f * scale.Y);
+        }
+
         _current.Scale = scale;
     }
     

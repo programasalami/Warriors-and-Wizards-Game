@@ -5,8 +5,8 @@
         <IntergamePortal />
         <DungeonName>Nexus</DungeonName>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x36</Index>
+            <File>guildHall</File>
+            <Index>0x80</Index>
         </Texture>
     </Object>
     <Object type="0x0720" id="Vault Portal">
@@ -14,8 +14,8 @@
         <IntergamePortal />
         <DungeonName>Vault</DungeonName>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0xf8</Index>
+            <File>guildHall</File>
+            <Index>0x88</Index>
         </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
@@ -26,8 +26,8 @@
         <IntergamePortal />
         <RealmPortal />
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0xf8</Index>
+            <File>guildHall</File>
+            <Index>0x88</Index>
         </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
@@ -36,8 +36,8 @@
         <Model>Tower</Model>
         <Effect color="0x4165D5">Fountain</Effect>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x96</Index>
+            <File>guildHall</File>
+            <Index>0x90</Index>
         </Texture>
     </Object>
     <Object type="0x072f" id="Guild Hall Portal">
@@ -45,8 +45,8 @@
         <IntergamePortal />
         <DungeonName>Guild Hall</DungeonName>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x54</Index>
+            <File>guildHall</File>
+            <Index>0x98</Index>
         </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
@@ -60,8 +60,8 @@
             the Guild Hall is empty for a few minutes.
         </Description>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0x98</Index>
+            <File>guildHall</File>
+            <Index>0xa0</Index>
         </Texture>
         <OccupySquare />
         <Static />
@@ -76,8 +76,8 @@
             the Guild Hall is empty for a few minutes.
         </Description>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0x98</Index>
+            <File>guildHall</File>
+            <Index>0xa0</Index>
         </Texture>
         <OccupySquare />
         <Static />
@@ -92,8 +92,8 @@
             the Guild Hall is empty for a few minutes.
         </Description>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0x98</Index>
+            <File>guildHall</File>
+            <Index>0xa0</Index>
         </Texture>
         <OccupySquare />
         <Static />
@@ -101,7 +101,7 @@
     <Object type="0x9f00" id="Forest Tree">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
+            <File>mediumTrees</File>
             <Index>0x00</Index>
         </Texture>
         <HitSound>monster/trees_hit</HitSound>
@@ -117,15 +117,15 @@
     <Object type="0x9f01" id="Forest Pine">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x01</Index>
+            <File>smallTrees</File>
+            <Index>0x00</Index>
         </Texture>
         <HitSound>monster/trees_hit</HitSound>
         <DeathSound>monster/trees_death</DeathSound>
         <MinSize>44</MinSize>
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
-        <BottomInset>0.062</BottomInset>
+        <BottomInset>0.089</BottomInset>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -133,28 +133,28 @@
     <Object type="0x9f02" id="Forest Bush">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x02</Index>
+            <File>mediumPlants</File>
+            <Index>0x01</Index>
         </Texture>
         <RealSize>48</RealSize>
-        <BottomInset>0.035</BottomInset>
+        <BottomInset>0.07</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f03" id="Forest Shrub">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x03</Index>
+            <File>mediumPlants</File>
+            <Index>0x00</Index>
         </Texture>
         <RealSize>50</RealSize>
-        <BottomInset>0.03</BottomInset>
+        <BottomInset>0.06</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f04" id="Forest Log">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestFlat</File>
-            <Index>0x05</Index>
+            <File>flatProps</File>
+            <Index>0x00</Index>
         </Texture>
         <HitSound>monster/rocks_hit</HitSound>
         <DeathSound>monster/rocks_death</DeathSound>
@@ -166,71 +166,71 @@
     <Object type="0x9f05" id="Forest Reeds">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
+            <File>mediumPlants</File>
             <Index>0x05</Index>
         </Texture>
         <RealSize>50</RealSize>
-        <BottomInset>0.03</BottomInset>
+        <BottomInset>0.06</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f06" id="Forest Grass Tuft">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x06</Index>
+            <File>smallPlants</File>
+            <Index>0x03</Index>
         </Texture>
         <RealSize>52</RealSize>
-        <BottomInset>0.028</BottomInset>
+        <BottomInset>0.093</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f07" id="Forest Rock Cluster">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x07</Index>
+            <File>mediumPlants</File>
+            <Index>0x04</Index>
         </Texture>
         <HitSound>monster/rocks_hit</HitSound>
         <DeathSound>monster/rocks_death</DeathSound>
         <RealSize>50</RealSize>
-        <BottomInset>0.035</BottomInset>
+        <BottomInset>0.07</BottomInset>
         <Static />
         <OccupySquare />
     </Object>
     <Object type="0x9f08" id="Forest Mushroom Red">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x08</Index>
+            <File>smallPlants</File>
+            <Index>0x00</Index>
         </Texture>
         <RealSize>54</RealSize>
-        <BottomInset>0.03</BottomInset>
+        <BottomInset>0.1</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f09" id="Forest Mushroom Big">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x09</Index>
+            <File>smallPlants</File>
+            <Index>0x01</Index>
         </Texture>
         <RealSize>54</RealSize>
-        <BottomInset>0.03</BottomInset>
+        <BottomInset>0.1</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f0a" id="Forest Flowers">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x0a</Index>
+            <File>smallPlants</File>
+            <Index>0x02</Index>
         </Texture>
         <RealSize>54</RealSize>
-        <BottomInset>0.028</BottomInset>
+        <BottomInset>0.093</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f0b" id="Forest Oak">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x0b</Index>
+            <File>mediumTrees</File>
+            <Index>0x01</Index>
         </Texture>
         <HitSound>monster/trees_hit</HitSound>
         <DeathSound>monster/trees_death</DeathSound>
@@ -245,15 +245,15 @@
     <Object type="0x9f0c" id="Forest Pine Tall">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x0c</Index>
+            <File>smallTrees</File>
+            <Index>0x01</Index>
         </Texture>
         <HitSound>monster/trees_hit</HitSound>
         <DeathSound>monster/trees_death</DeathSound>
         <MinSize>44</MinSize>
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
-        <BottomInset>0.062</BottomInset>
+        <BottomInset>0.089</BottomInset>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -261,28 +261,52 @@
     <Object type="0x9f0d" id="Forest Bush Wide">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x0d</Index>
+            <File>mediumPlants</File>
+            <Index>0x02</Index>
         </Texture>
         <RealSize>48</RealSize>
-        <BottomInset>0.035</BottomInset>
+        <BottomInset>0.07</BottomInset>
         <Static />
     </Object>
     <Object type="0x9f0e" id="Forest Small Rock">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestDecor</File>
-            <Index>0x0e</Index>
+            <File>mediumPlants</File>
+            <Index>0x03</Index>
         </Texture>
         <RealSize>52</RealSize>
-        <BottomInset>0.03</BottomInset>
+        <BottomInset>0.06</BottomInset>
         <Static />
+    </Object>
+    <!-- The Bug Board: stand next to it to read the bug reports players have pinned up and to write your own (see BugBoardView). Drawn by Tools/ForestContent/draw_props.py. -->
+    <Object type="0x9f10" id="Bug Board">
+        <Class>BugBoard</Class>
+        <Model>Bug Board</Model>
+        <Texture>
+            <File>largeObjects</File>
+            <Index>0x00</Index>
+        </Texture>
+        <RealSize>48</RealSize>
+        <Static />
+        <OccupySquare />
+    </Object>
+    <!-- The Jukebox: the shared in-game music player (see JukeboxView). PLACEHOLDER art (drawn by Tools/ForestContent/draw_props.py, cell 1) until a proper jukebox texture is found. -->
+    <Object type="0x9f11" id="Jukebox">
+        <Class>Jukebox</Class>
+        <Model>Jukebox</Model>
+        <Texture>
+            <File>largeObjects</File>
+            <Index>0x01</Index>
+        </Texture>
+        <RealSize>48</RealSize>
+        <Static />
+        <OccupySquare />
     </Object>
     <Object type="0x9f0f" id="Forest Log Mossy">
         <Class>GameObject</Class>
         <Texture>
-            <File>forestFlat</File>
-            <Index>0x06</Index>
+            <File>flatProps</File>
+            <Index>0x01</Index>
         </Texture>
         <HitSound>monster/rocks_hit</HitSound>
         <DeathSound>monster/rocks_death</DeathSound>

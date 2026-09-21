@@ -38,7 +38,7 @@ public static class TextureHelper {
     
     public static TextureInfo FromGameAtlas(ushort id) {
         if (!ObjectLibrary.TypeToTextureData.TryGetValue(id, out var data))
-            return FromGameAtlas("invisible", 0);
+            return FromGameAtlas("icons", 0);
         var uv = data.GetTexture();
         return new TextureInfo(uv.ToPosition(), TextureType.GameAtlas);
     }

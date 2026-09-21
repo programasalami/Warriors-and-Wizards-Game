@@ -383,7 +383,7 @@ print('dict entries:', len(dict_list))
 # ---------------------------------------------------------------- preview (uses the real sheets, 10px tiles)
 if len(sys.argv) > 2:
     from PIL import Image, ImageDraw
-    S = ROOT + 'AlloyClient/AlloyClient/Content/Sheets/'
+    S = ROOT + 'Tools/Sheets/source_old/'      # the old (pre-2026-09-20) sheets, only used for this preview
     gsheet = Image.open(S + 'ForestGround.png').convert('RGBA')
     dsheet = Image.open(S + 'ForestDecor.png').convert('RGBA')
     fsheet = Image.open(S + 'ForestFlat.png').convert('RGBA')

@@ -40,7 +40,7 @@ public static class PlayerExtensions {
             stats.Set(StatType.GuildName, acc.GuildName);
             stats.Set(StatType.GuildRank, acc.GuildRank);
             stats.Set(StatType.NumStars, GetStars(acc.Stats.ClassStats));
-            stats.Set(StatType.AccRank, acc.Rank);
+            stats.Set(StatType.AccRank, Common.Database.Ranks.Of(acc));
             Entity.LoadCharacterStats(ref stats, acc, chr);
         }
 
@@ -101,6 +101,12 @@ public static class PlayerExtensions {
                 return;
             }
 
+            var speaker = world.Users[player.Id];
+            if (speaker.GameInfo.IsMuted) {
+                speaker.SendError("You are muted.");
+                return;
+            }
+
             world.PlayerText(text);
             foreach (var otherUser in world.Users.Values) {
                 otherUser.SendPacket(new Text(
@@ -132,8 +138,9 @@ public static class PlayerExtensions {
         return stars;
     }
         
+    // Experience needed for the next level (0 at the highest level, 999). See Common.Structs.LevelRules.
     public static int GetNextLevelXPGoal(int level) {
-        return (int)(50f + (level - 1f) * 100f * (1f + level / 10f));
+        return Common.Structs.LevelRules.XpToNextLevel(level);
     }
 
     public static int GetNextClassQuestFame(int fame) {

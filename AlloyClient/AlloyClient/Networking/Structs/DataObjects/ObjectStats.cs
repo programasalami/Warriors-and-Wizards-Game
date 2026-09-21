@@ -8,9 +8,9 @@ public struct ObjectStats : IDataObject {
     public Position Position;
     public int StatOffset;
     public int StatCount;
-    
-    public static StatData[] StatsPool = new StatData[4096];
-    public static int StatsPoolIndex = 0; // resets each packet
+
+    // The stat list of the packet this entry is read from (set by that packet before Read; never shared between packets).
+    public StatPool Pool;
 
     public void Reset() {
         Id = 0;
@@ -24,14 +24,12 @@ public struct ObjectStats : IDataObject {
         Position.Read(ref reader);
 
         var len = reader.ReadByte();
-        StatOffset = StatsPoolIndex;
+        StatOffset = Pool.Count;
         StatCount = len;
 
-        if (StatsPoolIndex + len > StatsPool.Length)
-            Array.Resize(ref StatsPool, (StatsPoolIndex + len) * 2);
-
+        Pool.EnsureRoomFor(len);
         for (int i = 0; i < len; i++)
-            StatsPool[StatsPoolIndex++].Read(ref reader);
+            Pool.Data[Pool.Count++].Read(ref reader);
     }
 
     public void Write(ref SpanWriter writer) {
@@ -41,7 +39,7 @@ public struct ObjectStats : IDataObject {
         writer.Write((byte)StatCount);
 
         for (var i = 0; i < StatCount; i++) {
-            StatsPool[StatOffset + i].Write(ref writer);
+            Pool.Data[StatOffset + i].Write(ref writer);
         }
     }
 

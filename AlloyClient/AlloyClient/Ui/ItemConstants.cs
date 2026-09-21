@@ -33,58 +33,24 @@ public static class ItemConstants {
     public const int KatanaType = 24;
     public const int ShurikenType = 25;
 
+    // The faint picture drawn in an EMPTY equipment slot, by slot type. Only the kinds the two classes have (sword, helm, armor, staff, spell, robe, ring) exist;
+    // everything else shows nothing.
     public static TextureInfo GetSlot(int slotType) {
         switch (slotType) {
-            case AllType:
-                break;
             case SwordType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 48);
-            case DaggerType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 96);
-            case BowType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 80);
-            case TomeType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 80);
-            case ShieldType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 112);
-            case LeatherType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 0);
-            case PlateType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 32);
-            case WandType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 64);
-            case RingType:
-                return TextureHelper.FromGameAtlas("lofiObj", 44);
-            case SpellType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 64);
-            case SealType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 160);
-            case CloakType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 32);
-            case RobeType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 16);
-            case QuiverType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 48);
+                return TextureHelper.FromGameAtlas("icons", 1);
             case HelmType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 96);
+                return TextureHelper.FromGameAtlas("icons", 2);
+            case PlateType:
+                return TextureHelper.FromGameAtlas("icons", 3);
+            case RingType:
+                return TextureHelper.FromGameAtlas("icons", 4);
             case StaffType:
-                return TextureHelper.FromGameAtlas("lofiObj5", 112);
-            case PoisonType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 128);
-            case SkullType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 0);
-            case TrapType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 16);
-            case OrbType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 144);
-            case PrismType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 176);
-            case ScepterType:
-                return TextureHelper.FromGameAtlas("lofiObj6", 192);
-            case KatanaType:
-                return TextureHelper.FromGameAtlas("lofiObj3", 540);
-            case ShurikenType:
-                return TextureHelper.FromGameAtlas("lofiObj3", 555);
+                return TextureHelper.FromGameAtlas("icons", 5);
+            case SpellType:
+                return TextureHelper.FromGameAtlas("icons", 6);
+            case RobeType:
+                return TextureHelper.FromGameAtlas("icons", 7);
         }
 
         return TextureHelper.FromGameAtlas(0x0096);

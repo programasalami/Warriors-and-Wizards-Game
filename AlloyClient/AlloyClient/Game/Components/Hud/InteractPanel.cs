@@ -81,6 +81,8 @@ public sealed class InteractPanel : Sprite {
             "Container" => true,
             "OneWayContainer" => true,
             "Portal" => true,
+            "BugBoard" => true,
+            "Jukebox" => true,
             _ => false
         };
     }
@@ -93,6 +95,8 @@ public sealed class InteractPanel : Sprite {
             "Container" => new ContainerPanel(entity, false),
             "OneWayContainer" => new ContainerPanel(entity, true),
             "Portal" => new PortalPanel(entity),
+            "BugBoard" => new BugBoardPanel(entity),
+            "Jukebox" => new JukeboxPanel(entity),
             _ => null
         };
     }

@@ -142,4 +142,157 @@ public static class AppRequests {
     }
     
     private static Dictionary<string, string> BuildAccountRequestData(string username, string password) => new() {{"username", username}, {"password", password}};
+
+    // ---- in-game features that talk to the account server: the Bug Board and the Jukebox in the Nexus --------------------------------------------------------------------------------------------------------------
+
+    public struct BugBoardResult {
+        public BugBoardData Data;
+        public string Error;
+    }
+
+    public static async Task<BugBoardResult> GetBugBoard() {
+        var response = await SendInGameRequest("/board/list", null);
+        if (response == null) {
+            return new BugBoardResult { Error = "Could not reach the server." };
+        }
+
+        return BugBoardData.TryParse(response, out var data)
+            ? new BugBoardResult { Data = data }
+            : new BugBoardResult { Error = "The Bug Board is not available on this server yet." };
+    }
+
+    public static Task<AppResponse> PostToBugBoard(string message) => InGameAction("/board/post", new() { { "message", message } });
+
+    public static Task<AppResponse> DeleteBugPost(int id) => InGameAction("/board/delete", new() { { "id", id.ToString() } });
+
+    public static Task<AppResponse> SetBugPostStatus(int id, string status) => InGameAction("/board/status", new() { { "id", id.ToString() }, { "status", status } });
+
+    private static async Task<AppResponse> InGameAction(string endpoint, Dictionary<string, string> extra) {
+        var response = await SendInGameRequest(endpoint, extra);
+        if (response == null) {
+            return new AppResponse { Success = false, Message = "Could not reach the server." };
+        }
+
+        try {
+            var xml = XElement.Parse(response);
+            if (xml.Name.LocalName == "Success") {
+                return new AppResponse { Success = true };
+            }
+
+            return new AppResponse { Success = false, Message = string.IsNullOrWhiteSpace(xml.Value) ? "Something went wrong." : xml.Value };
+        } catch (Exception) {
+            return new AppResponse { Success = false, Message = "The Bug Board is not available on this server yet." };
+        }
+    }
+
+    // Signed-in players send their login (guests send nothing, and can only read). Unlike the start-up requests, a failure here is only reported to the
+    // board itself: it must not leave the "server offline" flag behind (that flag would pop a Retry dialog on the next title screen, and while it is set every
+    // other request is refused).
+    private static async Task<string> SendInGameRequest(string endpoint, Dictionary<string, string> extra) {
+        var login = GlobalData.Get<LoginData>();
+        var data = BuildAccountRequestData(login?.Username ?? string.Empty, login?.Password ?? string.Empty);
+        if (extra != null) {
+            foreach (var pair in extra) {
+                data[pair.Key] = pair.Value;
+            }
+        }
+
+        GlobalData.TryRemove<AppRequestFailedFlag>(out _);
+        var response = await AppEngineClient.SendRequest(endpoint, data, 1);
+        if (response == null) {
+            GlobalData.TryRemove<AppRequestFailedFlag>(out _);
+        }
+
+        return response;
+    }
+
+    // ---- the Character Book: Inbox, Daily Gift, Daily Spin ------------------------------------------------------------------------------------------
+
+    public struct InboxResult {
+        public InboxData Data;
+        public string Error;
+    }
+
+    public struct DailyResult {
+        public DailyData Data;
+        public string Error;
+    }
+
+    public struct RewardCall {
+        public RewardResult Result;
+        public string Error;
+    }
+
+    public static async Task<InboxResult> GetInbox() {
+        var response = await SendInGameRequest("/inbox/list", null);
+        if (response == null) {
+            return new InboxResult { Error = "Could not reach the server." };
+        }
+
+        return InboxData.TryParse(response, out var data) ? new InboxResult { Data = data } : new InboxResult { Error = ErrorText(response, "The Inbox is not available on this server yet.") };
+    }
+
+    public static Task<AppResponse> MarkInboxRead(int id) => InGameAction("/inbox/read", new() { { "id", id.ToString() } });
+
+    public static Task<AppResponse> DeleteInboxMessage(int id) => InGameAction("/inbox/delete", new() { { "id", id.ToString() } });
+
+    public static Task<RewardCall> ClaimInboxMessage(int id) => RewardRequest("/inbox/claim", new() { { "id", id.ToString() } });
+
+    public static async Task<DailyResult> GetDaily() {
+        var response = await SendInGameRequest("/daily/status", null);
+        if (response == null) {
+            return new DailyResult { Error = "Could not reach the server." };
+        }
+
+        return DailyData.TryParse(response, out var data) ? new DailyResult { Data = data } : new DailyResult { Error = ErrorText(response, "The daily rewards are not available on this server yet.") };
+    }
+
+    public static Task<RewardCall> ClaimDailyGift() => RewardRequest("/daily/claim", null);
+
+    public static Task<RewardCall> SpinDailyWheel() => RewardRequest("/daily/spin", null);
+
+    private static async Task<RewardCall> RewardRequest(string endpoint, Dictionary<string, string> extra) {
+        var response = await SendInGameRequest(endpoint, extra);
+        if (response == null) {
+            return new RewardCall { Error = "Could not reach the server." };
+        }
+
+        return RewardResult.TryParse(response, out var result) ? new RewardCall { Result = result } : new RewardCall { Error = ErrorText(response, "That is not available on this server yet.") };
+    }
+
+    // The sentence inside an <Error>...</Error> answer, or the fallback for anything else (an older server answers unknown paths with an empty page).
+    public static string ErrorText(string response, string fallback) {
+        try {
+            var xml = XElement.Parse(response);
+            if (xml.Name.LocalName == "Error" && !string.IsNullOrWhiteSpace(xml.Value)) {
+                return xml.Value;
+            }
+        } catch (Exception) {
+            // not xml: use the fallback
+        }
+
+        return fallback;
+    }
+
+    // ---- the shared in-game music (the Jukebox) ----------------------------------------------------------------------------------------------------
+
+    public struct MusicNowResult {
+        public MusicNowData Data;
+        public string Error;
+    }
+
+    public static async Task<MusicNowResult> GetMusicNow() {
+        var response = await SendInGameRequest("/music/now", null);
+        if (response == null) {
+            return new MusicNowResult { Error = "Could not reach the server." };
+        }
+
+        return MusicNowData.TryParse(response, out var data)
+            ? new MusicNowResult { Data = data }
+            : new MusicNowResult { Error = "The shared music is not available on this server yet." };
+    }
+
+    public static Task<AppResponse> SkipMusic(bool forward) => InGameAction("/music/skip", new() { { "dir", forward ? "next" : "prev" } });
+
+    public static Task<AppResponse> SetMusicTrack(string trackId) => InGameAction("/music/set", new() { { "track", trackId } });
 }

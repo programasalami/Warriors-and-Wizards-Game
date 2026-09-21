@@ -45,7 +45,7 @@ public class Nexus : World {
         while (tile == null || _realmPortals.Contains(tile))
             tile = _realmPortalTiles.RandomElement();
         
-        portal.Move(this, tile.X, tile.Y);
+        portal.Move(this, tile.X + 0.5f, tile.Y + 0.5f);       // the middle of the tile, like every other object placed from the map
         _realmPortals.Add(tile);
 
         ref var portalData = ref PortalDatas.Get(portal.Id);

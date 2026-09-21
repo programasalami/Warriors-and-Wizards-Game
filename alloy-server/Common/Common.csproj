@@ -67,6 +67,9 @@
         <None Update="Resources\Config\Data\newsConfig.xml">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
+        <None Update="Resources\Config\Data\musicConfig.xml">
+            <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </None>
         <None Update="Resources\World\Data\Guild0.jm">
             <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
         </None>
@@ -123,10 +126,6 @@
       </Content>
       <Content Include="..\..\AlloyClient\AlloyClient\Content\Xmls\Ground.xml">
         <Link>Resources\Xml\Data\Xmls\Ground.xml</Link>
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
-      <Content Include="..\..\AlloyClient\AlloyClient\Content\Xmls\NexusDestroyed.xml">
-        <Link>Resources\Xml\Data\Xmls\NexusDestroyed.xml</Link>
         <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       </Content>
       <Content Include="..\..\AlloyClient\AlloyClient\Content\Xmls\NPCs.xml">

@@ -13,6 +13,11 @@
 		<DisableFastUpToDateCheck>True</DisableFastUpToDateCheck>
 		<ApplicationIcon>alloy.ico</ApplicationIcon>
     </PropertyGroup>
+
+    <!-- `deploy` passes -p:DeployTarget=vps so the public client points at the VPS; everyday builds point at this PC (see Core/Settings.cs). -->
+    <PropertyGroup Condition="'$(DeployTarget)' == 'vps'">
+        <DefineConstants>$(DefineConstants);TARGET_VPS</DefineConstants>
+    </PropertyGroup>
     
     <ItemGroup>
         <None Remove="AlloyClient.csproj.DotSettings" />

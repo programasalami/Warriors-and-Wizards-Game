@@ -18,6 +18,7 @@ using Alloy.Engine;
 using Alloy.UiLib.Core;
 using AlloyClient.AppEngine;
 using AlloyClient.Game;
+using AlloyClient.Game.Music;
 using AlloyClient.Loading;
 using AlloyClient.Logging;
 using Microsoft.Extensions.Logging;
@@ -94,6 +95,7 @@ public sealed class Main() : GameWindow(new Version(4, 3), ILogger.Factory) {
         // Signals
         OnQuit.Add(Exit);
         OnScreenChange.Add(SetGraphicOptions);
+        InGameMusic.Init();       // in-game music: switches to the shared playlist when you enter the game and back to the menu music when you leave
         OnFullscreenToggle.Add(ToggleFullscreen);
     }
     

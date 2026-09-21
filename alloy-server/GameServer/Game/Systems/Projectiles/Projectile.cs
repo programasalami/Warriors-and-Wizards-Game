@@ -14,7 +14,7 @@ using GameServer.Game.Entities;
 namespace GameServer.Game.Systems.Projectiles;
 
 public struct Projectile : IEntityIdentifiable, IDisposable {
-    public const float HIT_DIST_SQR = 0.5f * 0.5f;
+    public const float HIT_DIST_SQR = HitValidation.HitRadius * HitValidation.HitRadius;
     
     public EntityId Id { get; set; }
 
@@ -78,6 +78,23 @@ public struct Projectile : IEntityIdentifiable, IDisposable {
                 TryHitEntity(targetId);
         }
         return false;
+    }
+
+    // Could this projectile really have hit that entity a moment ago? Used to check the hit reports clients send (see HitValidation).
+    public bool IsHitPlausible(EntityId targetId, long nowMs) {
+        ref var targetStats = ref _world.EntityStats.Get(targetId);
+        if (targetStats.Id == EntityId.Null)
+            return false;
+
+        var target = new Vector2(targetStats.Pos.X, targetStats.Pos.Y);
+        var start = StartPos;
+        var path = Path;
+        var localId = LocalId;
+        var angle = Angle;
+        return HitValidation.IsPlausible(ms => {
+            var pos = start + path.PositionAt(ms, localId, angle);
+            return new Vector2(pos.X, pos.Y);
+        }, nowMs - StartTime, LifetimeMs, target);
     }
 
     public void TryHitEntity(EntityId enId) {

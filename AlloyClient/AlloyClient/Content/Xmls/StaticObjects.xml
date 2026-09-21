@@ -1,81 +1,21 @@
 <?xml version='1.0' encoding='iso-8859-1'?>
 <Objects>
-    <Object type="0x0111" id="White Flowers">
-        <Class>GameObject</Class>
-        <Texture>
-            <File>lofiEnvironment</File>
-            <Index>0x6e</Index>
-        </Texture>
-        <DrawOnGround />
-        <Static />
-    </Object>
-    <Object type="0x0112" id="Pink Flowers">
-        <Class>GameObject</Class>
-        <Texture>
-            <File>lofiEnvironment</File>
-            <Index>0x6f</Index>
-        </Texture>
-        <DrawOnGround />
-        <Static />
-    </Object>
     <Object type="0x017e" id="Red Pillar">
         <Class>GameObject</Class>
         <Model>Pillar</Model>
         <Texture>
-            <File>lofiEnvironment</File>
-            <Index>0x3d</Index>
+            <File>guildHall</File>
+            <Index>0xa8</Index>
         </Texture>
         <Static />
         <OccupySquare />
         <EnemyOccupySquare />
-    </Object>
-    <Object type="0x01c5" id="White Wall">
-        <Class>Wall</Class>
-        <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0xa0</Index>
-        </Texture>
-        <Top>
-            <Texture>
-                <File>lofiEnvironment2</File>
-                <Index>0xa3</Index>
-            </Texture>
-        </Top>
-        <HitSound>monster/stone_walls_hit</HitSound>
-        <DeathSound>monster/stone_walls_death</DeathSound>
-        <Static />
-        <FullOccupy />
-        <OccupySquare />
-        <EnemyOccupySquare />
-        <BlocksSight />
-    </Object>
-    <Object type="0x01da" id="Statue of Oryx">
-        <Class>GameObject</Class>
-        <Texture>
-            <File>lofiChar216x16</File>
-            <Index>0x2c</Index>
-        </Texture>
-        <Static />
-        <Size>200</Size>
-        <OccupySquare />
-    </Object>
-    <Object type="0x01db" id="Statue of Oryx Base">
-        <Class>GameObject</Class>
-        <Texture>
-            <File>lofiEnvironment</File>
-            <Index>0xff</Index>
-        </Texture>
-        <Static />
-        <Size>100</Size>
-        <ShadowSize>0</ShadowSize>
-        <OccupySquare />
-        <NoMiniMap />
     </Object>
     <Object type="0x01df" id="Guild Register">
         <Class>GuildRegister</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x55</Index>
+            <File>guildHall</File>
+            <Index>0xb0</Index>
         </Texture>
         <OccupySquare />
         <ShadowSize>0</ShadowSize>
@@ -85,8 +25,8 @@
     <Object type="0x01e0" id="Weapon Rack">
         <Class>GameObject</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x56</Index>
+            <File>guildHall</File>
+            <Index>0xb8</Index>
         </Texture>
         <Size>100</Size>
         <HitSound>monster/wooden_walls_hit</HitSound>
@@ -98,13 +38,13 @@
     <Object type="0x01e1" id="Wood Panel Banner">
         <Class>Wall</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x57</Index>
+            <File>guildHall</File>
+            <Index>0xc0</Index>
         </Texture>
         <Top>
             <Texture>
-                <File>lofiEnvironment2</File>
-                <Index>0x58</Index>
+                <File>guildHall</File>
+                <Index>0xc1</Index>
             </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
@@ -118,13 +58,13 @@
     <Object type="0x01e2" id="Wood Panel Window">
         <Class>Wall</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x59</Index>
+            <File>guildHall</File>
+            <Index>0xc8</Index>
         </Texture>
         <Top>
             <Texture>
-                <File>lofiEnvironment2</File>
-                <Index>0x58</Index>
+                <File>guildHall</File>
+                <Index>0xc1</Index>
             </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
@@ -139,8 +79,8 @@
         <Class>GameObject</Class>
         <Model>Table</Model>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x5a</Index>
+            <File>guildHall</File>
+            <Index>0xd0</Index>
         </Texture>
         <Color>0x9E5D21</Color>
         <Static />
@@ -151,13 +91,13 @@
     <Object type="0x01e4" id="Wood Panel Wall">
         <Class>Wall</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x5b</Index>
+            <File>guildHall</File>
+            <Index>0xd8</Index>
         </Texture>
         <Top>
             <Texture>
-                <File>lofiEnvironment2</File>
-                <Index>0x58</Index>
+                <File>guildHall</File>
+                <Index>0xc1</Index>
             </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
@@ -171,8 +111,8 @@
     <Object type="0x01e5" id="Guild Chronicle">
         <Class>GuildChronicle</Class>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x5c</Index>
+            <File>guildHall</File>
+            <Index>0xe0</Index>
         </Texture>
         <OccupySquare />
         <ShadowSize>0</ShadowSize>
@@ -183,8 +123,8 @@
         <Class>GuildBoard</Class>
         <Model>Sign</Model>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x5e</Index>
+            <File>guildHall</File>
+            <Index>0xe8</Index>
         </Texture>
         <Static />
         <OccupySquare />
@@ -193,8 +133,8 @@
     <Object type="0x1806" id="Target Strong">
         <Class>GameObject</Class>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0x96</Index>
+            <File>guildHall</File>
+            <Index>0xf0</Index>
         </Texture>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/stone_walls_death</DeathSound>
@@ -206,8 +146,8 @@
     <Object type="0x1807" id="Dummy Strong">
         <Class>GameObject</Class>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0x97</Index>
+            <File>guildHall</File>
+            <Index>0xf8</Index>
         </Texture>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/stone_walls_death</DeathSound>
@@ -220,8 +160,8 @@
         <Class>GameObject</Class>
         <Model>Table Edge</Model>
         <Texture>
-            <File>lofiEnvironment2</File>
-            <Index>0x5a</Index>
+            <File>guildHall</File>
+            <Index>0xd0</Index>
         </Texture>
         <Color>0x9E5D21</Color>
         <Rotation>0</Rotation>
@@ -234,8 +174,8 @@
         <Class>GameObject</Class>
         <Model>Table Edge</Model>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0xdb</Index>
+            <File>guildHall</File>
+            <Index>0x100</Index>
         </Texture>
         <Color>0x9E5D21</Color>
         <Rotation>90</Rotation>
@@ -248,8 +188,8 @@
         <Class>GameObject</Class>
         <Model>Table Edge</Model>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0xda</Index>
+            <File>guildHall</File>
+            <Index>0x108</Index>
         </Texture>
         <Color>0x9E5D21</Color>
         <Rotation>180</Rotation>
@@ -262,8 +202,8 @@
         <Class>GameObject</Class>
         <Model>Table Edge</Model>
         <Texture>
-            <File>lofiEnvironment3</File>
-            <Index>0xd9</Index>
+            <File>guildHall</File>
+            <Index>0x110</Index>
         </Texture>
         <Color>0x9E5D21</Color>
         <Rotation>270</Rotation>
@@ -275,23 +215,11 @@
     <Object type="0x1912" id="Armoire">
         <Class>ReskinVendor</Class>
         <Texture>
-            <File>lofiObjBig</File>
-            <Index>0x9d</Index>
+            <File>guildHallLarge</File>
+            <Index>0x00</Index>
         </Texture>
         <ShadowSize>55</ShadowSize>
         <Z>-0.1</Z>
         <Static />
-    </Object>
-    <Object type="0x1956" id="Arena Column Short">
-        <Class>GameObject</Class>
-        <Model>Candy Col Broken</Model>
-        <Texture>
-            <File>lofiObjBig</File>
-            <Index>0xe1</Index>
-        </Texture>
-        <Static />
-        <OccupySquare />
-        <FullOccupy />
-        <EnemyOccupySquare />
     </Object>
 </Objects>

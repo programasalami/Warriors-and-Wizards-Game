@@ -27,7 +27,7 @@ namespace AlloyClient.Screens.Components.CharacterList;
 //
 // All timing is driven by one EnterFrame accumulator (not Timers) - a Timer created from inside
 // another Timer's callback has proven unreliable elsewhere in this UI (see BookOverlay).
-public sealed class CharacterBook : Container {
+public sealed partial class CharacterBook : Container {
 
     // 672x416 native -> ~1075x666 of the 1280x720 design canvas ("mostly fills the screen"). Not an
     // integer scale, like most sprites in this game.
@@ -97,7 +97,8 @@ public sealed class CharacterBook : Container {
     private const float BodySize = 26f;
     private const float SmallSize = 20f;
 
-    private const string ComingSoon = "Coming soon.";
+    // The Graveyard page has no list behind it yet (nothing records a dead character), so it just says this.
+    private const string GraveyardEmpty = "You haven't died yet.";
 
     // The page icons are 16x16 pixel art, drawn on the tabs at an exact 2x (not the book's 1.6x) so every art pixel stays a clean block.
     private const int TabIconScale = 2;
@@ -205,6 +206,7 @@ public sealed class CharacterBook : Container {
         AddChild(_backButton);
 
         RebuildPages();
+        RefreshRewards();
 
         Alpha = 0f;
         AddEventListener(Event.EnterFrame, OnFrame);
@@ -312,6 +314,10 @@ public sealed class CharacterBook : Container {
     }
 
     private void StartFlip(BookPage target) {
+        if (target is BookPage.Inbox or BookPage.DailySpin or BookPage.DailyGift) {
+            RefreshRewards();       // always show what the server says now
+        }
+
         _flipping = true;
         _flipTarget = target;
         _flipForward = target > _currentPage;
@@ -364,6 +370,7 @@ public sealed class CharacterBook : Container {
 
     private void OnFrame() {
         var dt = Stage.GameTime.ElapsedMs;
+        UpdateRewards(dt);
 
         if (!_entranceComplete) {
             UpdateEntrance(dt);
@@ -488,10 +495,8 @@ public sealed class CharacterBook : Container {
     private void RebuildPages() {
         BuildProfilePage(_pages[(int) BookPage.Profile]);
         BuildCharactersPage(_pages[(int) BookPage.Characters]);
-        BuildComingSoonPage(_pages[(int) BookPage.Graveyard], "GRAVEYARD", "Graveyard", ComingSoon);
-        BuildComingSoonPage(_pages[(int) BookPage.Inbox], "INBOX", "Inbox", ComingSoon);
-        BuildComingSoonPage(_pages[(int) BookPage.DailySpin], "DAILY SPIN", "DailySpin", ComingSoon);
-        BuildComingSoonPage(_pages[(int) BookPage.DailyGift], "DAILY GIFT", "DailyGift", ComingSoon);
+        BuildIconMessagePage(_pages[(int) BookPage.Graveyard], "GRAVEYARD", "Graveyard", GraveyardEmpty);
+        RebuildRewardPages();
     }
 
     // The account name sits halfway between the two rules (under PROFILE at Sz(46), under the name at Sz(92)). The text control
@@ -602,7 +607,7 @@ public sealed class CharacterBook : Container {
     }
 
     // Left page only (icon + one line) - the right page is deliberately left empty for now.
-    private void BuildComingSoonPage(Container page, string title, string iconName, string leftLine) {
+    private void BuildIconMessagePage(Container page, string title, string iconName, string leftLine) {
         page.RemoveChildren();
 
         page.AddChild(Text(title, FontGroup.MyriadPro, TitleSize, LeftPageCenterX, PageTop + Sz(16), UiAnchor.Middle));
@@ -650,8 +655,8 @@ public sealed class CharacterBook : Container {
             ("CHARACTERS", _characters.Count.ToString("N0")),
             ("HIGHEST LEVEL REACHED", bestLevel.ToString("N0")),
             ("HIGHEST FAME REACHED", bestFame.ToString("N0")),
-            ("LIFETIME FAME EARNINGS", stats.TotalFame.ToString("N0")),
-            ("LIFETIME GOLD EARNINGS", stats.TotalCredits.ToString("N0")),
+            ("LIFETIME FAME EARNINGS", (stats.TotalFame + _lifetimeFameEarned).ToString("N0")),
+            ("LIFETIME GOLD EARNINGS", (stats.TotalCredits + _lifetimeGoldEarned).ToString("N0")),
             ("GUILD", guild)
         ];
         foreach (var (label, value) in rows) {

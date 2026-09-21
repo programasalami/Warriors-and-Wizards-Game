@@ -15,6 +15,11 @@ public class Overlay : Sprite {
     // Where OverlayManager centers this overlay on the stage, as a fraction of stage width/height
     // (0.5/0.5 = dead center) plus a fixed post-scale pixel nudge - lets an overlay spawn somewhere
     // other than dead-center (e.g. BookOverlay spawning exactly where TitleScreen's scroll sits).
+    // The design-pixel size of the overlay's panel, for a window whose panel has a FIXED size (the in-game windows). OverlayManager then centres the panel on
+    // exactly that size. Do NOT centre such a window with SetAnchor(Middle): a centre anchor follows the size of the sprite's CHILDREN, so whenever a page's
+    // contents grow, shrink or are rebuilt (a tab click, a list that loads, a button that refreshes the menu) the whole window jumped and flickered.
+    public virtual (int Width, int Height)? FixedSize => null;
+
     public virtual float HorizontalPositionFraction => 0.5f;
     public virtual int VerticalNudge => 0;
 

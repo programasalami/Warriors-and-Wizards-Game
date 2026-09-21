@@ -152,12 +152,13 @@ public sealed class SimpleText : Sprite {
 
     private void Rebuild() {
         var size = _font.GetCharCount(Text);
-        if (size * 4 <= VertexData.Length) {
-            OverridePrimCount = size * 2;
-        }
-        else {
+        if (size * 4 > VertexData.Length) {
             ResizeBackBuffer();
         }
+
+        // Always set how many characters are drawn - also after the buffer grew. It used to be set only when the new text fitted the old buffer, so a text
+        // that was LONGER than any before it (after a shorter one had lowered the count) was drawn with the old, smaller count: the sentence was cut off.
+        OverridePrimCount = size * 2;
         
         FillData();
     }

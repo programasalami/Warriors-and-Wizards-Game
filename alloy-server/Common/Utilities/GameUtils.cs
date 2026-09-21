@@ -35,8 +35,7 @@ public static class GameUtils {
     }
 
     public static int GetNextLevelXp(int level) {
-        // TODO: return real value lol
-        return level + 10;
+        return Common.Structs.LevelRules.XpToNextLevel(level);
     }
 
     public static int GetNextClassQuestFame(Character chr, Account acc) {

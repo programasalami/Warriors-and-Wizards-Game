@@ -20,7 +20,7 @@ public class RealmWorldTests {
     private static readonly object _lock = new();
     private static bool _loaded;
 
-    private static void EnsureGameDataLoaded() {
+    internal static void EnsureGameDataLoaded() {
         lock (_lock) {
             if (_loaded)
                 return;
@@ -66,6 +66,31 @@ public class RealmWorldTests {
         var map = WorldLibrary.MapDatas["Nexus"].Single();
         Assert.DoesNotContain(map.Entities, e => e.ObjType == RealmPortalType);
         Assert.Single(map.Regions[TileRegion.Realm_Portals]);
+    }
+
+    [Fact]
+    public void NexusHasTheBugBoardRightNextToTheSpawnSquare() {
+        EnsureGameDataLoaded();
+
+        var boardType = XmlLibrary.Id2Object("Bug Board").ObjectType;
+        var map = WorldLibrary.MapDatas["Nexus"].Single();
+        var boards = map.Entities.Where(e => e.ObjType == boardType).ToList();
+        Assert.Single(boards);
+
+        var board = boards[0].Pos;
+        var nearest = map.Regions[TileRegion.Spawn].Min(p => Math.Abs(p.X + 0.5f - board.X) + Math.Abs(p.Y + 0.5f - board.Y));
+        Assert.InRange(nearest, 0f, 6f);      // a few steps from the spawn square
+    }
+
+    [Fact]
+    public void NexusHasTheJukeboxNextToTheBugBoard() {
+        EnsureGameDataLoaded();
+
+        var map = WorldLibrary.MapDatas["Nexus"].Single();
+        var jukebox = map.Entities.Single(e => e.ObjType == XmlLibrary.Id2Object("Jukebox").ObjectType).Pos;
+        var board = map.Entities.Single(e => e.ObjType == XmlLibrary.Id2Object("Bug Board").ObjectType).Pos;
+
+        Assert.InRange(Math.Abs(jukebox.X - board.X) + Math.Abs(jukebox.Y - board.Y), 1f, 3f);      // side by side, not on top of each other
     }
 
     [Fact]

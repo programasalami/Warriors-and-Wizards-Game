@@ -76,6 +76,10 @@ public sealed class TextureData {
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(TextureData));
 
     public bool HasAnimationData = false;
+
+    // The art sheet this definition's picture comes from (the <File> in its XML) - the admin dashboard's library uses it to tell new art from the original's.
+    public string SheetName;
+    public int SheetIndex = -1;
     
     public AtlasData Texture;
     public TextureData TopTexture;
@@ -91,6 +95,8 @@ public sealed class TextureData {
 
     public TextureData(XElement xml) {
         if (xml.GetElement("Texture", out var elem)) {
+            SheetName = elem.GetValue<string>("File");
+            SheetIndex = (int) elem.GetValue<uint>("Index");
             Texture = Main.Atlas.GetAtlasData(elem.GetValue<string>("File"), (int) elem.GetValue<uint>("Index"));
             DominantColor = Main.Atlas.GetDominantColor(elem.GetValue<string>("File"), elem.GetValue<int>("Index"));
         }
@@ -100,6 +106,7 @@ public sealed class TextureData {
         }
 
         if (xml.GetElement("AnimatedTexture", out elem)) {
+            SheetName ??= elem.GetValue<string>("File");
             AnimatedTextures = Main.Atlas.GetAnimationAtlasData(elem.GetValue<string>("File"), elem.GetValue<int>("Index"));
             HasAnimationData = true;
         }

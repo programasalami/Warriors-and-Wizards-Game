@@ -11,7 +11,9 @@ public class NewTick : IncomingPacket<NewTick> {
     
     public override PacketId PacketId => PacketId.NewTick;
     
-    private static ObjectStats[] _statsBuffer = new ObjectStats[256];
+    // Owned by THIS packet, never shared (see Update): a newer NewTick used to overwrite an older one's entries and stats before they were applied.
+    private ObjectStats[] _statsBuffer = new ObjectStats[256];
+    private readonly StatPool _stats = new();
     public int ObjectStatsCount;
     public ObjectStats[] ObjectStats => _statsBuffer;
 
@@ -20,12 +22,14 @@ public class NewTick : IncomingPacket<NewTick> {
     }
 
     public override void Read(ref SpanReader reader) {
-        Structs.DataObjects.ObjectStats.StatsPoolIndex = 0;
-        
+        _stats.Reset();
+
         ObjectStatsCount = reader.ReadInt16();
         EnsureCapacity(ref _statsBuffer, ObjectStatsCount);
-        for (int i = 0; i < ObjectStatsCount; i++)
+        for (int i = 0; i < ObjectStatsCount; i++) {
+            _statsBuffer[i].Pool = _stats;
             _statsBuffer[i].Read(ref reader);
+        }
     }
 
     private static void EnsureCapacity<T>(ref T[] array, int needed) {
@@ -54,7 +58,7 @@ public class NewTick : IncomingPacket<NewTick> {
             Client.Logger.Log(LogLevel.Warning, $"[NewTick] Unable to lookup id: {stats.Id}");
             return;
         }
-        en.UpdateStats(Structs.DataObjects.ObjectStats.StatsPool, stats.StatOffset, stats.StatCount);
+        en.UpdateStats(stats.Pool.Data, stats.StatOffset, stats.StatCount);
 
         en.OnTickPosition(stats.Position.X, stats.Position.Y, 0, 0, stats.Id == Map.LocalPlayerId);
     }
