@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.IO;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using AlloyClient.Data;
@@ -56,7 +57,20 @@ public static class Client {
         _receiveState.Reset();
     }
 
+    // How often a refused connection is retried before giving up (one try per second). It used to retry forever, silently.
+    public const int MaxConnectAttempts = 10;
+
+    // async void on purpose (fire-and-forget from GameScreen): everything inside is caught, so nothing can escape and kill the process.
     public static async void Connect(string ip, ushort port) {
+        try {
+            await ConnectAsync(ip, port);
+        } catch (Exception e) {
+            Logger.Log(LogLevel.Error, $"Connect failed: {e.Message}");
+            Disconnect("Could not connect to the game server");
+        }
+    }
+
+    private static async Task ConnectAsync(string ip, ushort port) {
         Reset();
 
         _tcp = new TcpClient();
@@ -64,25 +78,26 @@ public static class Client {
 
         Logger.Log(LogLevel.Information, $"Connecting to {ip}:{port}...");
 
-        while (true) {
+        for (var attempt = 1; ; attempt++) {
             try {
                 await _tcp.ConnectAsync(ip, port);
                 break;
             } catch (SocketException e) {
-                if (e.SocketErrorCode == SocketError.ConnectionRefused) {
-                    Logger.Log(LogLevel.Warning, "Failed to connect to server. Retrying...");
-
+                if (e.SocketErrorCode == SocketError.ConnectionRefused && attempt < MaxConnectAttempts) {
+                    Logger.Log(LogLevel.Warning, $"Failed to connect to server. Retrying ({attempt}/{MaxConnectAttempts})...");
                     await Task.Delay(1000);
                     continue;
                 }
 
-                Logger.Log(LogLevel.Error, e.ToString());
+                Logger.Log(LogLevel.Error, $"Could not connect to {ip}:{port} after {attempt} attempt(s): {e.SocketErrorCode}");
+                Disconnect("Could not connect to the game server");
                 return;
             }
         }
 
         _socket = _tcp.Client;
         if (_socket == null) {
+            Disconnect("Could not connect to the game server");
             return;
         }
 
@@ -143,10 +158,20 @@ public static class Client {
 
         _receiveState.OnDataReceived(args.BytesTransferred);
 
-        while (_receiveState.PacketReady()) {
+        while (true) {
+            bool ready;
+            try {
+                ready = _receiveState.PacketReady();
+            } catch (InvalidDataException e) {
+                // A corrupt length prefix used to throw out of the receive task and leave the client "connected" but deaf.
+                Disconnect($"Invalid packet from server: {e.Message}");
+                return false;
+            }
+            if (!ready)
+                break;
+
             var pktId = (PacketId) _receiveState.ReadPacket(out var rdr);
             try {
-                Logger.Log(LogLevel.Debug, $"[DIAG] RECEIVING {pktId}");
                 var pkt = PacketUtils.CreateIncomingPacket(pktId);
                 pkt.Read(ref rdr);
                 IncomingQueue.Enqueue(pkt);
@@ -174,6 +199,7 @@ public static class Client {
             return;
         }
 
+        Game.PerfCounters.SendBufferBytes = _sendState.PendingBytes;
         if (!_sendState.TryBeginSend(_sendSAEA))
             return;
 
@@ -205,9 +231,17 @@ public static class Client {
         if (pkt.PacketId == PacketId.Unknown)
             return;
 
+        Game.PerfCounters.PacketsQueuedThisFrame++;
+        bool written;
         lock (_sendState) {
-            _sendState.WritePacket(pkt, (byte) pkt.PacketId);
-            Logger.Log(LogLevel.Debug, $"[DIAG] SENDING {pkt.PacketId}");
+            written = _sendState.WritePacket(pkt, (byte) pkt.PacketId);
+        }
+
+        if (!written) {
+            Game.PerfCounters.PacketsDroppedTotal = _sendState.DroppedPackets;
+            if (_sendState.DroppedPackets == 1 || _sendState.DroppedPackets % 1000 == 0) {
+                Logger.Log(LogLevel.Warning, $"Outgoing packet {pkt.PacketId} dropped: send buffer at its limit ({_sendState.DroppedPackets} dropped so far)");
+            }
         }
     }
 
@@ -228,6 +262,9 @@ public static class Client {
         }
 
         Map.Reset();
+        // Every drop - a server restart for an update included - asks the account server again which build it wants now, so the book says
+        // "Update required" straight away instead of after a failed PLAY (2026-09-22; mirrored in the web shim).
+        _ = AppEngine.VersionCheck.FetchAsync();
         LoaderFlows.ToCharacterList();
     }
 
@@ -235,7 +272,7 @@ public static class Client {
         var login = GlobalData.Get<LoginData>();
         var hello = Hello.CreatePacket();
         hello.BuildVersion = Settings.BuildVersion;
-        hello.GameId = -1;
+        hello.GameId = Data.FastTravel.GameIdFor(Settings.FastTravel.Value, GlobalData.Get<AccountData>());      // the FAST TRAVEL choice
         hello.Username = login.Username;
         hello.Password = login.Password;
         hello.MapJSON = "";

@@ -20,18 +20,20 @@
       <ProjectReference Include="..\Common\Common.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="Google.Protobuf" Version="3.28.2" />
-      <PackageReference Include="Grpc.Net.Client" Version="2.66.0" />
-      <PackageReference Include="Grpc.Tools" Version="2.66.0">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
+    <!-- Behaviour hot reload (/reloadbehaviors, compiles C# at runtime with Roslyn) is a developer feature: it needs the behaviour
+         SOURCE files next to the server, which the VPS does not have, and Roslyn is ~20 MB of DLLs. Off by default; build with
+         -p:BehaviorHotReload=true to get it. (Google.Protobuf / Grpc were referenced and never used: removed, 2026-09-21 audit.) -->
+    <PropertyGroup>
+      <BehaviorHotReload Condition="'$(BehaviorHotReload)' == ''">false</BehaviorHotReload>
+      <DefineConstants Condition="'$(BehaviorHotReload)' == 'true'">$(DefineConstants);BEHAVIOR_HOTRELOAD</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(BehaviorHotReload)' == 'true'">
+      <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
+      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.14.0" />
-      <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
       <PackageReference Include="MinVer" Version="7.0.0">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

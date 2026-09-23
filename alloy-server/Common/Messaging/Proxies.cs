@@ -38,6 +38,9 @@ public partial interface IAccountServerRpc {
 
     // The Vault: writes ONLY the account's chests (a targeted save, so nothing else on the account is overwritten).
     Task SaveVaultChests(int accountId, VaultChest[] chests);
+
+    // One character of an account (a targeted write, see CharacterDb): called by the game server on disconnect, world switch, autosave and shutdown.
+    Task SaveCharacter(int accountId, Character chr);
 }
 
 // Action is one of: ban, unban, mute, unmute, setrank. DurationMinutes 0 = permanent (ban / mute only). Rank is used by setrank only.

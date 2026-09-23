@@ -16,7 +16,7 @@ public readonly record struct EnemyShoot(
     byte NumShots,
     float AngleInc,
     ProjectilePath Path) : IOutgoingPacket {
-    public PacketId ID => PacketId.ENEMYSHOOT;
+    public PacketId ID => PacketId.EnemyShoot;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(FirstBulletId);

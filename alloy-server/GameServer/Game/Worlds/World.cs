@@ -1,3 +1,4 @@
+using Common.Structs;
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -57,6 +58,9 @@ public class World {
     public bool Deleted;
 
     private readonly List<(long Delay, Action<World> Action)> _timedActions = [];
+    // Where a map-placed entity came from, so a killable one (the Nexus targets) can be put back after it dies (2026-09-22).
+    private readonly Dictionary<EntityId, (ushort ObjType, WorldPosData Pos)> _mapOrigins = new();
+    private static readonly Common.Utilities.Logger _timerLog = new(typeof(World));
     private readonly ConcurrentQueue<EntityId> _removeEntities = [];
 
     public World(int id, int mapId, WorldConfig config) {
@@ -96,12 +100,19 @@ public class World {
     }
 
     public void LoadEntities() {
-        foreach (var orig in Map.Data.Entities) {
-            var en = new Entity(orig.ObjType);
-            ref var newEn = ref EnterWorld(ref en);
-            newEn.Init(this, orig.Pos);
-        }
+        foreach (var orig in Map.Data.Entities)
+            SpawnFromMap(orig);
     }
+
+    public EntityId SpawnFromMap((ushort ObjType, WorldPosData Pos) orig) {
+        var en = new Entity(orig.ObjType);
+        ref var newEn = ref EnterWorld(ref en);
+        newEn.Init(this, orig.Pos);
+        _mapOrigins[newEn.Id] = orig;
+        return newEn.Id;
+    }
+
+    public bool TryGetMapOrigin(EntityId id, out (ushort ObjType, WorldPosData Pos) origin) => _mapOrigins.TryGetValue(id, out origin);
 
     public ref Entity EnterPlayer(ref Entity en, User user) {
         ref var ret = ref EnterWorld(ref en);
@@ -134,9 +145,11 @@ public class World {
             case EntityType.Enemy:
                 var events = new EntityEvents(this, ref en);
                 EntityEvents.Add(ref events);
+                // Register the behaviour BEFORE loading it: Load() builds an EntityView, which looks the behaviour up in EntityBehaviors, so loading
+                // first handed State.Enter a null component (NullReferenceException on every /spawn of an entity with a behaviour, 2026-09-22).
                 var behavior = new EntityBehavior(this, ref en);
-                behavior.Load();
-                EntityBehaviors.Add(ref behavior);
+                ref var storedBehavior = ref EntityBehaviors.Add(ref behavior);
+                storedBehavior.Load();
                 var enProjectiles = new EntityProjectiles(this, ref en);
                 EntityProjectiles.Add(ref enProjectiles);
                 var combat = new EntityCombat(this, ref en);
@@ -174,6 +187,7 @@ public class World {
     }
     
     private void RemoveEntity(EntityId entityId) {
+        _mapOrigins.Remove(entityId);
         EntityEvents.Remove(entityId); // First to go is events, so DeathEvent gets called before getting removed from the rest of component managers
         Entities.Remove(entityId);
         EntityBehaviors.Remove(entityId);
@@ -187,13 +201,21 @@ public class World {
         Users = Users.Remove(entityId);
     }
 
+    // A due timer is taken out of the list BEFORE it runs, and one that throws is logged and dropped. It used to be removed only after a successful
+    // run, so an action that threw stayed queued and threw again on every tick - the exception aborted the whole world tick each time and the Nexus
+    // froze for everyone until a restart (a /spawn timer on the VPS, 2026-09-22).
     private void HandleTimers() {
         for (var i = 0; i < _timedActions.Count; i++) {
             var timer = _timedActions[i];
-            if (timer.Delay <= GameLogic.WorldTime.TickCount) {
+            if (timer.Delay > GameLogic.WorldTime.TickCount)
+                continue;
+
+            _timedActions.RemoveAt(i);
+            i--;
+            try {
                 timer.Action(this);
-                _timedActions.RemoveAt(i);
-                i--;
+            } catch (Exception ex) {
+                _timerLog.Error($"A timed action failed and was dropped: {ex}");
             }
         }
     }

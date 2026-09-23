@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Xml.Linq;
 using Alloy.Common;
 using Alloy.Common.Structs;
@@ -84,7 +85,10 @@ public static class AtlasBuilder {
 
         StbRectPack.stbrp_init_target(&stbContext, AtlasWidth, AtlasHeight, stbContext.all_nodes, numNodes);
 
-        foreach (var sheet in statics) {
+        // Biggest pictures first: stb_rect_pack places rectangles one at a time in the order given, and a large picture late in the list
+        // finds no free block once many small ones have been scattered around (2026-09-21: the title screen's 340x910 scroll fell out of
+        // the atlas the day three 96x96 map previews were added before it in the recipe). Order in the recipe does not matter otherwise.
+        foreach (var sheet in statics.OrderByDescending(PackArea)) {
             try {
                 ParseSheet(&stbContext, sheet, atlas);
             } catch (Exception e) {
@@ -126,6 +130,21 @@ public static class AtlasBuilder {
         using var stream = File.Create(newFile);
         using var writer = new BinaryWriter(stream);
         atlas.Write(writer);
+    }
+
+    // The picture's pixel area, from the PNG header alone (width and height sit at bytes 16-23, big-endian), so sorting costs no decoding.
+    private static long PackArea(StaticSheet sheet) {
+        try {
+            using var stream = File.OpenRead(sheet.File);
+            var header = new byte[24];
+            if (stream.Read(header, 0, 24) < 24)
+                return 0;
+            long w = (header[16] << 24) | (header[17] << 16) | (header[18] << 8) | header[19];
+            long h = (header[20] << 24) | (header[21] << 16) | (header[22] << 8) | header[23];
+            return w * h;
+        } catch (Exception) {
+            return 0;
+        }
     }
 
     private static bool CutHaveData(ImageResult image, int startX, int startY, int width, int height) {

@@ -62,38 +62,44 @@ public static class ConditionEffects {
 
     private record struct ConditionEffectData(string Name, ConditionEffect Index, int[] IconLookup);
 
+    public const string IconSheet = "dungeonItems";
+
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(ConditionEffects));
 
     private static readonly ConditionEffectData[] EffectTable = [
         new("Nothing", ConditionEffect.None, null),
-        new("Dead", ConditionEffect.Dead, [64]),
-        new("Quiet", ConditionEffect.Quiet, [65]),
-        new("Weak", ConditionEffect.Weak, [66, 67, 68, 69]),
-        new("Slowed", ConditionEffect.Slowed, [70]),
-        new("Sick", ConditionEffect.Sick, [71]),
-        new("Dazed", ConditionEffect.Dazed, [72]),
-        new("Stunned", ConditionEffect.Stunned, [73]),
-        new("Blind", ConditionEffect.Blind, [74]),
-        new("Hallucinating", ConditionEffect.Hallucinating, [75]),
-        new("Drunk", ConditionEffect.Drunk, [76]),
-        new("Confused", ConditionEffect.Confused, [77]),
+        // Icons are cells of the Dark Dungeon item sheet (IconSheet) standing in for real status icons (2026-09-21 rework): none of the packs has
+        // any, so a potion / apple / ring / scroll stands for each effect until proper icons exist. 0 silver ring, 1 necklace, 2 arrows, 3 scroll,
+        // 4 apple, 5 gold ring, 6 gold necklace, 7 bow, 8 book, 9 coins, 10 hood, 11 helmet, 12 crown, 13 dagger, 14 blue potion, 15 leather,
+        // 16 plate, 17 gold plate, 18 sword, 19 red potion, 20 shield, 21 gem staff, 22 fire staff, 23 gold sword, 24 wand.
+        new("Dead", ConditionEffect.Dead, [0]),
+        new("Quiet", ConditionEffect.Quiet, [1]),
+        new("Weak", ConditionEffect.Weak, [13]),
+        new("Slowed", ConditionEffect.Slowed, [3]),
+        new("Sick", ConditionEffect.Sick, [4]),
+        new("Dazed", ConditionEffect.Dazed, [5]),
+        new("Stunned", ConditionEffect.Stunned, [6]),
+        new("Blind", ConditionEffect.Blind, [10]),
+        new("Hallucinating", ConditionEffect.Hallucinating, [14]),
+        new("Drunk", ConditionEffect.Drunk, [19]),
+        new("Confused", ConditionEffect.Confused, [8]),
         new("Stun Immune", ConditionEffect.StunImmune, null),
         new("Invisible", ConditionEffect.Invisible, null),
-        new("Paralyzed", ConditionEffect.Paralyzed, [78, 79]),
-        new("Speedy", ConditionEffect.Speedy, [64]),
-        new("Bleeding", ConditionEffect.Bleeding, [80]),
-        new("Healing", ConditionEffect.Healing, [81]),
-        new("Damaging", ConditionEffect.Damaging, [82]),
-        new("Berserk", ConditionEffect.Berserk, [83]),
+        new("Paralyzed", ConditionEffect.Paralyzed, [2]),
+        new("Speedy", ConditionEffect.Speedy, [7]),
+        new("Bleeding", ConditionEffect.Bleeding, [13]),
+        new("Healing", ConditionEffect.Healing, [19]),
+        new("Damaging", ConditionEffect.Damaging, [18]),
+        new("Berserk", ConditionEffect.Berserk, [23]),
         new("Paused", ConditionEffect.Paused, null),
         new("Stasis", ConditionEffect.Stasis, null),
         new("Stasis Immune", ConditionEffect.StasisImmune, null),
         new("Invincible", ConditionEffect.Invincible, null),
-        new("Invulnerable", ConditionEffect.Invulnerable, [84]),
-        new("Armored", ConditionEffect.Armored, [85]),
-        new("Armor Broken", ConditionEffect.ArmorBroken, [86]),
-        new("Hexed", ConditionEffect.Hexed, [75]),
-        new("Ninja Speedy", ConditionEffect.NinjaSpeedy, [64])
+        new("Invulnerable", ConditionEffect.Invulnerable, [20]),
+        new("Armored", ConditionEffect.Armored, [16]),
+        new("Armor Broken", ConditionEffect.ArmorBroken, [15]),
+        new("Hexed", ConditionEffect.Hexed, [24]),
+        new("Ninja Speedy", ConditionEffect.NinjaSpeedy, [7])
     ];
 
     public static Span<BucketType> IconlessEffects => new BucketType[MaxEffectBuckets];
@@ -105,7 +111,7 @@ public static class ConditionEffects {
     public static void Init() {
         foreach (var effect in EffectTable) {
             if (effect.IconLookup != null) {
-                EffectIcons[effect.Index] = effect.IconLookup.Select(i => Main.Atlas.GetAtlasData("icons", i).ToVector4()).ToArray();
+                EffectIcons[effect.Index] = effect.IconLookup.Select(i => Main.Atlas.GetAtlasData(IconSheet, i).ToVector4()).ToArray();
             } else {
                 IconlessEffects[(EffectType) effect.Index / MaxBucketSize] |= (1 << ((EffectType) effect.Index % MaxBucketSize));
             }

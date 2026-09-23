@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using AlloyClient.AppEngine;
 using AlloyClient.Assets.Libraries;
 using AlloyClient.Core;
 using AlloyClient.Data;
@@ -119,9 +121,21 @@ public sealed partial class CharacterBook : Container {
     // profile stat list) is set in BitPotion, the client's small-text pixel font.
     private const FontGroup CharacterFont = FontGroup.MyriadPro;
 
-    private enum BookPage { Profile, Characters, Graveyard, Inbox, DailySpin, DailyGift }
+    // Tab order top to bottom. FAST TRAVEL sits third (server + where PLAY spawns you); the Graveyard, still a placeholder, is last.
+    private enum BookPage { Profile, Characters, FastTravel, Inbox, DailySpin, DailyGift, Graveyard }
 
-    private static readonly string[] TabIcons = ["Profile", "Characters", "Graveyard", "Inbox", "DailySpin", "DailyGift"];
+    // Six tabs come from the pack; the seventh (FAST TRAVEL: server list + where PLAY spawns you) reuses the sixth tab's art one slot lower.
+    private const int TabCount = 7;
+
+    private static readonly string[] TabIcons = ["Profile", "Characters", "FastTravel", "Inbox", "DailySpin", "DailyGift", "Graveyard"];
+
+    // What each tab opens, left page & right page, shown on a small parchment tag while the mouse is over the tab.
+    private static readonly string[] TabTitles = ["Profile & Last Played", "Characters & Details", "Servers & Spawn Location", "Inbox", "Daily Spin", "Daily Gift", "Graveyard"];
+    private const float TabTipFontSize = 18f;
+    private const int TabTipHeight = 34;
+    private const int TabTipPadX = 14;
+    private const int TabTipGap = 8;
+    private Container _tabTip;
 
     private readonly Action<Character> _onPlay;
     private readonly Action _onForge;
@@ -130,10 +144,10 @@ public sealed partial class CharacterBook : Container {
     private readonly ObjectRect _book;
     private readonly ObjectRect _bookBlend;     // the NEXT opening frame, dissolving in over _book
     private readonly ObjectRect _flip;
-    private readonly Container[] _tabs = new Container[6];
-    private readonly ObjectRect[] _tabSprites = new ObjectRect[6];
-    private readonly ObjectRect[] _tabIcons = new ObjectRect[6];
-    private readonly Container[] _pages = new Container[6];
+    private readonly Container[] _tabs = new Container[TabCount];
+    private readonly ObjectRect[] _tabSprites = new ObjectRect[TabCount];
+    private readonly ObjectRect[] _tabIcons = new ObjectRect[TabCount];
+    private readonly Container[] _pages = new Container[TabCount];
     private readonly Container _backButton;
 
     private List<Character> _characters = [];
@@ -190,11 +204,11 @@ public sealed partial class CharacterBook : Container {
         _flip.Visible = false;
         AddChild(_flip);
 
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < TabCount; i++) {
             BuildTab(i);
         }
 
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < TabCount; i++) {
             _pages[i] = new Container();
             _pages[i].Visible = false;
             AddChild(_pages[i]);
@@ -263,8 +277,8 @@ public sealed partial class CharacterBook : Container {
         tab.AddChild(icon);
 
         var down = false;
-        tab.AddEventListener(MouseEvent.MouseOver, () => SetTabLook(index, true));
-        tab.AddEventListener(MouseEvent.MouseOut, () => SetTabLook(index, false));
+        tab.AddEventListener(MouseEvent.MouseOver, () => { SetTabLook(index, true); ShowTabTip(index); });
+        tab.AddEventListener(MouseEvent.MouseOut, () => { SetTabLook(index, false); HideTabTip(); });
         tab.AddEventListener(MouseEvent.LeftDown, () => down = true);
         tab.AddEventListener(MouseEvent.LeftUp, () => {
             if (down) {
@@ -280,6 +294,34 @@ public sealed partial class CharacterBook : Container {
         AddChild(tab);
     }
 
+    // The parchment tag to the right of a hovered tab: the page names. Built once, moved and re-labelled per tab, and kept on top of the tabs.
+    private void ShowTabTip(int index) {
+        if (!_entranceComplete) {
+            return;
+        }
+
+        var frame = BookFrameData.Tabs[index];
+        var label = Text(TabTitles[index], FontGroup.MyriadPro, TabTipFontSize, 0, 0, UiAnchor.MiddleLeft, outline: 1);
+        var width = label.Width + TabTipPadX * 2;
+
+        HideTabTip();
+        _tabTip = new Container { X = Px(frame.X) + Sz(frame.W) + TabTipGap, Y = Py(frame.Y) + Sz(frame.H) / 2 - TabTipHeight / 2 };
+        _tabTip.AddChild(new NineSliceRect(new NineSliceConfig { SliceData = SliceLibrary.DarkAgesParchment, CutX = 12, CutY = 12, Width = width, Height = TabTipHeight }));
+        label.X = TabTipPadX;
+        label.Y = TabTipHeight / 2;
+        _tabTip.AddChild(label);
+        AddChild(_tabTip);
+    }
+
+    private void HideTabTip() {
+        if (_tabTip == null) {
+            return;
+        }
+
+        RemoveChild(_tabTip);
+        _tabTip = null;
+    }
+
     // The current page's tab always shows its "pulled out" pennant; hovering another tab previews it.
     private void SetTabLook(int index, bool hovering) {
         var active = index == (int) (_flipping ? _flipTarget : _currentPage) || hovering;
@@ -287,7 +329,7 @@ public sealed partial class CharacterBook : Container {
     }
 
     private void RefreshTabLooks() {
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < TabCount; i++) {
             SetTabLook(i, false);
         }
     }
@@ -314,8 +356,13 @@ public sealed partial class CharacterBook : Container {
     }
 
     private void StartFlip(BookPage target) {
+        HideTabTip();
         if (target is BookPage.Inbox or BookPage.DailySpin or BookPage.DailyGift) {
             RefreshRewards();       // always show what the server says now
+        }
+
+        if (target == BookPage.FastTravel) {
+            RefreshOnlineCount();   // the server list's player count
         }
 
         _flipping = true;
@@ -410,7 +457,7 @@ public sealed partial class CharacterBook : Container {
         ShowStaticBook();
         var sinceOpen = t - (openStart + OpenMs);
 
-        for (var i = 0; i < 6; i++) {
+        for (var i = 0; i < TabCount; i++) {
             var local = sinceOpen - i * TabStaggerMs;
             var p = (float) Math.Clamp(local / TabFadeMs, 0.0, 1.0);
             _tabs[i].Visible = p > 0f;
@@ -418,7 +465,7 @@ public sealed partial class CharacterBook : Container {
             _tabs[i].X = Px(BookFrameData.Tabs[i].X) + (int) ((1f - p) * Sz(12));
         }
 
-        var contentStart = 6 * TabStaggerMs;
+        var contentStart = TabCount * TabStaggerMs;
         var page = _pages[(int) _currentPage];
         if (sinceOpen >= contentStart) {
             var p = (float) Math.Clamp((sinceOpen - contentStart) / ContentFadeMs, 0.0, 1.0);
@@ -496,6 +543,7 @@ public sealed partial class CharacterBook : Container {
         BuildProfilePage(_pages[(int) BookPage.Profile]);
         BuildCharactersPage(_pages[(int) BookPage.Characters]);
         BuildIconMessagePage(_pages[(int) BookPage.Graveyard], "GRAVEYARD", "Graveyard", GraveyardEmpty);
+        BuildFastTravelPage(_pages[(int) BookPage.FastTravel]);
         RebuildRewardPages();
     }
 
@@ -532,13 +580,52 @@ public sealed partial class CharacterBook : Container {
 
         var champion = LastPlayedCharacter();
         if (champion == null) {
-            page.AddChild(Text("No characters yet.", FontGroup.MyriadPro, BodySize, RightPageCenterX, PageTop + Sz(120), UiAnchor.Middle));
-            page.AddChild(Text("Open the Characters tab", FontGroup.MyriadPro, SmallSize + 2, RightPageCenterX, PageTop + Sz(150), UiAnchor.Middle));
-            page.AddChild(Text("to forge your first character.", FontGroup.MyriadPro, SmallSize + 2, RightPageCenterX, PageTop + Sz(172), UiAnchor.Middle));
+            BuildNoCharactersHint(page);
             return;
         }
 
         BuildCharacterSummary(page, champion, includeFame: true);
+    }
+
+    // "Visit the [icon] Characters page to create a character." - the icon and the word are one link that flips to the Characters tab exactly
+    // as clicking the tab would (2026-09-21). Two centred lines; the first is laid out piece by piece around the link.
+    private void BuildNoCharactersHint(Container page) {
+        var cx = RightPageCenterX;
+        var y = PageTop + Sz(120);
+        page.AddChild(Text("No characters yet.", FontGroup.MyriadPro, BodySize, cx, y - Sz(30), UiAnchor.Middle));
+
+        const float size = SmallSize + 2;
+        const int iconSize = 32;
+        const int gap = 6;
+        var before = Text("Visit the", FontGroup.MyriadPro, size, 0, y, UiAnchor.MiddleLeft);
+        var link = BuildTextButton("Characters", FontGroup.MyriadPro, size, 0, y, UiAnchor.MiddleLeft, () => GoToPage(BookPage.Characters));
+        var linkWidth = Text("Characters", FontGroup.MyriadPro, size, 0, 0, UiAnchor.LeftTop).Width;
+        var after = Text("page", FontGroup.MyriadPro, size, 0, y, UiAnchor.MiddleLeft);
+        var total = before.Width + gap + iconSize + gap + linkWidth + gap + after.Width;
+        var x = cx - total / 2;
+        before.X = x;
+        x += before.Width + gap;
+        var icon = new Container { X = x, Y = y - iconSize / 2 };
+        icon.MouseEnabled = true;
+        icon.AddChild(new ObjectRect(new ObjectRectConfig {
+            Texture = TextureHelper.FromUiAtlas("BookGems/Icon/Characters", 0, false),
+            Width = iconSize,
+            Height = iconSize,
+            OutlineEnabled = false,
+            GlowEnabled = false
+        }));
+        var iconDown = false;
+        icon.AddEventListener(MouseEvent.LeftDown, () => iconDown = true);
+        icon.AddEventListener(MouseEvent.LeftUp, () => { if (iconDown) GoToPage(BookPage.Characters); iconDown = false; });
+        x += iconSize + gap;
+        link.X = x;
+        x += linkWidth + gap;
+        after.X = x;
+        page.AddChild(before);
+        page.AddChild(icon);
+        page.AddChild(link);
+        page.AddChild(after);
+        page.AddChild(Text("to create a character.", FontGroup.MyriadPro, size, cx, y + Sz(16), UiAnchor.Middle));
     }
 
     // The right-hand readout shared by "Last Played" and "Details": portrait, class, level + experience, (fame for the
@@ -567,7 +654,69 @@ public sealed partial class CharacterBook : Container {
             page.AddChild(StatLine(stats[i].Label, stats[i].Value.ToString(), cx - 160 + (i % 2) * 170, top + (i / 2) * step));
         }
 
-        page.AddChild(BuildScrollButton("PLAY", cx, PageBottom - PlayButtonBottomGap - PlayButtonHeight / 2, PlayButtonWidth, PlayButtonHeight, () => _onPlay(character)));
+        var playY = PageBottom - PlayButtonBottomGap - PlayButtonHeight / 2;
+        if (includeFame) {
+            page.AddChild(BuildScrollButton("PLAY", cx, playY, PlayButtonWidth, PlayButtonHeight, () => _onPlay(character)));
+            return;
+        }
+
+        // The Details page can also delete the character (2026-09-21): a small DELETE link above PLAY, then a YES / NO question in PLAY's place.
+        if (_confirmDeleteId == character.Id) {
+            page.AddChild(Text($"Delete this level {character.Level} {props.ObjectId}?", CharacterFont, 20f, cx, playY - 40, UiAnchor.Middle, color: Bad, maxWidth: RightPageW - 20));
+            page.AddChild(Text("This cannot be undone.", CharacterFont, 16f, cx, playY - 18, UiAnchor.Middle, color: InkSoft, outline: 1));
+            page.AddChild(BuildScrollButton("YES", cx - 60, playY + 6, 100, 44, () => DeleteCharacter(character)));
+            page.AddChild(BuildScrollButton("NO", cx + 60, playY + 6, 100, 44, () => { _confirmDeleteId = -1; BuildCharactersPage(_pages[(int) BookPage.Characters]); }));
+        } else {
+            page.AddChild(BuildScrollButton("PLAY", cx, playY, PlayButtonWidth, PlayButtonHeight, () => _onPlay(character)));
+            page.AddChild(BuildTextButton("DELETE", CharacterFont, 15f, cx, playY - PlayButtonHeight / 2 - 12, UiAnchor.Middle, () => { _confirmDeleteId = character.Id; BuildCharactersPage(_pages[(int) BookPage.Characters]); }));
+        }
+
+        if (_deleteNote.Length > 0) {
+            page.AddChild(Text(_deleteNote, CharacterFont, 16f, cx, PageTop + Sz(46) + 14, UiAnchor.Middle, color: _deleteNote.StartsWith("Deleted", StringComparison.Ordinal) ? Good : Bad, maxWidth: RightPageW - 20, outline: 1));
+        }
+    }
+
+    private int _confirmDeleteId = -1;
+    private string _deleteNote = string.Empty;
+
+    private void DeleteCharacter(Character character) {
+        _confirmDeleteId = -1;
+        _deleteNote = "Deleting...";
+        BuildCharactersPage(_pages[(int) BookPage.Characters]);
+        RewardCall(() => AppRequests.DeleteCharacter(character.Id), response => {
+            if (!response.Success) {
+                _deleteNote = response.Message ?? "Could not reach the server.";
+                BuildCharactersPage(_pages[(int) BookPage.Characters]);
+                return;
+            }
+
+            _deleteNote = "Deleted.";
+            _ = ReloadCharactersAsync();
+        });
+    }
+
+    // After a delete: the account server's list again, sorted the way CharacterListScreen sorts it (fame, then id), applied on the frame loop.
+    private async Task ReloadCharactersAsync() {
+        try {
+            await AppRequests.GetCharList();
+        } catch (Exception) {
+            // keep what we have
+        }
+
+        _uiQueue.Enqueue(() => {
+            var list = GlobalData.Get<CharacterListData>();
+            if (list?.Characters == null) {
+                return;
+            }
+
+            var sorted = new List<Character>(list.Characters);
+            sorted.Sort((a, b) => {
+                var fame = b.CurrentFame.CompareTo(a.CurrentFame);
+                return fame != 0 ? fame : a.Id.CompareTo(b.Id);
+            });
+            SetCharacters(sorted, 0);
+            BuildCharactersPage(_pages[(int) BookPage.Characters]);
+        });
     }
 
     private void BuildCharactersPage(Container page) {
@@ -583,13 +732,28 @@ public sealed partial class CharacterBook : Container {
         var gridLeft = LeftPageCenterX - gridW / 2;
         var gridTop = PageTop + Sz(40);
 
+        // After the characters: a NEW tile for EVERY free slot the account owns (so two free slots show two NEW tiles - one tile used to stand
+        // for all of them and read as "one slot"), then a BUY SLOT tile with the price in fame (2026-09-21) - the server does the real check
+        // and the purchase (/account/purchaseCharSlot, NewAccountsConfig.CharSlotCost).
         const int maxTiles = 9;
-        var shown = Math.Min(_characters.Count, maxTiles - 1);
+        var list = GlobalData.Get<CharacterListData>();
+        var maxChars = list?.MaxNumChars > 0 ? list.MaxNumChars : Math.Max(2, _characters.Count);
+        var slotCost = list?.CharSlotCost > 0 ? list.CharSlotCost : 1000;
+        var shown = Math.Min(_characters.Count, maxTiles - 2);
         for (var i = 0; i < shown; i++) {
             page.AddChild(BuildCharacterTile(_characters[i], i, gridLeft + (i % cols) * (tile + gap), gridTop + (i / cols) * (tile + gap), tile));
         }
-        var newIndex = shown;
-        page.AddChild(BuildNewCharacterTile(gridLeft + (newIndex % cols) * (tile + gap), gridTop + (newIndex / cols) * (tile + gap), tile));
+        var nextIndex = shown;
+        for (var free = maxChars - _characters.Count; free > 0 && nextIndex < maxTiles - 1; free--) {
+            page.AddChild(BuildNewCharacterTile(gridLeft + (nextIndex % cols) * (tile + gap), gridTop + (nextIndex / cols) * (tile + gap), tile));
+            nextIndex++;
+        }
+        if (nextIndex < maxTiles) {
+            page.AddChild(BuildBuySlotTile(slotCost, gridLeft + (nextIndex % cols) * (tile + gap), gridTop + (nextIndex / cols) * (tile + gap), tile));
+        }
+        if (_slotNote.Length > 0) {
+            page.AddChild(Text(_slotNote, FontGroup.MyriadPro, 18f, LeftPageCenterX, PageBottom - Sz(10), UiAnchor.MiddleBottom, color: _slotNote.StartsWith("Slot", StringComparison.Ordinal) ? Good : Bad, maxWidth: LeftPageW - 30, outline: 1));
+        }
 
         // Right page: the selected character.
         var character = CurrentCharacter;
@@ -598,7 +762,7 @@ public sealed partial class CharacterBook : Container {
 
         if (character == null) {
             page.AddChild(Text("No characters yet.", FontGroup.MyriadPro, BodySize, RightPageCenterX, PageTop + Sz(120), UiAnchor.Middle));
-            page.AddChild(BuildTextButton("FORGE A CHARACTER", FontGroup.MyriadPro, 26f, RightPageCenterX, PageTop + Sz(170), UiAnchor.Middle, () => _onForge()));
+            page.AddChild(BuildScrollButton("CREATE A CHARACTER", RightPageCenterX, PageTop + Sz(170), 300, PlayButtonHeight, () => _onForge()));
             return;
         }
 
@@ -655,8 +819,8 @@ public sealed partial class CharacterBook : Container {
             ("CHARACTERS", _characters.Count.ToString("N0")),
             ("HIGHEST LEVEL REACHED", bestLevel.ToString("N0")),
             ("HIGHEST FAME REACHED", bestFame.ToString("N0")),
-            ("LIFETIME FAME EARNINGS", (stats.TotalFame + _lifetimeFameEarned).ToString("N0")),
             ("LIFETIME GOLD EARNINGS", (stats.TotalCredits + _lifetimeGoldEarned).ToString("N0")),
+            ("LIFETIME FAME EARNINGS", (stats.TotalFame + _lifetimeFameEarned).ToString("N0")),
             ("GUILD", guild)
         ];
         foreach (var (label, value) in rows) {
@@ -721,6 +885,68 @@ public sealed partial class CharacterBook : Container {
             down = false;
         });
         return tile;
+    }
+
+    // "BUY SLOT" with the price: one more character slot for fame. The answer (and the new limit) comes back through the frame loop.
+    private string _slotNote = string.Empty;
+
+    private Sprite BuildBuySlotTile(int cost, int x, int y, int size) {
+        var tile = new Container { X = x, Y = y };
+        tile.MouseEnabled = true;
+
+        tile.AddChild(new ColorRect(new ColorRectConfig { Width = size, Height = size, Color = Ink, Alpha = 0.4f }));
+        tile.AddChild(new ColorRect(new ColorRectConfig { Width = size - 4, Height = size - 4, Color = TileIdle, Alpha = 0.10f }) { X = 2, Y = 2 });
+        var plus = Text("+", FontGroup.MyriadPro, 40f, size / 2, size / 2 - 24, UiAnchor.Middle, color: InkSoft);
+        var label = Text("BUY SLOT", CharacterFont, 15f, size / 2, size - 40, UiAnchor.Middle, color: InkSoft, outline: 1);
+        tile.AddChild(plus);
+        tile.AddChild(label);
+        tile.AddChild(CurrencyRow("Console/CopperCoin0", cost.ToString("N0"), size / 2, size - 16));
+
+        var down = false;
+        tile.AddEventListener(MouseEvent.MouseOver, () => { plus.SetColor(Hover); label.SetColor(Hover); });
+        tile.AddEventListener(MouseEvent.MouseOut, () => { plus.SetColor(InkSoft); label.SetColor(InkSoft); });
+        tile.AddEventListener(MouseEvent.LeftDown, () => down = true);
+        tile.AddEventListener(MouseEvent.LeftUp, () => {
+            if (down && !_flipping && _entranceComplete) {
+                BuySlot(cost);
+            }
+            down = false;
+        });
+        return tile;
+    }
+
+    private void BuySlot(int cost) {
+        if (_fame < cost) {
+            _slotNote = $"You need {cost:N0} fame for another slot.";
+            BuildCharactersPage(_pages[(int) BookPage.Characters]);
+            return;
+        }
+
+        _slotNote = "Buying...";
+        BuildCharactersPage(_pages[(int) BookPage.Characters]);
+        RewardCall(() => AppRequests.PurchaseCharSlot(), response => {
+            if (!response.Success) {
+                _slotNote = response.Message ?? "Could not reach the server.";
+                BuildCharactersPage(_pages[(int) BookPage.Characters]);
+                return;
+            }
+
+            _fame = Math.Max(0, _fame - cost);
+            _slotNote = "Slot bought!";
+            BuildProfilePage(_pages[(int) BookPage.Profile]);
+            BuildCharactersPage(_pages[(int) BookPage.Characters]);
+            _ = RefreshCharacterListAsync();          // the new limit comes with the character list
+        });
+    }
+
+    private async Task RefreshCharacterListAsync() {
+        try {
+            await AppRequests.GetCharList();
+        } catch (Exception) {
+            // the page keeps what it has
+        }
+
+        _uiQueue.Enqueue(() => BuildCharactersPage(_pages[(int) BookPage.Characters]));
     }
 
     private Sprite BuildNewCharacterTile(int x, int y, int size) {

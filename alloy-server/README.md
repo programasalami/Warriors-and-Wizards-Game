@@ -27,7 +27,7 @@ Alloy is designed to **work out of the box** with its companion C# client,
 
 ```pwsh
 # 1. Build the whole solution
-dotnet build RealmServer.sln
+dotnet build WarriorsAndWizards.Server.sln
 
 # 2. Start the Account Server
 dotnet run --project AccountServer

@@ -51,10 +51,10 @@ public struct EntityInventory : IEntityIdentifiable, IDisposable {
         slotTypes.CopyTo(_slotTypes);
         for (var i = 0; i < itemTypes.Length; i++) {
             var itemType = itemTypes[i];
-            if (itemType == -1)
-                continue;
+            if (itemType == -1 || !XmlLibrary.ItemDescs.TryGetValue((ushort)itemType, out var desc))
+                continue;               // -1 = empty; an unknown type (a removed item) stays empty too
 
-            _items[i] = new Item(XmlLibrary.ItemDescs[(ushort)itemType].Root);
+            _items[i] = new Item(desc.Root);
         }
     }
 
@@ -102,7 +102,11 @@ public struct EntityInventory : IEntityIdentifiable, IDisposable {
         return true;
     }
     
+    // Nothing (an empty slot being swapped into this one) fits anywhere. Before 2026-09-21 a null item threw here, so taking an equipped item off
+    // into an EMPTY inventory slot crashed the swap (the world tick logged a NullReferenceException and the client was never answered).
     public bool IsEquippable(Item item, int slot) {
+        if (item == null)
+            return true;
         var slotType = _slotTypes[slot];
         return slotType == 0 || slotType == item.SlotType;
     }

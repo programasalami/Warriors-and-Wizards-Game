@@ -2,7 +2,7 @@
 into AlloyClient/AlloyClient/Content/Ui/WaW/*.png. Pixel art at 1x - the client draws them at whole-number scales (panels/slots 2x, portrait 4x, bars 3x).
 
 Run from the repo root:  python Tools/WaWGui/build_waw_gui.py [preview.png]
-Then keep the WaW entries in Content/Ui.atlas and rebuild AlloyTk.sln.
+Then keep the WaW entries in Content/Ui.atlas and rebuild WarriorsAndWizards.Client.sln.
 
 Pieces (coordinates are in the pack's PLAIN 8x8 sheets, measured with a pixel grid):
   Panel          Frames.png (164,84,32x32)  orange frame with gold corner gems  + dark-brown fill (#402e2b)

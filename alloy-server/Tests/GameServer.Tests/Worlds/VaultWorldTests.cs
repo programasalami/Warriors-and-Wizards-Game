@@ -63,8 +63,8 @@ public class VaultWorldTests {
     [Fact]
     public void AnAccountsChestsAppearWithTheirItems() {
         var vault = NewVault();
-        var ironSword = 0xa01;
-        var goldStaff = 0xa9b;
+        var ironSword = 0xa00;
+        var goldStaff = 0xa97;
         var account = AccountWith(1234, 2, [ironSword, -1, -1, -1, -1, -1, -1, -1], [-1, goldStaff, -1, -1, -1, -1, -1, 0xa00]);
 
         vault.SetupChests(account);
@@ -131,10 +131,10 @@ public class VaultWorldTests {
     [Fact]
     public void ChestsThatWereNeverSavedStartEmpty_AndUnknownItemsAreDroppedNotFatal() {
         var vault = NewVault();
-        vault.SetupChests(AccountWith(6, 2, [0xa01, 0xdead, 5, 5, 5, 5, 5, 5]));       // 0xdead and 5 are not items
+        vault.SetupChests(AccountWith(6, 2, [0xa00, 0xdead, 5, 5, 5, 5, 5, 5]));       // 0xdead and 5 are not items
 
         var contents = vault.ChestContents();
-        Assert.Equal(0xa01, contents[0][0]);
+        Assert.Equal(0xa00, contents[0][0]);
         Assert.All(contents[0].Skip(1), t => Assert.Equal(-1, t));
         Assert.All(contents[1], t => Assert.Equal(-1, t));
     }
@@ -146,10 +146,10 @@ public class VaultWorldTests {
         vault.SetupChests(account);
 
         ref var inv = ref vault.EntityInventories.Get(vault.OpenChestId(0));
-        inv.SetItem(3, new Common.Resources.Xml.Descriptors.Item(XmlLibrary.ItemDescs[0xa02].Root));
+        inv.SetItem(3, new Common.Resources.Xml.Descriptors.Item(XmlLibrary.ItemDescs[0xa69].Root));
         vault.SaveIfChanged();
 
-        Assert.Equal(0xa02, account.VaultChests[0].ItemTypes[3]);
+        Assert.Equal(0xa69, account.VaultChests[0].ItemTypes[3]);
         Assert.Equal(2, account.VaultChests.Count);
     }
 }

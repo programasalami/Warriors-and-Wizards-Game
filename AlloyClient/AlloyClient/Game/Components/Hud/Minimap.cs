@@ -19,9 +19,9 @@ public sealed class Minimap : Sprite {
 
     private static readonly ColorTransform DefaultCt = new (1f, 1f, 1f, 1f);
     private static readonly ColorTransform FadeCt = new (0.5f, 0.5f, 0.5f, 1f);
-    
+
     public const int MapSize = 230;
-    
+
     private float _zoom = 4.0f;
     private float _maxZoom;
     private float _zoomStep;
@@ -31,14 +31,13 @@ public sealed class Minimap : Sprite {
 
     private readonly Container _zoomIn;
     private readonly Container _zoomOut;
-    private readonly ObjectRect _arrow;
 
     public Minimap() {
         TextureId = TextureType.Minimap;
 
         ResizeBackBuffer();
         FillData();
-        
+
         OnZoom.Set(ZoomHandle);
         OnNewMap.Set(OnMapEnter);
 
@@ -57,17 +56,8 @@ public sealed class Minimap : Sprite {
         _zoomOut.Y = 4 + zoomSize + 4;
         AddChild(_zoomOut);
 
-        _arrow = new ObjectRect(new ObjectRectConfig {
-            Texture = TextureHelper.FromGameAtlas("icons", 48, false),
-            X = MapSize / 2,
-            Y = MapSize / 2,
-            Width = 9,
-            Height = 36,
-            Anchor = UiAnchor.Middle
-        });
-        _arrow.ColorTransformation = new ColorTransform(0f, 0f, 1f, 1f);
-        AddChild(_arrow);
-        
+        // Your own marker is drawn by the layer (MinimapLayer + MinimapIcon: shape and colour from the Extra options tab). The blue arrow
+        // picture that used to sit here changed size while the camera turned (2026-09-22).
         AddEventListener(Event.EnterFrame, OnFrameEnter);
     }
 
@@ -94,16 +84,16 @@ public sealed class Minimap : Sprite {
         VertexData[1] = new VertexUi(new Vector2(MapSize, 0)); //Top Right
         VertexData[2] = new VertexUi(new Vector2(MapSize, MapSize)); //Bottom Right
         VertexData[3] = new VertexUi(new Vector2(0, MapSize)); //Bottom Left
-        
+
         SetGraphicsBuffer();
     }
-    
+
     private void ZoomHandle(int zoom) {
         _zoom += _zoomStep * zoom;
         _zoom = Math.Max(1, Math.Min(_maxZoom, _zoom));
         UpdateButtons();
     }
-    
+
     private void OnMapEnter(int w, int h) {
         var size = (float)Math.Max(w, h);
         _maxZoom = size / 32;
@@ -111,11 +101,9 @@ public sealed class Minimap : Sprite {
         _size = size;
         MinimapTexture.ClearData();
     }
-    
+
     private void OnFrameEnter() {
         if (Map.LocalPlayer == null) return;
-
-        _arrow.Rotation = Settings.CameraAngle;
 
         var pos = Map.LocalPlayer.Position;
         var size = _size / _zoom / 2.0f;
@@ -128,7 +116,7 @@ public sealed class Minimap : Sprite {
         VertexData[1].UV = new Vector2(x2 / 4096, y1 / 4096);
         VertexData[2].UV = new Vector2(x2 / 4096, y2 / 4096);
         VertexData[3].UV = new Vector2(x1 / 4096, y2 / 4096);
-        
+
         _layer.SetSize(size);
     }
 }

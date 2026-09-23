@@ -15,11 +15,18 @@ public static class Logging {
         Factory = LoggerFactory.Create(builder => 
                 builder.AddConsole(options => { options.FormatterName = SingleLineConsoleFormatter.FormatterName; })
                 .AddConsoleFormatter<SingleLineConsoleFormatter, ConsoleFormatterOptions>()
-#if DEBUG
-                .SetMinimumLevel(LogLevel.Trace)
-#endif
+                .SetMinimumLevel(MinimumLevel)
         );
     }
+
+    // Information by default; set the environment variable ALLOY_LOG=debug (or =trace) for the chatty levels. Debug builds used to log
+    // at Trace from the console sink on the render thread (2026-09-21 audit).
+    private static LogLevel MinimumLevel =>
+        Environment.GetEnvironmentVariable("ALLOY_LOG")?.ToLowerInvariant() switch {
+            "trace" => LogLevel.Trace,
+            "debug" => LogLevel.Debug,
+            _ => LogLevel.Information
+        };
 
     extension(ILogger logger) {
         public static ILoggerFactory Factory => Factory;

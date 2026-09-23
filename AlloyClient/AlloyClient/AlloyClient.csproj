@@ -18,6 +18,12 @@
     <PropertyGroup Condition="'$(DeployTarget)' == 'vps'">
         <DefineConstants>$(DefineConstants);TARGET_VPS</DefineConstants>
     </PropertyGroup>
+    <!-- The public game is WarriorsAndWizards(.exe), published as ONE file next to its Content folder (2026-09-22); local builds stay AlloyClient.
+         -p:PublicExe=true gives a local-address build the public name (to test the package). Never pass AssemblyName on the command line:
+         it would rename every referenced project too. -->
+    <PropertyGroup Condition="'$(DeployTarget)' == 'vps' Or '$(PublicExe)' == 'true'">
+        <AssemblyName>WarriorsAndWizards</AssemblyName>
+    </PropertyGroup>
     
     <ItemGroup>
         <None Remove="AlloyClient.csproj.DotSettings" />

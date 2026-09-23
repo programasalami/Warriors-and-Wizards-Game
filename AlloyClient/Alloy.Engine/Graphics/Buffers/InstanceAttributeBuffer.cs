@@ -11,6 +11,9 @@ public sealed unsafe class InstanceAttributeBuffer<T> where T : unmanaged, IBuff
 
     public readonly int Length;
 
+    // Measured 2026-09-22 on the HD 4400: writing WITHOUT the orphan below (and also through a ring of separate buffers written without it)
+    // made the driver wait on the write - the model pass went from ~1 ms to 3.6-6 ms. The orphan stays.
+
     internal readonly int Handle;
 
     public InstanceAttributeBuffer(int elementCount) {
@@ -36,6 +39,7 @@ public sealed unsafe class InstanceAttributeBuffer<T> where T : unmanaged, IBuff
         // here as flickering between correct and garbled-looking geometry frame to frame.
         GL.BufferData(BufferTarget.ArrayBuffer, Length * sizeof(T), IntPtr.Zero, BufferUsage.DynamicDraw);
         GL.BufferSubData(BufferTarget.ArrayBuffer, 0, sizeof(T) * data.Length, data);
+        GpuStats.UploadBytes += (long)sizeof(T) * data.Length;
     }
 
     /// <summary>

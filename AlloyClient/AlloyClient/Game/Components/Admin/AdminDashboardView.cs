@@ -1,4 +1,5 @@
 using System;
+using OpenTK.Platform;
 using System.Collections.Generic;
 using System.Linq;
 using AlloyClient.Assets.Libraries;
@@ -62,7 +63,9 @@ public sealed class AdminDashboardView : Overlay {
     private SimpleText _durationLabel;
 
     // library page
-    private sealed record Entry(ushort Type, string Name, string Sub, string Sheet, int SheetIndex, bool IsItem, string Description);
+    // Id = the XML id (what ArtPlaceholders lists), Name = what the row shows (DisplayId when there is one - the dummies, loot bags and guild hall
+    // upgrades have one, and until 2026-09-22 the placeholder check was made with it and called them NEW).
+    private sealed record Entry(ushort Type, string Id, string Name, string Sub, string Sheet, int SheetIndex, bool IsItem, string Description);
     private List<Entry> _items;
     private List<Entry> _entities;
     private bool _showItems = true;
@@ -128,7 +131,7 @@ public sealed class AdminDashboardView : Overlay {
     }
 
     private void OnKeyDown(KeyboardEvent args) {
-        if (args.Code == Settings.Options.Key) {
+        if (args.Code == Settings.Options.Key || args.Code == Scancode.Escape) {      // Escape always closes; the options key is O since 2026-09-22
             CloseOverlay();
         }
     }
@@ -289,13 +292,13 @@ public sealed class AdminDashboardView : Overlay {
         }
 
         _items = ObjectLibrary.TypeToItem.Values
-            .Select(i => new Entry(i.ObjectType, i.DisplayId ?? i.ObjectId, i.Tier >= 0 ? $"Tier {i.Tier}" : "Item", SheetOf(i.ObjectType), IndexOf(i.ObjectType), true, i.Description))
+            .Select(i => new Entry(i.ObjectType, i.ObjectId, i.DisplayId ?? i.ObjectId, i.Tier >= 0 ? $"Tier {i.Tier}" : "Item", SheetOf(i.ObjectType), IndexOf(i.ObjectType), true, i.Description))
             .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
         _entities = ObjectLibrary.TypeToObjectProps.Values
             .Where(p => !ObjectLibrary.TypeToItem.ContainsKey(p.ObjectType) && !string.IsNullOrWhiteSpace(p.ObjectId))
-            .Select(p => new Entry(p.ObjectType, p.DisplayId ?? p.ObjectId, KindOf(p), SheetOf(p.ObjectType), IndexOf(p.ObjectType), false, p.Description))
+            .Select(p => new Entry(p.ObjectType, p.ObjectId, p.DisplayId ?? p.ObjectId, KindOf(p), SheetOf(p.ObjectType), IndexOf(p.ObjectType), false, p.Description))
             .OrderBy(e => e.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
     }
@@ -334,8 +337,8 @@ public sealed class AdminDashboardView : Overlay {
         EnsureLibrary();
         _body.RemoveChildren();
 
-        var itemsNew = _items.Count(e => ArtRules.IsNew(e.Sheet, e.SheetIndex));
-        var entNew = _entities.Count(e => ArtRules.IsNew(e.Sheet, e.SheetIndex));
+        var itemsNew = _items.Count(e => ArtRules.IsNew(e.Sheet, e.SheetIndex, e.Id));
+        var entNew = _entities.Count(e => ArtRules.IsNew(e.Sheet, e.SheetIndex, e.Id));
         Label($"Items: {_items.Count} ({itemsNew} new art, {_items.Count - itemsNew} original)     Entities: {_entities.Count} ({entNew} new art, {_entities.Count - entNew} original)", 0, 0, 15f, OptionsStyle.Tan);
 
         _body.AddChild(Button("Items", 0, 24, 100, 32, 16f, () => { _showItems = true; _libStart = 0; _selected = null; BuildLibrary(); }));
@@ -404,8 +407,8 @@ public sealed class AdminDashboardView : Overlay {
 
         row.AddChild(OptionsStyle.Label(Shorten(entry.Name, 26), FontGroup.MyriadPro, 17f, 46, 12, UiAnchor.MiddleLeft, OptionsStyle.Cream, 1));
         row.AddChild(OptionsStyle.Label($"{entry.Sub}   0x{entry.Type:x}", FontGroup.MyriadPro, 13f, 46, 28, UiAnchor.MiddleLeft, OptionsStyle.Tan, 1));
-        var isNew = ArtRules.IsNew(entry.Sheet, entry.SheetIndex);
-        row.AddChild(OptionsStyle.Label(ArtRules.Label(entry.Sheet, entry.SheetIndex), FontGroup.MyriadPro, 14f, width - 10, RowH / 2 - 2, UiAnchor.MiddleRight, isNew ? Good : OptionsStyle.Tan, 1));
+        var isNew = ArtRules.IsNew(entry.Sheet, entry.SheetIndex, entry.Id);
+        row.AddChild(OptionsStyle.Label(ArtRules.Label(entry.Sheet, entry.SheetIndex, entry.Id), FontGroup.MyriadPro, 14f, width - 10, RowH / 2 - 2, UiAnchor.MiddleRight, isNew ? Good : OptionsStyle.Tan, 1));
 
         row.AddEventListener(MouseEvent.LeftClick, () => {
             _selected = entry;
@@ -431,8 +434,8 @@ public sealed class AdminDashboardView : Overlay {
 
         _body.AddChild(OptionsStyle.Label(Shorten(e.Name, 22), FontGroup.MyriadPro, 22f, x + 90, 128, UiAnchor.LeftTop, WaWStyle.Highlight, 1));
         _body.AddChild(OptionsStyle.Label($"{e.Sub}   type 0x{e.Type:x}", FontGroup.MyriadPro, 14f, x + 90, 156, UiAnchor.LeftTop, OptionsStyle.Tan, 1));
-        var isNew = ArtRules.IsNew(e.Sheet, e.SheetIndex);
-        _body.AddChild(OptionsStyle.Label($"Art: {ArtRules.Label(e.Sheet, e.SheetIndex)}  ({e.Sheet ?? "none"})", FontGroup.MyriadPro, 14f, x + 90, 176, UiAnchor.LeftTop, isNew ? Good : OptionsStyle.Tan, 1));
+        var isNew = ArtRules.IsNew(e.Sheet, e.SheetIndex, e.Id);
+        _body.AddChild(OptionsStyle.Label($"Art: {ArtRules.Label(e.Sheet, e.SheetIndex, e.Id)}  ({e.Sheet ?? "none"})", FontGroup.MyriadPro, 14f, x + 90, 176, UiAnchor.LeftTop, isNew ? Good : OptionsStyle.Tan, 1));
 
         var desc = string.IsNullOrWhiteSpace(e.Description) ? "No description." : e.Description.Trim();
         _body.AddChild(new SimpleText(new TextConfig {

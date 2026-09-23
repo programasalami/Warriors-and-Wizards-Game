@@ -11,7 +11,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Inventory;
 
-[Packet(PacketId.INVDROP)]
+[Packet(PacketId.InvDrop)]
 public record InvDrop : IIncomingPacket {
     public byte SlotId;
 

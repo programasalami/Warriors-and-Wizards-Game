@@ -466,7 +466,16 @@ public sealed partial class CharacterBook {
         page.AddChild(Text(d.GiftReady ? "TODAY'S GIFT" : "COME BACK SOON", FontGroup.MyriadPro, TitleSize, RightPageCenterX, PageTop + Sz(16), UiAnchor.Middle, maxWidth: RightPageW - 10));
         page.AddChild(Rule(RightPageCenterX, PageTop + Sz(46), RightPageW - Sz(40)));
 
-        page.AddChild(Text(d.Streak == 0 ? "Start your streak today!" : $"Streak: {Plural(d.Streak, "day")}", FontGroup.MyriadPro, BodySize - 2, RightPageCenterX, PageTop + Sz(80), UiAnchor.Middle, color: InkSoft, outline: 1));
+        // The note ("You got 100 gold!" after opening, or an error) needs a place of its own: it used to sit at the page bottom, on top of the "Next gift in"
+        // line (2026-09-22). Waiting: the note goes under the reward and the timer moves to the bottom edge. Gift still open (an error): the note takes
+        // the streak line's place, above the OPEN GIFT button (the streak is back on the next rebuild).
+        var hasNote = _giftNote.Length > 0;
+        var noteColor = _giftNote.StartsWith("You got", StringComparison.Ordinal) ? Good : Bad;
+        if (hasNote && d.GiftReady) {
+            page.AddChild(Text(_giftNote, FontGroup.MyriadPro, 20f, RightPageCenterX, PageTop + Sz(80), UiAnchor.Middle, color: noteColor, maxWidth: RightPageW - 30, outline: 1));
+        } else {
+            page.AddChild(Text(d.Streak == 0 ? "Start your streak today!" : $"Streak: {Plural(d.Streak, "day")}", FontGroup.MyriadPro, BodySize - 2, RightPageCenterX, PageTop + Sz(80), UiAnchor.Middle, color: InkSoft, outline: 1));
+        }
 
         var gift = d.Gifts[d.GiftDay];
         page.AddChild(new ObjectRect(new ObjectRectConfig {
@@ -484,12 +493,11 @@ public sealed partial class CharacterBook {
 
         if (d.GiftReady) {
             page.AddChild(BuildScrollButton("OPEN GIFT", RightPageCenterX, PageTop + Sz(310), 220, 54, ClaimGift));
+        } else if (hasNote) {
+            page.AddChild(Text(_giftNote, FontGroup.MyriadPro, 20f, RightPageCenterX, PageTop + Sz(290), UiAnchor.Middle, color: noteColor, maxWidth: RightPageW - 30, outline: 1));
+            page.AddChild(Text($"Next gift in {DailyData.Countdown(d.SecondsToGift)}", FontGroup.MyriadPro, 20f, RightPageCenterX, PageBottom - Sz(4), UiAnchor.MiddleBottom, color: InkSoft, outline: 1));
         } else {
             page.AddChild(Text($"Next gift in {DailyData.Countdown(d.SecondsToGift)}", FontGroup.MyriadPro, 22f, RightPageCenterX, PageTop + Sz(306), UiAnchor.Middle, color: InkSoft, outline: 1));
-        }
-
-        if (_giftNote.Length > 0) {
-            page.AddChild(Text(_giftNote, FontGroup.MyriadPro, 20f, RightPageCenterX, PageBottom - Sz(10), UiAnchor.MiddleBottom, color: _giftNote.StartsWith("You got", StringComparison.Ordinal) ? Good : Bad, maxWidth: RightPageW - 30, outline: 1));
         }
     }
 
@@ -667,7 +675,7 @@ public sealed partial class CharacterBook {
 
     #region Tab badges
 
-    private readonly ColorRect[] _badges = new ColorRect[6];
+    private readonly ColorRect[] _badges = new ColorRect[TabCount];
 
     // A small dot on a tab when there is something waiting: unread / unclaimed mail, an unopened daily gift, an unused spin.
     private void UpdateTabBadges() {

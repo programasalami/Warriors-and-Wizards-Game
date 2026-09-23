@@ -97,10 +97,11 @@ public class AdminRulesTests {
     [Theory]
     [InlineData("largeObjects", true)]
     [InlineData("grasslands", true)]
-    [InlineData("equipAndConsume", true)]
+    [InlineData("dungeonItems", true)]
     [InlineData("guildHall", false)]
     [InlineData("icons", false)]
     [InlineData("players", true)]
+    [InlineData("skins", true)]
     [InlineData("npcs", false)]
     [InlineData("", false)]
     [InlineData(null, false)]
@@ -108,9 +109,14 @@ public class AdminRulesTests {
 
     [Fact]
     public void ArtLabels() {
-        Assert.Equal("NEW", ArtRules.Label("equipAndConsume", 0));
-        Assert.Equal("ORIGINAL", ArtRules.Label("equipAndConsume", 8));         // the stock Health Potion sits on our sheet until it is replaced
-        Assert.Equal("ORIGINAL", ArtRules.Label("icons", 3));
+        Assert.Equal("NEW", ArtRules.Label("dungeonItems", 18, "Old Sword"));
+        Assert.Equal("NEW", ArtRules.Label("dungeonItems", 15, "Old Robe"));                // shares the armour's picture on purpose (2026-09-22): not a stand-in
+        Assert.Equal("PLACEHOLDER", ArtRules.Label("dungeonItems", 19, "DpsDummy0def"));   // the XML id, not the DisplayId, is what the list holds
+        Assert.Equal("NEW", ArtRules.Label("dungeonItems", 19, "DPS Dummy 0 def"));        // a display name is unknown to the list (the dashboard passes the id)
+        Assert.Equal("PLACEHOLDER", ArtRules.Label("dungeon", 54, "Table"));
+        Assert.Equal("ORIGINAL", ArtRules.Label("icons", 3));                                // a retired sheet name would mean old art crept back
         Assert.Equal("no art", ArtRules.Label(null));
+        Assert.True(ArtRules.IsPlaceholder("Wood Panel Wall"));
+        Assert.False(ArtRules.IsPlaceholder("Forest Oak"));
     }
 }

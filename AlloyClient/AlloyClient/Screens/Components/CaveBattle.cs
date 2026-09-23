@@ -18,7 +18,7 @@ namespace AlloyClient.Screens.Components;
 // always something going on somewhere.
 //
 // Everything here is drawn from art the game already has: the players sheet (Wizard/Warrior), the 16x16 monster sheet
-// (the "caveMonsters" sheet), the effect/projectile sprites in the "icons" sheet, and the soft glow sprites of the cave map (CaveBackdrop). It
+// (the "dungeonMonsters" sheet), the effect/projectile sprites in the "hudIcons" sheet, and the soft glow sprites of the cave map (CaveBackdrop). It
 // is all in the cave's 1280x720 design space (the backdrop scales it to the window). Tune with the constants below.
 public sealed class CaveBattle : Container {
 
@@ -47,21 +47,26 @@ public sealed class CaveBattle : Container {
     private const float OrbSpeed = 175f;
     private const float FlashMs = 110f;
 
-    // ---- Effect sprite indices in the "icons" sheet (8x8 art; see the sheet; moved there 2026-09-20) -------------------------------------------------------
-    private const int FxBoltPurple = 21;          // horizontal purple bolt (bright head on the left)
-    private const int FxBladeSwing = 16;          // the Blade projectile's picture, used as the Warrior's swing
-    private const int FxOrbFire = 11;
-    private const int FxOrbBlue = 12;
-    private const int FxOrbPurple = 13;
-    private const int FxImpactX = 20;             // orange X burst
-    private const int FxImpactWhite = 19;
-    private const int FxSplatRed = 8;
+    // ---- Effect sprite indices in the "hudIcons" sheet (16x16, from the Dark Dungeon pack since 2026-09-21) --------------------------------------------------
+    private const int FxBoltPurple = 5;           // arrows (hudIcons cell 5)
+    private const int FxBladeSwing = 6;           // the sword picture, used as the Warrior's swing
+    private const int FxOrbFire = 2;              // the torch's flame
+    private const int FxOrbBlue = 7;              // blue potion
+    private const int FxOrbPurple = 8;            // red potion
+    private const int FxImpactX = 4;              // drawn burst
+    private const int FxImpactWhite = 3;          // drawn dot
+    private const int FxSplatRed = 9;             // apple
+
+    // The monsters are the six Dark Dungeon characters (skeleton, knight, goblin, slime, wraith, rat); the roster below has more species than
+    // that, so each one draws cell % MonsterCells - a stand-in until a monster pack is bought.
+    private const string MonsterSheet = "dungeonMonsters";
+    private const int MonsterCells = 6;
 
     // Glow kinds of the cave's glow strip: teal, green, amber, purple, white, fog.
     private const int GlowTeal = 0, GlowGreen = 1, GlowAmber = 2, GlowPurple = 3, GlowWhite = 4, GlowFog = 5;
 
     // The dust/spark burst sprite that goes with each glow colour (for hits and deaths).
-    private static readonly int[] SparkByGlow = [9, 14, 15, 13, 10];
+    private static readonly int[] SparkByGlow = [3, 3, 2, 8, 3];      // dot, dot, flame, red potion, dot
 
     private readonly record struct Arena(float MinX, float MaxX, float MinY, float MaxY, int EdgeDir) {
         public float MidY => (MinY + MaxY) / 2f;
@@ -450,7 +455,7 @@ public sealed class CaveBattle : Container {
         actor.Shadow = MakeShadow(EnemySize - 8, 20);
         actor.Root.AddChild(actor.Shadow);
         actor.Body = new ObjectRect(new ObjectRectConfig {
-            Texture = TextureHelper.FromGameAtlas("caveMonsters", species.Cell),
+            Texture = TextureHelper.FromGameAtlas(MonsterSheet, species.Cell % MonsterCells),
             Width = EnemySize,
             Height = EnemySize,
             Anchor = UiAnchor.Middle,
@@ -1060,7 +1065,8 @@ public sealed class CaveBattle : Container {
     // Effects
     // ==================================================================================================================
 
-    private static TextureInfo LofiObj(int index) => TextureHelper.FromGameAtlas("icons", index);
+    // Effect pictures live on the hudIcons sheet since the 2026-09-21 rework (2 flame, 3 dot, 4 burst, 5 arrows, 6 sword, 7 blue potion, 8 red potion, 9 apple).
+    private static TextureInfo LofiObj(int index) => TextureHelper.FromGameAtlas("hudIcons", index);
 
     private ObjectRect Rent(TextureInfo texture, int width, int height) {
         ObjectRect rect;

@@ -143,6 +143,11 @@ public sealed class SimpleText : Sprite {
         if (zero.X > boundWidth) {
             boundWidth = zero.X;
         }
+
+        // Clear the slots past the last character. The buffer only ever grows, so after a SHORTER text the vertices past idx still held the longer
+        // text's positions, and the sprite's width (the largest vertex X, Sprite.Rendering.SetGraphicsBuffer) stayed as wide as the longest text ever
+        // set: a centred label then sat left of centre until it was rebuilt (the options' key boxes after picking a new key, 2026-09-22).
+        System.Array.Clear(VertexData, idx * 4, VertexData.Length - idx * 4);
         
         SetGraphicsBuffer();
         

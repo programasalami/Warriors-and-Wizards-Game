@@ -10,7 +10,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Portals;
 
-[Packet(PacketId.USEPORTAL)]
+[Packet(PacketId.UsePortal)]
 public record UsePortal : IIncomingPacket {
     public EntityId ObjectId;
 

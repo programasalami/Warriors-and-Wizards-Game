@@ -64,9 +64,15 @@ server {
     location ~ "^/_framework/.+\\.[a-z0-9]{10}\\.(js|wasm|dat|json|dll|pdb)\$" {
         add_header Cache-Control "public, max-age=31536000, immutable";
     }
+    # The Windows client zip (uploaded by deploy -Client). Always revalidated so a new build is picked up at once.
+    location /download/ {
+        add_header Cache-Control "no-cache";
+        add_header Content-Disposition "attachment";
+        try_files \$uri =404;
+    }
     location /api/ {
         proxy_pass http://$IP:8080/;
-        proxy_set_header Host \$host;
+        proxy_set_header Host $IP:8080;   # the account server only answers requests addressed to its own listen address
         proxy_set_header X-Forwarded-For \$remote_addr;
         client_max_body_size 1m;
         proxy_read_timeout 60s;

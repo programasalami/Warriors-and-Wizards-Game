@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using Alloy.Common;
+using AlloyClient.Core;
 using AlloyClient.Game.Objects;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
@@ -8,16 +9,19 @@ using OpenTK.Mathematics;
 
 namespace AlloyClient.Game.Components.Hud;
 
+// The markers on the minimap: a small square per player / enemy / portal in view, and your own icon in the middle (shape + colour from
+// the Extra options tab, MinimapIcon; 2026-09-22 - it used to be a blue arrow picture in Minimap.cs that changed size as the camera turned).
 public sealed class MinimapLayer : Container {
 
     // |ratio| beyond this puts the dot (3.25px radius) partly or wholly outside the 230px map
     private const float DotLimit = 1f - 4f / (Minimap.MapSize / 2f);
 
     private const int MaxEntities = 1000;
-    private const int VertexSize = MaxEntities * 4;
-    private const int IndexSize = MaxEntities * 6;
+    private const int VertexSize = MaxEntities * 4 + 64;      // + room for the player icon (a circle is 17 vertices)
+    private const int IndexSize = MaxEntities * 6 + 96;
 
-    private int _count = 0;
+    private int _vertexCount;
+    private int _indexCount;
     private float _size;
 
     private static Entity _focus;
@@ -26,7 +30,7 @@ public sealed class MinimapLayer : Container {
         // Not mouse-enabled: Container turns that on for clip containers, and this layer must not swallow clicks meant for the map.
         MouseEnabled = false;
         TextureId = TextureType.Color;
-        
+
         AddEventListener(Event.EnterFrame, OnFrameEnter);
 
         ResizeBackBuffer();
@@ -51,40 +55,37 @@ public sealed class MinimapLayer : Container {
     public void SetSize(float size) => _size = size;
 
     private void AddObject(Vector2 pos, uint rgb) {
-        if (_count >= MaxEntities) return;
-
         const float size = 3.25f;
+        AddShape(pos, [new(-size, -size), new(size, -size), new(size, size), new(-size, size)], [0, 1, 2, 0, 2, 3], Color.FromHexRGB(rgb));
+    }
 
-        var color = Color.FromHexRGB(rgb);
-        VertexData[_count * 4 + 0] = new VertexUi(new Vector2(pos.X - size, pos.Y - size), color);
-        VertexData[_count * 4 + 1] = new VertexUi(new Vector2(pos.X + size, pos.Y - size), color);
-        VertexData[_count * 4 + 2] = new VertexUi(new Vector2(pos.X + size, pos.Y + size), color);
-        VertexData[_count * 4 + 3] = new VertexUi(new Vector2(pos.X - size, pos.Y + size), color);
+    private void AddShape(Vector2 centre, ReadOnlySpan<Vector2> offsets, ReadOnlySpan<ushort> indices, Color color) {
+        if (_vertexCount + offsets.Length > VertexSize || _indexCount + indices.Length > IndexSize) return;
 
-        Indices[_count * 6 + 0] = (ushort)(_count * 4 + 0);
-        Indices[_count * 6 + 1] = (ushort)(_count * 4 + 1);
-        Indices[_count * 6 + 2] = (ushort)(_count * 4 + 2);
-        Indices[_count * 6 + 3] = (ushort)(_count * 4 + 0);
-        Indices[_count * 6 + 4] = (ushort)(_count * 4 + 2);
-        Indices[_count * 6 + 5] = (ushort)(_count * 4 + 3);
+        for (var i = 0; i < offsets.Length; i++)
+            VertexData[_vertexCount + i] = new VertexUi(centre + offsets[i], color);
+        for (var i = 0; i < indices.Length; i++)
+            Indices[_indexCount + i] = (ushort)(_vertexCount + indices[i]);
 
-        _count++;
-        OverridePrimCount += 2;
+        _vertexCount += offsets.Length;
+        _indexCount += indices.Length;
+        OverridePrimCount += indices.Length / 3;
     }
 
     private void OnFrameEnter() {
         if (Map.LocalPlayer == null) return;
-        
-        _count = 0;
+
+        _vertexCount = 0;
+        _indexCount = 0;
         OverridePrimCount = 0;
 
         foreach (var kvp in Map.Entities) {
             var entity = kvp.Value;
-            
+
             if (entity.Properties.Static || entity.Properties.NoMiniMap || entity.ObjectId == _focus.ObjectId) continue;
 
             var fillColor = 0u;
-            
+
             if (entity is Player player) {
                 if (player.HasConditionEffect(ConditionEffect.Paused)) {
                     fillColor = 0x7F7F7F;
@@ -115,5 +116,8 @@ public sealed class MinimapLayer : Container {
             AddObject(pos, fillColor);
         }
 
+        // You, last so you are drawn on top of everyone standing on you.
+        var icon = MinimapIcon.Get(Settings.MinimapIconShape);
+        AddShape(new Vector2(Minimap.MapSize / 2f), icon.Offsets, icon.Indices, Color.FromHexRGB(MinimapIcon.Rgb(Settings.MinimapIconColor)));
     }
 }

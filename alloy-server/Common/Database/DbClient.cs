@@ -15,7 +15,11 @@ namespace Common.Database;
 public static class DbClient {
     private static readonly Logger _log = new(typeof(DbClient));
 
-    private const int MaxAccountsPerIp = 3000;
+    private const int MaxAccountsPerIp = 10;     // was 3000, i.e. no limit (2026-09-21 audit, L6)
+
+    // Failed logins per account name (any path: HTTP endpoints and the game server's Hello all end up here). Per-IP limits live in
+    // the AccountServer's HTTP handlers, which know the address. 2026-09-21 audit (C7): there was no limit at all.
+    public static readonly AttemptLimiter LoginAttempts = new(10, TimeSpan.FromMinutes(10));
 
     public static NpgsqlDataSource DataSource;
 
@@ -178,7 +182,10 @@ public static class DbClient {
         else {
             var ipCount = await conn.ExecuteScalarAsync<long>(
                 "SELECT COUNT(*) FROM logins WHERE ip_address=@Ip", new { Ip = ip });
-            if (ipCount >= MaxAccountsPerIp)
+            // This PC itself (local development, or a request made on the server box) is never capped - every real visitor arrives with their own
+            // address (nginx forwards it); same rule as the game port's ConnectionLedger (2026-09-22: local test registrations hit the cap).
+            var loopback = ip is "127.0.0.1" or "::1" or "::ffff:127.0.0.1";
+            if (!loopback && ipCount >= MaxAccountsPerIp)
                 status = RegisterStatus.MaxAccountsReached;
         }
 
@@ -188,6 +195,7 @@ public static class DbClient {
 
             var acc = new Account {
                 Name = username,
+                CreatedAt = DateTime.UtcNow,            // shown on The Portal ("Created"); it was never set before 2026-09-22
                 MaxChars = NewAccountsConfig.Config.MaxChars,
                 VaultCount = NewAccountsConfig.Config.VaultCount,
                 Stats = new AccountStats {
@@ -199,8 +207,8 @@ public static class DbClient {
                 }
             };
             var login = new Login {
-                Name = lowerName, IpAddress = ip, PasswordHash = (password + salt).ToSHA1(),
-                PasswordSalt = salt
+                Name = lowerName, IpAddress = ip, PasswordHash = PasswordHasher.Hash(password, salt),
+                PasswordSalt = salt, LastLoginAt = DateTime.UtcNow
             };
 
             // Written directly on this same connection instead of through FlushAsync/DbWriter<T> -
@@ -224,24 +232,39 @@ public static class DbClient {
         return status;
     }
 
-    public static async Task<(Account Acc, VerifyStatus Status)> VerifyAccount(string username, string password, Guid gameServerGuid) {
+    // isLockOwnerLive: given the GUID of a game server that holds the account's lock, is that server still connected? When it is
+    // not (it crashed or was restarted and its locks were not released), the lock is taken over instead of refusing the login.
+    public static async Task<(Account Acc, VerifyStatus Status)> VerifyAccount(string username, string password, Guid gameServerGuid, Func<Guid, bool> isLockOwnerLive = null) {
         await using var conn = await OpenConnectionAsync();
 
         // RegisterAsync stores the login name lowercased (see lowerName below) - lowercase here
         // too, or any username typed with a capital letter registers fine but then fails this
         // exact-match lookup on the very next auto-verify, reporting InvalidCredentials for a
         // brand new, correctly-registered account.
+        var nameKey = (username ?? string.Empty).ToLower();
+        if (LoginAttempts.IsBlocked(nameKey))
+            return (null, VerifyStatus.TooManyAttempts);
+
         var login = await conn.QueryFirstOrDefaultAsync<Login>(
             "SELECT id AS Id, name AS Name, password_hash AS PasswordHash, password_salt AS PasswordSalt, " +
             "ip_address AS IpAddress, last_login_at AS LastLoginAt FROM logins WHERE name=@Username",
-            new { Username = username.ToLower() });
-        if (login == null)
+            new { Username = nameKey });
+        if (login == null) {
+            LoginAttempts.Record(nameKey);
             return (null, VerifyStatus.InvalidCredentials);
-
-        var hash = (password + login.PasswordSalt).ToSHA1();
-        if (login.PasswordHash != hash)
+        }
+        if (!PasswordHasher.Verify(password, login.PasswordSalt, login.PasswordHash)) {
+            if (LoginAttempts.Record(nameKey))
+                _log.Warn($"Account '{nameKey}' is temporarily locked out after {LoginAttempts.MaxAttempts} failed logins.");
             return (null, VerifyStatus.InvalidCredentials);
+        }
+        LoginAttempts.Clear(nameKey);
 
+        // Silent upgrade of the stored hash (SHA1 -> PBKDF2, or an older PBKDF2 strength) now that the password is known to be right.
+        if (PasswordHasher.NeedsUpgrade(login.PasswordHash)) {
+            await conn.ExecuteAsync("UPDATE logins SET password_hash=@Hash WHERE id=@Id",
+                new { Hash = PasswordHasher.Hash(password, login.PasswordSalt), login.Id });
+        }
         var acc = await GetAccountByNameAsync(conn, login.Name);
         if (acc == null)
             return (null, VerifyStatus.InternalError);
@@ -255,8 +278,21 @@ public static class DbClient {
             // Atomic acquire-or-verify-already-mine against Redis - replaces the old
             // Account.LockOwner field entirely (that mutation was never actually
             // persisted, so the old in-DB duplicate-login check didn't reliably work).
-            if (!await AccountLockManager.TryAcquireAsync(acc.Id, gameServerGuid))
-                return (null, VerifyStatus.AccountInUse);
+            if (!await AccountLockManager.TryAcquireAsync(acc.Id, gameServerGuid)) {
+                var owner = await AccountLockManager.GetOwnerAsync(acc.Id);
+                var ownerDead = owner.HasValue && isLockOwnerLive != null && !isLockOwnerLive(owner.Value);
+                if (!ownerDead)
+                    return (null, VerifyStatus.AccountInUse);
+
+                _log.Warn($"Account {acc.Id} was locked by game server {owner} which is no longer connected; releasing the stale lock.");
+                await AccountLockManager.ReleaseAsync(acc.Id);
+                if (!await AccountLockManager.TryAcquireAsync(acc.Id, gameServerGuid))
+                    return (null, VerifyStatus.AccountInUse);
+            }
+
+            // Entering the game = "last seen" on The Portal. Nothing ever wrote this column before 2026-09-22 (registration stored an empty
+            // date and sign-ins re-saved it), so every profile showed no Last Seen.
+            await conn.ExecuteAsync("UPDATE logins SET last_login_at=now() WHERE id=@Id", new { login.Id });
         }
 
         return (acc, VerifyStatus.Success);
@@ -269,7 +305,7 @@ public static class DbClient {
         if (acc == null) {
             status = CreateCharacterStatus.InternalError;
         }
-        else if (acc.Characters.Count >= acc.MaxChars) {
+        else if (!CharacterSlots.HasFree(acc.Characters, acc.MaxChars)) {      // deleted / dead characters do not use a slot (2026-09-21)
             status = CreateCharacterStatus.MaxCharactersReached;
         }
         else if (skinType != 0 && !acc.OwnedSkins.Contains(skinType)) {
@@ -281,6 +317,7 @@ public static class DbClient {
                 var charId = acc.NextCharId;
                 var classDesc = XmlLibrary.PlayerDescs[objectType];
                 chr = new Character {
+                    CreatedAt = DateTime.UtcNow,      // was never set (2026-09-22); the Portal falls back to the first character's date
                     CharId = charId,
                     XpPoints = NewCharsConfig.Config.Experience,
                     Level = NewCharsConfig.Config.Level,

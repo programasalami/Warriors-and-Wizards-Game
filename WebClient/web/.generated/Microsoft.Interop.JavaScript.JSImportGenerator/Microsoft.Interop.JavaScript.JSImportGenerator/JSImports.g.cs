@@ -1064,6 +1064,45 @@ namespace OpenTK.Graphics.OpenGL
     public static unsafe partial class GL
     {
         [global::System.Diagnostics.DebuggerNonUserCode]
+        private static partial void JsDeleteVertexArray(int v)
+        {
+            if (__signature_JsDeleteVertexArray_1521571026 == null)
+            {
+                __signature_JsDeleteVertexArray_1521571026 = global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding.BindJSFunction("deleteVertexArray", "gl", [global::System.Runtime.InteropServices.JavaScript.JSMarshalerType.Discard, global::System.Runtime.InteropServices.JavaScript.JSMarshalerType.Int32]);
+            }
+
+            {
+                global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_exception_native;
+                global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_return_native;
+                global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument __v_native;
+                // Setup - Perform required setup.
+                global::System.Runtime.CompilerServices.Unsafe.SkipInit(out ____arg_return_native);
+                ____arg_return_native.Initialize();
+                global::System.Runtime.CompilerServices.Unsafe.SkipInit(out ____arg_exception_native);
+                ____arg_exception_native.Initialize();
+                global::System.Runtime.CompilerServices.Unsafe.SkipInit(out __v_native);
+                // Marshal - Convert managed data to native data.
+                __v_native.ToJS(v);
+                {
+                    __InvokeJSFunction(____arg_exception_native, ____arg_return_native, __v_native);
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCode]
+            void __InvokeJSFunction(global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_exception_native, global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_return_native, global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument __v_native)
+            {
+                global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding.InvokeJS(__signature_JsDeleteVertexArray_1521571026, [____arg_exception_native, ____arg_return_native, __v_native]);
+            }
+        }
+
+        static global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding __signature_JsDeleteVertexArray_1521571026;
+    }
+}
+namespace OpenTK.Graphics.OpenGL
+{
+    public static unsafe partial class GL
+    {
+        [global::System.Diagnostics.DebuggerNonUserCode]
         private static partial void JsDeleteSampler(int s)
         {
             if (__signature_JsDeleteSampler_1521571026 == null)
@@ -3310,5 +3349,40 @@ namespace WarriorsWeb
         }
 
         static global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding __signature_JsOpenUrl_92020726;
+    }
+}
+namespace WarriorsWeb
+{
+    public static unsafe partial class WebHost
+    {
+        [global::System.Diagnostics.DebuggerNonUserCode]
+        private static partial void JsReloadPage()
+        {
+            if (__signature_JsReloadPage_19325221 == null)
+            {
+                __signature_JsReloadPage_19325221 = global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding.BindJSFunction("reloadPage", "host", [global::System.Runtime.InteropServices.JavaScript.JSMarshalerType.Discard]);
+            }
+
+            {
+                global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_exception_native;
+                global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_return_native;
+                // Setup - Perform required setup.
+                global::System.Runtime.CompilerServices.Unsafe.SkipInit(out ____arg_return_native);
+                ____arg_return_native.Initialize();
+                global::System.Runtime.CompilerServices.Unsafe.SkipInit(out ____arg_exception_native);
+                ____arg_exception_native.Initialize();
+                {
+                    __InvokeJSFunction(____arg_exception_native, ____arg_return_native);
+                }
+            }
+
+            [global::System.Diagnostics.DebuggerNonUserCode]
+            void __InvokeJSFunction(global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_exception_native, global::System.Runtime.InteropServices.JavaScript.JSMarshalerArgument ____arg_return_native)
+            {
+                global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding.InvokeJS(__signature_JsReloadPage_19325221, [____arg_exception_native, ____arg_return_native]);
+            }
+        }
+
+        static global::System.Runtime.InteropServices.JavaScript.JSFunctionBinding __signature_JsReloadPage_19325221;
     }
 }

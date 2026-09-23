@@ -18,7 +18,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Inventory;
 
-[Packet(PacketId.INVSWAP)]
+[Packet(PacketId.InvSwap)]
 public record InvSwap : IIncomingPacket {
     public SlotObjectData SlotObject1;
     public SlotObjectData SlotObject2;

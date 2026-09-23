@@ -7,7 +7,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Chat;
 
-[Packet(PacketId.PLAYERTEXT)]
+[Packet(PacketId.PlayerText)]
 public record PlayerText : IIncomingPacket {
     public string Text;
 

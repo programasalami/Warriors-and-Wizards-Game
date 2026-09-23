@@ -5,5 +5,5 @@
     <Address>127.0.0.1</Address>
     <MaxConcurrentRequests>64</MaxConcurrentRequests>
     <!-- Where players download the newest desktop client (a zip / page URL). Shown to clients whose build is out of date; leave empty for no button. -->
-    <DownloadUrl></DownloadUrl>
+    <DownloadUrl>https://warriorsandwizards.com/download/</DownloadUrl>
 </AppEngineConfig>

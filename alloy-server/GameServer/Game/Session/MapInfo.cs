@@ -14,7 +14,7 @@ public readonly record struct MapInfo(
     bool AllowPlayerTeleport,
     string Music,
     int Difficulty) : IOutgoingPacket {
-    public PacketId ID => PacketId.MAPINFO;
+    public PacketId ID => PacketId.MapInfo;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(MapWidth);

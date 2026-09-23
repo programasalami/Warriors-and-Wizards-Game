@@ -94,6 +94,7 @@ public class KeyCodeBox : Sprite {
 
         _keyCode = args.Code;
         Value.Set(_keyCode);
+        Settings.SaveSettings();      // saved the moment it changes (see ChoiceBox)
 
         _callback.Invoke();
 

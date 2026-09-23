@@ -37,20 +37,21 @@ public static class ItemConstants {
     // everything else shows nothing.
     public static TextureInfo GetSlot(int slotType) {
         switch (slotType) {
+            // the faint "what goes here" pictures are the Dark Dungeon item sheet's own sword / helmet / plate / ring / staff / book / leather
             case SwordType:
-                return TextureHelper.FromGameAtlas("icons", 1);
+                return TextureHelper.FromGameAtlas("dungeonItems", 18);
             case HelmType:
-                return TextureHelper.FromGameAtlas("icons", 2);
+                return TextureHelper.FromGameAtlas("dungeonItems", 11);
             case PlateType:
-                return TextureHelper.FromGameAtlas("icons", 3);
+                return TextureHelper.FromGameAtlas("dungeonItems", 16);
             case RingType:
-                return TextureHelper.FromGameAtlas("icons", 4);
+                return TextureHelper.FromGameAtlas("dungeonItems", 0);
             case StaffType:
-                return TextureHelper.FromGameAtlas("icons", 5);
+                return TextureHelper.FromGameAtlas("dungeonItems", 21);
             case SpellType:
-                return TextureHelper.FromGameAtlas("icons", 6);
+                return TextureHelper.FromGameAtlas("dungeonItems", 8);
             case RobeType:
-                return TextureHelper.FromGameAtlas("icons", 7);
+                return TextureHelper.FromGameAtlas("dungeonItems", 15);
         }
 
         return TextureHelper.FromGameAtlas(0x0096);

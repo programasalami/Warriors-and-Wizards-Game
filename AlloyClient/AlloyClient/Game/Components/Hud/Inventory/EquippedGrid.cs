@@ -67,4 +67,12 @@ public sealed class EquippedGrid : Sprite {
         if (slot >= NumSlots) return;
         _tileSlots[slot].SetItem(_owner.Equipment[slot]);
     }
+
+    // See InventoryGrid.Sync: redraw a gear tile whose picture no longer matches the player's inventory (called by the HUD every frame).
+    public void Sync() {
+        for (var i = 0; i < NumSlots; i++) {
+            if (!ReferenceEquals(_tileSlots[i].ItemDesc, _owner.Equipment[i]))
+                _tileSlots[i].SetItem(_owner.Equipment[i]);
+        }
+    }
 }

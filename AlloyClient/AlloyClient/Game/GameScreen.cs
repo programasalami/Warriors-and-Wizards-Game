@@ -19,10 +19,12 @@ namespace AlloyClient.Game;
 
 public sealed class GameScreen : Screen {
 
-    public const double FixedUpdateStep = 1d / 60;
+    // The simulation step in MILLISECONDS (GameTime is in ms). It used to be 1d / 60 - a value in seconds compared against a
+    // millisecond accumulator - which ran ~1000 steps per frame; see FixedStepper.
+    public const double FixedUpdateStep = FixedStepper.DefaultStepMs;
 
     public static GameScreen GameSprite;
-    
+
     private readonly UserInput _userInput;
     private readonly ChatLayer _chatLayer;
     private readonly NotificationLayer _notificationLayer;
@@ -31,16 +33,16 @@ public sealed class GameScreen : Screen {
     private readonly DebugStats _debugStats;
     private readonly WorldLoadCover _cover;
 
-    private double _fixedUpdateElapsed;
+    private readonly FixedStepper _fixedStepper = new(FixedUpdateStep, FixedStepper.DefaultMaxStepsPerFrame);
+    private readonly System.Diagnostics.Stopwatch _frameClock = new();
     private Camera _camera;
-    private bool _diagCameraLogged;
 
     public GameScreen() {
         // The first entry into a world: the cover (added last below, so it sits on top) stays until every milestone in
         // WorldLoad has really happened - connecting, map info, character accepted, player spawned, first frame.
         WorldLoad.Begin(false);
         Client.Connect(Settings.GameServerAddress, Settings.SelectedGameServerPort);
-        
+
         AddChild(_userInput = new UserInput()); // add map as param
         AddChild(_chatLayer = new ChatLayer());
         AddChild(_notificationLayer = new NotificationLayer());
@@ -55,7 +57,7 @@ public sealed class GameScreen : Screen {
         _hud.OnOpenAdmin = OpenAdmin;
         _hud.OnDevChanged = OnDevChanged;
         _cover.Begin(false);
-        
+
         GameSprite = this;
     }
 
@@ -81,6 +83,14 @@ public sealed class GameScreen : Screen {
         _userInput.ClearMovement();
         UserInput.SetManualFocus(false);
         OverlayManager.Set(new Components.BugBoard.BugBoardView());
+    }
+
+    // The Nexus News Board (the patch notes): opens like the Bug Board.
+    public void OpenNewsBoard() {
+        _hud.CloseTabs();
+        _userInput.ClearMovement();
+        UserInput.SetManualFocus(false);
+        OverlayManager.Set(new Components.News.NewsBoardView());
     }
 
     // The admin dashboard (ADMIN tab, moderators and owners): opens like the Bug Board - closes the tabs, stops the player, takes the keyboard.
@@ -121,22 +131,24 @@ public sealed class GameScreen : Screen {
     public void SetChatScale(float scale) => _chat.Scale = new Vector2(scale);
 
     public override void Update(GameTime gameTime) {
+        PerfCounters.BeginFrame();
+        PerfSections.BeginFrame();
+        _frameClock.Restart();
+
+        var sect = PerfSections.Begin();
         Client.Tick();
+        PerfSections.End(PerfSections.Section.Net, sect);
         InGameMusic.Update();      // the shared in-game playlist (follows the server, crossfades between songs)
-        
+
         if (Map.LocalPlayer is null) {
+            PerfCounters.UpdateMs = _frameClock.Elapsed.TotalMilliseconds;
             return;
         }
-        
-        _camera = Camera.Update(Map.LocalPlayer.Position, new Vector3i(Stage.StageWidth, Stage.StageHeight, 0), Settings.CameraAngle, Settings.CameraZoom);
 
-        if (!_diagCameraLogged) {
-            _diagCameraLogged = true;
-            Client.Logger.Log(LogLevel.Debug,
-                $"[DIAG] camera pos={Map.LocalPlayer.Position} viewport=({Stage.StageWidth},{Stage.StageHeight}) " +
-                $"angle={Settings.CameraAngle} zoom={Settings.CameraZoom} matrix={_camera.Matrix} visibleTiles={_camera.VisibleTileRadius}");
-        }
+        // The camera for this frame's input (mouse -> world) and culling: where the character stood at the end of the last frame.
+        _camera = CameraOnPlayer();
 
+        sect = PerfSections.Begin();
         _userInput.Update(gameTime, _camera);
         _chatLayer.Update(gameTime, _camera);
         _notificationLayer.Update(gameTime, _camera);
@@ -144,32 +156,65 @@ public sealed class GameScreen : Screen {
         if (_debugStats.Visible) {
             _debugStats.Update(gameTime);
         }
+        PerfSections.End(PerfSections.Section.Hud, sect);
 
-        _fixedUpdateElapsed += gameTime.ElapsedMs;
-
-        while (_fixedUpdateElapsed > FixedUpdateStep) {
-            _fixedUpdateElapsed -= FixedUpdateStep;
+        // Fixed simulation steps (hit tests, trails): at most a few per frame, never a runaway backlog.
+        var fixedSect = PerfSections.Begin();
+        var fixedStart = _frameClock.Elapsed.TotalMilliseconds;
+        var steps = _fixedStepper.Advance(gameTime.ElapsedMs);
+        PerfCounters.FixedStepsThisFrame = steps;
+        PerfCounters.FixedStepsDroppedThisFrame = _fixedStepper.LastDropped;
+        PerfCounters.FixedStepsDroppedTotal = _fixedStepper.TotalDropped;
+        for (var i = 0; i < steps; i++) {
             Map.FixedUpdate(new GameTime(gameTime.TotalMs, FixedUpdateStep));
         }
-        
+        PerfCounters.FixedUpdateMs = _frameClock.Elapsed.TotalMilliseconds - fixedStart;
+        PerfSections.End(PerfSections.Section.Fixed, fixedSect);
+
+        sect = PerfSections.Begin();
         Map.Update(gameTime, _camera);
         PartyData.Update(gameTime.TotalMs);
+        PerfSections.End(PerfSections.Section.MapUpdate, sect);
+        Dev.DevPerfTest.Update(gameTime);
+
+        // Place the camera again on the character's position AFTER it moved this frame, so Draw puts the character exactly where the camera
+        // looks. Drawing with the camera from before Map.Update left the character one frame of movement (dt x speed) off-centre; with steady
+        // frame times that is a constant, invisible offset, but in the browser frame times vary, so the offset changed every frame and the
+        // character shifted back and forth a pixel or two while walking (2026-09-22). Camera.Update is pure, so a second call costs nothing.
+        _camera = CameraOnPlayer();
+        PerfCounters.UpdateMs = _frameClock.Elapsed.TotalMilliseconds;
+    }
+
+    // Where the camera looks: the character, or (Player Position = Lowered) a point LowerViewTiles up the screen from it. Screen-up in world
+    // coordinates is the same direction the "move up" key walks (see Player.HandleRelativeMovement): (sin angle, -cos angle).
+    private Camera CameraOnPlayer() {
+        var focus = Map.LocalPlayer.Position;
+        if (Settings.LowerPlayerView) {
+            float angle = Settings.CameraAngle;
+            focus += new Vector2(System.MathF.Sin(angle), -System.MathF.Cos(angle)) * Settings.LowerViewTiles;
+        }
+
+        return Camera.Update(focus, new Vector3i(Stage.StageWidth, Stage.StageHeight, 0), Settings.CameraAngle, Settings.CameraZoom);
     }
 
     public override void Draw(GameTime gameTime) {
+        var drawStart = _frameClock.Elapsed.TotalMilliseconds;
         Render.SetShaderParams(gameTime, _camera);
         Map.Draw(gameTime, _camera);
+        var sect = PerfSections.Begin();
         MinimapTexture.PreDrawUpdate();
+        PerfSections.End(PerfSections.Section.Minimap, sect);
 
         if (Map.LocalPlayer is not null) {
             WorldLoad.Mark(WorldMilestone.FirstFrame);
         }
+        PerfCounters.DrawMs = _frameClock.Elapsed.TotalMilliseconds - drawStart;
     }
 
     protected override void OnResize(ResizeEvent args) {
         var width = args.Width;
         var height = args.Height;
-        
+
         // The HUD fills the whole screen (its pieces hug the corners), scaled like everything else; it lays itself out in design units.
         var scale = Stage.ScreenScale;
         _hud.X = 0;

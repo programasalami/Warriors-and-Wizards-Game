@@ -15,14 +15,17 @@ using Common.Structs;
 using Common.Utilities;
 using GameServer.Game.Systems.Behaviors.Library;
 using GameServer.Game.Systems.Behaviors.Transitions;
+#if BEHAVIOR_HOTRELOAD
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
+#endif
 
 namespace GameServer.Game.Systems.Behaviors;
 
 public static class BehaviorLibrary {
     private static readonly Logger _log = new(typeof(BehaviorLibrary));
 
+#if BEHAVIOR_HOTRELOAD
     private static readonly string _assemblyPath = Path.GetDirectoryName(typeof(object).Assembly.Location);
 
     private static readonly IEnumerable<MetadataReference> _defaultReferences = [
@@ -50,6 +53,7 @@ public static class BehaviorLibrary {
 
     private static readonly ConcurrentDictionary<string, string> _behaviorFileCache = new();
     private static Assembly _lastAssembly;
+#endif
 
     public static readonly ConcurrentDictionary<string, State> ClassicBehaviors = new();
 
@@ -71,7 +75,7 @@ public static class BehaviorLibrary {
 
             var desc = XmlLibrary.Id2Object(attribute.ObjectId);
             if (desc == null) {
-                _log.Warn($"Missing descriptor for {attribute.ObjectId}");
+                _log.Debug($"Missing descriptor for {attribute.ObjectId}");   // behaviours of stock enemies whose XML was removed: expected, not a warning
                 continue;
             }
 
@@ -85,6 +89,12 @@ public static class BehaviorLibrary {
         _log.Info("Finished loading behavior library.");
     }
 
+#if !BEHAVIOR_HOTRELOAD
+    public static bool Reload(string behaviorsPath) {
+        _log.Warn("Behaviour hot reload is not available in this build (build the server with -p:BehaviorHotReload=true).");
+        return false;
+    }
+#else
     public static bool Reload(string behaviorsPath) {
         Assembly asm;
         using (new EasyTimer(LogLevel.Info, "Compiling behavior assembly...", "Compiled behavior assembly in [TIME]")) {
@@ -153,4 +163,5 @@ public static class BehaviorLibrary {
         });
         return ret.ToArray();
     }
+#endif
 }

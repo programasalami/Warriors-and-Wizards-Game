@@ -6,7 +6,7 @@
 # as drawn) but gets a brown hue. The parchment and divider are already tan and are cut untouched.
 #
 # Run from the repo root:   powershell -File Tools/DarkAges/build_darkages_assets.ps1
-# Then keep the DarkAges entries in Content/Ui.atlas and rebuild AlloyTk.sln.
+# Then keep the DarkAges entries in Content/Ui.atlas and rebuild WarriorsAndWizards.Client.sln.
 #
 # NOTE - the pack's licence forbids redistributing it "either modified or in its original form"; these crops are
 # derived from it (see LICENSE.txt in the pack).

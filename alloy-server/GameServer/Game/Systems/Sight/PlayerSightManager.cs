@@ -67,15 +67,10 @@ public class PlayerSightManager(World world, int capacity) : ManagerBase<PlayerS
         _forcedTileUpdates.Add(pos);
     }
 
-    private static readonly Logger _diagLog = new(typeof(PlayerSightManager));
-
     private void ProcessUpdate(User user, ref EntityStats playerStats, ref PlayerSight sight) {
         GetNewTiles(ref playerStats, ref sight);
         ProcessEntities(ref playerStats, ref sight);
 
-        _diagLog.Debug($"[DIAG] sight tick for user {user.Id} at ({playerStats.Pos.X},{playerStats.Pos.Y}): " +
-                        $"newTiles={_newTiles.Count} newEntities={_newEntities.Count} drops={_dropEntities.Count} " +
-                        $"visibleEntities={sight.VisibleEntities.Count}");
 
         if (_newTiles.Count == 0 && _newEntities.Count == 0 && _dropEntities.Count == 0)
             return;

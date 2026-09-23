@@ -98,6 +98,12 @@ public sealed class Projectile : IResettable { // TODO: make struct
     private float _elapsed; // double
     private Vector2 _position;
 
+    // Set the moment the projectile has hit something (or expired). A dead projectile does nothing more until Map.Update drops it:
+    // it used to keep hit-testing on every remaining fixed step of the same frame, which (with the old ~1000-step loop) produced a
+    // stack of hundreds of damage numbers, hit effects and EnemyHit packets from ONE hit (2026-09-21 audit).
+    private bool _dead;
+    public bool IsDead => _dead;
+
     public void Reset(ushort id, int dmg, float angle, Entity entity, ObjectProperties objDesc, ProjectileProperties projDesc, ProjectilePath path, Vector2 startPos) {
         Path = path ?? projDesc.Path.Clone();
         Path.SetInfo(new ProjectileInfo() { LifetimeMs = Path.LifetimeMs, ProjId = id, ShootAngle = angle * MathHelper.DegToRad, StartPos = startPos});
@@ -122,9 +128,10 @@ public sealed class Projectile : IResettable { // TODO: make struct
 
     public void Reset() {
         Path = null;
-        
+
         /* === temp === */
         _elapsed = 0;
+        _dead = false;
     }
 
     private static AtlasData GetTexture(ushort objType) {
@@ -133,9 +140,14 @@ public sealed class Projectile : IResettable { // TODO: make struct
     }
 
     public bool Update(in GameTime gameTime) {
+        if (_dead) {
+            return false;
+        }
+
         _elapsed += (float)gameTime.ElapsedMs;
 
         if (_elapsed > Path.LifetimeMs) {
+            _dead = true;
             return false;
         }
 
@@ -153,16 +165,25 @@ public sealed class Projectile : IResettable { // TODO: make struct
             _rotation = angle - Settings.CameraAngle + _angleCorrection;
         }
 
-        
-        return MoveTo(newPos);
+
+        if (!MoveTo(newPos)) {
+            _dead = true;       // hit a wall / left the map
+            return false;
+        }
+
+        return true;
     }
 
     public void FixedUpdate(in GameTime gameTime) {
-        if (HitTest(gameTime.TotalMs)) {
-            _elapsed = float.MaxValue;
+        if (_dead) {
             return;
         }
-        
+
+        if (HitTest(gameTime.TotalMs)) {
+            _dead = true;
+            return;
+        }
+
         if (_hasTrail) {
             Map.AddParticleEffect(new SparkEffect(100, _particleTrail.Color, _particleTrail.LifetimeMs, 0.5f, Random.Shared.PlusMinus(3f), Random.Shared.PlusMinus(3f), _position.X, _position.Y));
             Map.AddParticleEffect(new SparkEffect(100, _particleTrail.Color, _particleTrail.LifetimeMs, 0.5f, Random.Shared.PlusMinus(3f), Random.Shared.PlusMinus(3f), _position.X, _position.Y));

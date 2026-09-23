@@ -3,7 +3,7 @@ plus the user's tab icons, into AlloyClient/AlloyClient/Content/Ui/BookGems, and
 layout table (BookFrameData.g.cs) the CharacterBook screen reads.
 
 Run from the repo root:  python Tools/BookUi/build_book_assets.py     (needs Pillow + numpy)
-Then add/keep the BookGems entries in Content/Ui.atlas and rebuild AlloyTk.sln.
+Then add/keep the BookGems entries in Content/Ui.atlas and rebuild WarriorsAndWizards.Client.sln.
 
 Every frame in the pack lives on one shared 896x736 canvas. The static open book is
 Open & Close/Style 1/Open/6. The page-flip frames differ from it only inside a small rectangle

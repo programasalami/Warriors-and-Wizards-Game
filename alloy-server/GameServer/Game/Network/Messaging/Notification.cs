@@ -5,7 +5,7 @@ namespace GameServer.Game.Network.Messaging;
 
 public readonly record struct Notification(EntityId ObjectId, string Txt, int Color, int Size = 24, bool IsDamage = false)
     : IOutgoingPacket {
-    public PacketId ID => PacketId.NOTIFICATION;
+    public PacketId ID => PacketId.Notification;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(ObjectId.Value);

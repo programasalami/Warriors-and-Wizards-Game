@@ -11,7 +11,7 @@ public readonly record struct ShowEffect(
     float EffectParam,
     WorldPosData Pos1,
     WorldPosData Pos2) : IOutgoingPacket {
-    public PacketId ID => PacketId.SHOWEFFECT;
+    public PacketId ID => PacketId.ShowEffect;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(EffectType);

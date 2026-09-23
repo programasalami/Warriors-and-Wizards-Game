@@ -122,7 +122,7 @@ async function run() {
   ok('every tile has a picture', PAL.tiles.every((t) => t.pic), PAL.tiles.filter((t) => !t.pic).map((t) => t.id));
   ok('the next free item type is really free', !PAL.usedTypes.includes(PAL.nextItemType));
   ok('the next free object type is really free', !PAL.usedTypes.includes(PAL.nextObjectType));
-  ok('the new weapons are in the palette with their tiers', ['Used Sword', 'Iron Sword', 'Gold Staff'].every((n) => PAL.items.some((i) => i.id === n)));
+  ok('the starter items are in the palette', ['Old Sword', 'Old Staff', 'Old Ring', 'Health Potion'].every((n) => PAL.items.some((i) => i.id === n)));
 
   return out;
 }
@@ -138,22 +138,22 @@ async function makerTests() {
 
   set('mkKind', 'weapon'); set('mkName', '');
   ok('maker: an empty name is refused', /Give it a name/.test(problems()));
-  set('mkName', 'Iron Sword');
+  set('mkName', 'Old Sword');
   ok('maker: a name that already exists is refused', /already used/.test(problems()));
   set('mkName', 'Silver Sword');
   ok('maker: it asks for a picture', /Pick a picture/.test(problems()));
 
   // click the fourth cell of the item sheet
-  document.getElementById('mkSheet').value = 'equipAndConsume';
+  document.getElementById('mkSheet').value = 'dungeonItems';
   document.getElementById('mkSheet').dispatchEvent(new Event('change'));
   await new Promise((r) => setTimeout(r, 400));
   const cv = document.getElementById('sheetCanvas');
   const r = cv.getBoundingClientRect();
   const scale = Number(cv.dataset.scale || 1);
   cv.dispatchEvent(new MouseEvent('click', { clientX: r.left + 3 * 16 * scale + 4, clientY: r.top + 4, bubbles: true }));
-  ok('maker: clicking the sheet picks a picture (cell 3)', /equipAndConsume #3/.test(document.getElementById('mkPicked').textContent), document.getElementById('mkPicked').textContent);
+  ok('maker: clicking the sheet picks a picture (cell 3)', /dungeonItems #3/.test(document.getElementById('mkPicked').textContent), document.getElementById('mkPicked').textContent);
   ok('maker: a valid weapon has no problems', /Looks good/.test(problems()), problems());
-  ok('maker: XML has the name, type, tier and damage', /id="Silver Sword"/.test(xml()) && /<Tier>1<\/Tier>/.test(xml()) && /<MinDamage>60<\/MinDamage>/.test(xml()) && /<File>equipAndConsume<\/File>/.test(xml()), xml());
+  ok('maker: XML has the name, type, tier and damage', /id="Silver Sword"/.test(xml()) && /<Tier>1<\/Tier>/.test(xml()) && /<MinDamage>60<\/MinDamage>/.test(xml()) && /<File>dungeonItems<\/File>/.test(xml()), xml());
   ok('maker: the weapon XML is well-formed', !new DOMParser().parseFromString('<Objects>' + xml() + '</Objects>', 'text/xml').querySelector('parsererror'));
   const doc = new DOMParser().parseFromString('<Objects>' + xml() + '</Objects>', 'text/xml');
   ok('maker: the XML has an Item flag, a slot and a projectile', doc.querySelector('Item') && doc.querySelector('SlotType') && doc.querySelector('Projectile ObjectId'));

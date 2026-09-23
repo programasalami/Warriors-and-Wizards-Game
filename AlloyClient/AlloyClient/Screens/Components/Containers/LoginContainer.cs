@@ -42,6 +42,8 @@ public class LoginContainer : Overlay {
 
         var passwordConfig = new InputConfig { X = Width / 2, Y = 175, FontSize = 24, FontType = FontType.Bold, Color = 0xFFFFFF, Width = 350, DefaultText = "Password", Password = true, Anchor = UiAnchor.Middle };
         _passwordInput = new TextInput(passwordConfig);
+        _emailInput.OnSubmit = OnLogin;              // Enter = Log in (2026-09-22)
+        _passwordInput.OnSubmit = OnLogin;
         AddChild(_passwordInput);
 
         var registerConfig = new TextButtonConfig { Text = "New user? Click here to Register!", FontSize = 16, OnClicked = () => { OverlayManager.Set(new RegisterContainer()); }, FontType = FontType.Bold, X = Width / 2, Y = _passwordInput.Y + 40, Anchor = UiAnchor.Middle };

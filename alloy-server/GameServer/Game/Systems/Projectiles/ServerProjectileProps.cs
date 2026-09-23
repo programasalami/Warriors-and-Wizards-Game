@@ -14,7 +14,7 @@ public readonly record struct ServerProjectileProps(
     bool ArmorPiercing,
     int Size,
     (ConditionEffectIndex, int)[] Effects) : IOutgoingPacket {
-    public PacketId ID => PacketId.SERVER_PROJECTILE_PROPS;
+    public PacketId ID => PacketId.ServerProjectileProps;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(ContainerType);

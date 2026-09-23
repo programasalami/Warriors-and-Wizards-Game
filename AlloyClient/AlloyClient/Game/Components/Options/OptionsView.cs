@@ -120,10 +120,12 @@ public sealed class OptionsView : Overlay {
 
     private void OnResetToDefaults() {
         Settings.ResetToDefault();
+        Settings.SaveSettings();
         Refresh();
     }
 
     private void OnContinue() {
+        Settings.SaveSettings();      // sliders and anything else changed in the window (ChoiceBox / KeyCodeBox already saved theirs)
         CloseOverlay();
         UserInput.SetManualFocus(true);
     }

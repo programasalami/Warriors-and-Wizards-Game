@@ -1,6 +1,8 @@
+> 2026-09-22: `build_forest_sheets.py`, `draw_props.py` and `gen_xml.py` moved to `Tools/_retired/ForestContent/` (retired, guarded). The steps below are history.
+
 # Forest content generators
 
-Run from the repo root, in this order, then rebuild `AlloyClient/AlloyTk.sln` and `alloy-server/RealmServer.sln`:
+Run from the repo root, in this order, then rebuild `AlloyClient/WarriorsAndWizards.Client.sln` and `alloy-server/WarriorsAndWizards.Server.sln`:
 
 1. `python Tools/ForestContent/build_forest_sheets.py` - builds `ForestDecor.png`, `ForestGround.png`, `ForestGroundEdge.png`
    from `Desktop/TopDownFantasy-Forest` (needs Pillow).

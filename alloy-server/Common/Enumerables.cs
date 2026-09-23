@@ -47,6 +47,9 @@ public enum VerifyStatus {
     [Description("Account in use.")]
     AccountInUse,
 
+    [Description("Too many failed logins. Please wait a few minutes and try again.")]
+    TooManyAttempts,
+
     [Description("Internal server error.")]
     InternalError
 }

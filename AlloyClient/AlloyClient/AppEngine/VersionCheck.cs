@@ -103,6 +103,12 @@ public static class VersionCheck {
         var canDownload = ClientPlatform.IsHttpUrl(url);
         var message = BuildMessage(Settings.BuildVersion, ServerVersion, ClientPlatform.IsWeb, canDownload);
 
+        // In the browser a reload IS the update (the page loads the new build): offer it as the first button.
+        if (ClientPlatform.IsWeb) {
+            return new Dialog("Update required", $"A new version of the game is out (yours: {Settings.BuildVersion}, current: {ServerVersion}). Refresh the page to play it.",
+                new DialogOption("Refresh", ClientPlatform.ReloadPage), new DialogOption("Later"));
+        }
+
         return canDownload
             ? new Dialog("Update required", message, new DialogOption("Download", () => ClientPlatform.OpenUrl(url)), new DialogOption("Close"))
             : new Dialog("Update required", message, new DialogOption("OK"));

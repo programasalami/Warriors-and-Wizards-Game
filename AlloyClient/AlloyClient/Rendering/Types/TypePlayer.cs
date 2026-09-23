@@ -107,10 +107,13 @@ public sealed class TypePlayer : RenderBase {
             y += _typeName.Height;
         }
         
-        _hpBar.SetFill(1f * _player.Hp / _player.MaxHp);
-        _hpBar.Draw(y, targets, time);
-        y += _hpBar.Height;
-        _mpBar.Draw(y, targets, time);
+        // The small HP / MP bars under the character; the player can hide their own (Settings.ShowStatusBars / hotkey).
+        if (_player != Map.LocalPlayer || Settings.ShowStatusBars) {
+            _hpBar.SetFill(1f * _player.Hp / _player.MaxHp);
+            _hpBar.Draw(y, targets, time);
+            y += _hpBar.Height;
+            _mpBar.Draw(y, targets, time);
+        }
         
         _effects.Draw(Entity.HeightOffset, targets, time);
         

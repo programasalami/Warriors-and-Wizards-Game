@@ -111,18 +111,23 @@ public sealed class CaveBackdrop : Container {
         OnFrame();
     }
 
-    // One of the soft glow sprites in the strip under the map (teal 0, green 1, amber 2, purple 3, white 4, fog 5).
-    internal static TextureInfo GlowTexture(int kind) =>
-        Region(kind * CaveBackdropData.GlowSize, CaveBackdropData.MapHeight, CaveBackdropData.GlowSize, CaveBackdropData.GlowSize);
+    // One of the soft glow sprites in the strip under the map (teal 0, green 1, amber 2, purple 3, white 4, fog 5). The cell is read one texel
+    // in from each edge: the texture is sampled LINEAR, the cells butt against the map's bottom row and against each other, so a fragment on
+    // the quad's edge used to blend the neighbour in - a thin line the width of the sprite under every orb, a square round every crystal glow
+    // (2026-09-22). The cells' own edge texels are fully transparent, so nothing is lost.
+    internal static TextureInfo GlowTexture(int kind) => GlowRegion(kind);
 
-    // A region of the map texture, in texture pixels.
+    private static TextureInfo GlowRegion(int kind) =>
+        Region(kind * CaveBackdropData.GlowSize + 1, CaveBackdropData.MapHeight + 1, CaveBackdropData.GlowSize - 2, CaveBackdropData.GlowSize - 2);
+
+    // A region of the map texture, in texture pixels, pulled in by half a texel so a linear sample never straddles the region's edge.
     private static TextureInfo Region(int x, int y, int w, int h) => new(new AtlasPosition(
-        x / (float)CaveBackdropData.SheetWidth, y / (float)CaveBackdropData.SheetHeight,
-        w / (float)CaveBackdropData.SheetWidth, h / (float)CaveBackdropData.SheetHeight), TextureType.TitleBackground);
+        (x + 0.5f) / CaveBackdropData.SheetWidth, (y + 0.5f) / CaveBackdropData.SheetHeight,
+        (w - 1f) / CaveBackdropData.SheetWidth, (h - 1f) / CaveBackdropData.SheetHeight), TextureType.TitleBackground);
 
     private ObjectRect MakeGlow(int kind, int x, int y, int width, int height) {
         var rect = new ObjectRect(new ObjectRectConfig {
-            Texture = Region(kind * CaveBackdropData.GlowSize, CaveBackdropData.MapHeight, CaveBackdropData.GlowSize, CaveBackdropData.GlowSize),
+            Texture = GlowRegion(kind),
             X = x,
             Y = y,
             Width = width,

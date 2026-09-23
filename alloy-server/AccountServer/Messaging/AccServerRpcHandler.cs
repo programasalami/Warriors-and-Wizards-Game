@@ -40,7 +40,7 @@ public class AccServerRpcHandler : IAccountServerHandler {
     }
 
     public async Task<VerifyResultDto> VerifyAccount(string username, string password, Guid gameServerGuid) {
-        var (acc, status) = await DbClient.VerifyAccount(username, password, gameServerGuid);
+        var (acc, status) = await DbClient.VerifyAccount(username, password, gameServerGuid, serverId => IpcServer.Clients.ContainsKey(serverId));
         return new VerifyResultDto(acc, status);
     }
 
@@ -85,6 +85,10 @@ public class AccServerRpcHandler : IAccountServerHandler {
 
     public async Task SaveVaultChests(int accountId, VaultChest[] chests) {
         await VaultDb.SaveAsync(accountId, chests);
+    }
+
+    public async Task SaveCharacter(int accountId, Character chr) {
+        await CharacterDb.SaveAsync(accountId, chr);
     }
 
     public async Task<ModerationResultDto> SendMail(MailRequestDto r) {

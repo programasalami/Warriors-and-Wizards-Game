@@ -25,6 +25,8 @@ using GameServer.Utilities;
 namespace GameServer.Game.Entities.Extensions;
 
 public static class PlayerExtensions {
+    private static readonly Logger _log = new(typeof(PlayerExtensions));
+
     extension(ref Entity player) {
         public void InitPlayer(User user, World world, Account acc, Character chr) {
             ref var stats = ref world.EntityStats.Get(player.Id);
@@ -78,7 +80,17 @@ public static class PlayerExtensions {
                     continue;
                 }
                 
-                var item = new Item(XmlLibrary.ItemDescs[(ushort)itemType].Root);
+                // An item whose definition was removed from the game (2026-09-21: the tiered weapons) is dropped from the character, but its saved
+                // bytes still have to be read past, or every item after it in the stream would be misread.
+                if (!XmlLibrary.ItemDescs.TryGetValue((ushort)itemType, out var desc)) {
+                    var skipped = new Item(XmlLibrary.ItemDescs.Values.First().Root);
+                    skipped.Import(rdr);
+                    _log.Warn($"Character {chr.CharId} of account {acc.Id}: slot {i} held item type 0x{itemType:x}, which no longer exists - dropped.");
+                    inv.SetItem(i, null);
+                    continue;
+                }
+
+                var item = new Item(desc.Root);
                 item.Import(rdr);
                 inv.SetItem(i, item);
             }

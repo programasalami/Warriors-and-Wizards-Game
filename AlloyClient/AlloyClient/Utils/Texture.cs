@@ -38,7 +38,7 @@ public static class TextureHelper {
     
     public static TextureInfo FromGameAtlas(ushort id) {
         if (!ObjectLibrary.TypeToTextureData.TryGetValue(id, out var data))
-            return FromGameAtlas("icons", 0);
+            return FromGameAtlas("hudIcons", 0);       // the blank cell: "no picture"
         var uv = data.GetTexture();
         return new TextureInfo(uv.ToPosition(), TextureType.GameAtlas);
     }

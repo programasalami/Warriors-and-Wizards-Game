@@ -14,6 +14,9 @@ public static class ClientPlatform {
     // A browser page cannot open files on the player's PC: there is no editor here.
     public static bool OpenLocalPage(string path) => false;
 
+    // Reload the page = load the newest build (the update path for browser players).
+    public static void ReloadPage() => WebHost.ReloadPage();
+
     public static void OpenUrl(string url) {
         if (IsHttpUrl(url)) {
             WebHost.OpenUrl(url);

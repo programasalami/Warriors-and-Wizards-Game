@@ -38,6 +38,8 @@ public struct EntityStats : IEntityIdentifiable, IDisposable {
     private readonly EntityType _type;
     private BitMask256 _statUpdatesMask;
     private bool _spawnSet = false;
+    private float _hpRegenCarry;        // fractions of a point between ticks (Regenerate)
+    private float _mpRegenCarry;
 
     public EntityStats(World world, ref Entity en) {
         Id = en.Id;
@@ -175,6 +177,26 @@ public struct EntityStats : IEntityIdentifiable, IDisposable {
         PositionUpdate = false;
 
         ConditionEffects.Tick(time.ElapsedMsDelta);
+        if (_type == EntityType.Player)
+            Regenerate(time.ElapsedMsDelta);
+    }
+
+    // HP from Vitality, MP from Wisdom, every tick while alive (2026-09-22: a player used to stay at whatever HP a fight left them).
+    private void Regenerate(int elapsedMs) {
+        var hp = GetInt(StatType.HP);
+        if (hp <= 0)
+            return;
+        var maxHp = GetInt(StatType.MaxHP);
+        if (hp < maxHp) {
+            var add = Systems.Combat.ProgressionRules.Regenerate(Systems.Combat.ProgressionRules.HpRegenPerSecond(GetInt(StatType.Vitality)), elapsedMs, ref _hpRegenCarry);
+            if (add > 0) Set(StatType.HP, Math.Min(maxHp, hp + add));
+        }
+        var mp = GetInt(StatType.MP);
+        var maxMp = GetInt(StatType.MaxMP);
+        if (mp < maxMp) {
+            var add = Systems.Combat.ProgressionRules.Regenerate(Systems.Combat.ProgressionRules.MpRegenPerSecond(GetInt(StatType.Wisdom)), elapsedMs, ref _mpRegenCarry);
+            if (add > 0) Set(StatType.MP, Math.Min(maxMp, mp + add));
+        }
     }
 
     public void Dispose() {

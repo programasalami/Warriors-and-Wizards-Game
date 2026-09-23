@@ -97,6 +97,12 @@
     <Image name="BookGems/Tab5/Active">BookGems/Tab5/Active.png</Image>
     <Image name="BookGems/Tab6/Idle">BookGems/Tab6/Idle.png</Image>
     <Image name="BookGems/Tab6/Active">BookGems/Tab6/Active.png</Image>
+    <Image name="BookGems/Tab7/Idle">BookGems/Tab7/Idle.png</Image>
+    <Image name="BookGems/Tab7/Active">BookGems/Tab7/Active.png</Image>
+    <Image name="BookGems/Icon/FastTravel">BookGems/Icon/FastTravel.png</Image>
+    <Image name="BookGems/Maps/Nexus">BookGems/Maps/Nexus.png</Image>
+    <Image name="BookGems/Maps/Vault">BookGems/Maps/Vault.png</Image>
+    <Image name="BookGems/Maps/GuildHall">BookGems/Maps/GuildHall.png</Image>
     <Image name="BookGems/Icon/Profile">BookGems/Icon/Profile.png</Image>
     <Image name="BookGems/Icon/Characters">BookGems/Icon/Characters.png</Image>
     <Image name="BookGems/Icon/Graveyard">BookGems/Icon/Graveyard.png</Image>

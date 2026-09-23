@@ -33,6 +33,7 @@ public static unsafe partial class GL {
     [JSImport("createShader", M)] private static partial int JsCreateShader(int type);
     [JSImport("cullFace", M)] private static partial void JsCullFace(int mode);
     [JSImport("deleteBuffer", M)] private static partial void JsDeleteBuffer(int b);
+    [JSImport("deleteVertexArray", M)] private static partial void JsDeleteVertexArray(int v);
     [JSImport("deleteSampler", M)] private static partial void JsDeleteSampler(int s);
     [JSImport("deleteShader", M)] private static partial void JsDeleteShader(int s);
     [JSImport("depthFunc", M)] private static partial void JsDepthFunc(int f);
@@ -102,6 +103,7 @@ public static unsafe partial class GL {
     public static int CreateShader(ShaderType type) => JsCreateShader((int)type);
     public static void CullFace(TriangleFace face) => JsCullFace((int)face);
     public static void DeleteBuffer(int buffer) => JsDeleteBuffer(buffer);
+    public static void DeleteVertexArray(int vao) => JsDeleteVertexArray(vao);
     public static void DeleteSampler(int sampler) => JsDeleteSampler(sampler);
     public static void DeleteShader(int shader) => JsDeleteShader(shader);
     public static void DepthFunc(DepthFunction func) => JsDepthFunc((int)func);

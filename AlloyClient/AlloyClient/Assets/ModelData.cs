@@ -56,19 +56,21 @@ public enum ModelType {
     Web,
     BugBoard,
     Jukebox,
+    CrossedCards,       // no mesh: TypeCrossedCards builds its vertices from the sprite (Render.DrawCrossedCards)
+    FlatStack,          // no mesh: TypeFlatStack, a flat picture stacked into a thickness (Render.DrawFlatStack)
     PbTile,
     PbObject,
     PbWall,
     PbDoubleWall,
     PbDoubleWall2,
     PbTripleWall,
-    
+
     Count
 }
 
 public static partial class ModelData {
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(ModelData));
-    
+
     public static readonly Dictionary<ModelType, ModelInfo> ModelRenderInfo = [];
 
     public static VertexBase[] Vertices;
@@ -79,12 +81,14 @@ public static partial class ModelData {
 
     public static void Load() {
         LoadPrebuilt();
-        
-        var models = Directory.GetFiles("Content/Objects", "*.bin");
+
+        // The original source shipped FBX meshes here (pillar, sign, table, tower...); they were retired with the 2026-09-21 art rework, so the folder
+        // is usually empty or missing. Every model in use now is built in code (LoadPrebuilt / ModelData.Props).
+        var models = Directory.Exists("Content/Objects") ? Directory.GetFiles("Content/Objects", "*.bin") : [];
 
         foreach (var file in models) {
             var name = Path.GetFileNameWithoutExtension(file);
-            
+
             ModelType type;
             try {
                 type = (ModelType) Enum.Parse(typeof(ModelType), name);
@@ -105,18 +109,18 @@ public static partial class ModelData {
         var count = mesh.IndexBuffer.Length / 3;
         var indexOffset = TempIndices.Count;
         var vertexOffset = TempVertices.Count;
-        
+
         foreach (var index in mesh.IndexBuffer) {
             TempIndices.Add((ushort)(vertexOffset + index));
         }
-        
+
         foreach (var vertex in mesh.VertexBuffer) {
             TempVertices.Add(vertex.ToBaseVertex(fbx));
         }
-        
+
         ModelRenderInfo[mesh.ModelType] = new ModelInfo(indexOffset, count);
     }
-    
+
     private struct MeshData(VertexData[] vertexBuffer, ushort[] indexBuffer, ModelType modelType, bool hasUV) {
         public VertexData[] VertexBuffer = vertexBuffer;
         public ushort[] IndexBuffer = indexBuffer;
@@ -145,7 +149,7 @@ public static partial class ModelData {
             return new MeshData(vertices, indices, modelType, hasUV);
         }
     }
-    
+
     private readonly struct VertexData(Vector3 position, Vector3 normal, Vector2 uv) {
         public readonly Vector3 Position = position;
         public readonly Vector3 Normal = normal;
@@ -160,7 +164,7 @@ public static partial class ModelData {
         if (fbx) {
             return new VertexBase(vertex.Position, new Vector2(vertex.UV.X, 1 - vertex.UV.Y));
         }
-        
+
         return new VertexBase(vertex.Position, vertex.UV);
     }
 }

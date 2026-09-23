@@ -72,6 +72,13 @@ public record LootDrop : BehaviorScript {
                 var childX = host.Stats.Pos.X + (float)Random.Shared.NextDouble() * 1.5f;
                 var childY = host.Stats.Pos.Y + (float)Random.Shared.NextDouble() * 1.5f;
                 en.Move(host.World, childX, childY);
+
+                // A bag that nobody empties disappears after a minute (2026-09-22); the id is captured, the ref is reused by the loop.
+                var bagId = en.Id;
+                host.World.AddTimedAction(Combat.ProgressionRules.LootBagLifetimeMs, w => {
+                    if (w.Entities.Get(bagId).Id == bagId)
+                        w.LeaveWorld(bagId);
+                });
             }
     }
 }

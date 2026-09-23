@@ -65,16 +65,6 @@ public class Update : IncomingPacket<Update> {
     public override void Handle() {
         Client.QueuePacket(UpdateAck.CreatePacket());
 
-        if (TileCount > 0) {
-            var sample = new System.Text.StringBuilder();
-            for (var i = 0; i < TileCount && i < 10; i++) {
-                if (i > 0) sample.Append(',');
-                sample.Append(Tiles[i].Type);
-            }
-            Client.Logger.Log(LogLevel.Debug,
-                $"[DIAG] Update tiles: count={TileCount} first=(x={Tiles[0].X},y={Tiles[0].Y},type={Tiles[0].Type}) " +
-                $"sampleTypes=[{sample}]");
-        }
 
         for (int i = 0; i < TileCount; i++)
             Map.SetTileData(Tiles[i].X, Tiles[i].Y, Tiles[i].Type);
@@ -112,9 +102,6 @@ public class Update : IncomingPacket<Update> {
             entity.UpdateStats(newObj.Pool.Data, newObj.StatOffset, newObj.StatCount);
             entity.OnTickPosition(newObj.Position.X, newObj.Position.Y, 0, 0, props.IsPlayer);
 
-            Client.Logger.Log(LogLevel.Debug,
-                $"[DIAG] Update newObj id={newObj.Id} type={newObj.ObjectType:x4} isPlayer={props.IsPlayer} " +
-                $"localPlayerId={Map.LocalPlayerId} match={newObj.Id == Map.LocalPlayerId}");
 
             if (newObj.Id == Map.LocalPlayerId) {
                 Map.OnLocalPlayerCreated(entity);

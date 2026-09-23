@@ -19,12 +19,14 @@ public static partial class WebHost {
     [JSImport("getApi", "host")] private static partial string JsGetApi();
     [JSImport("getGameUrl", "host")] private static partial string JsGetGameUrl();
     [JSImport("openUrl", "host")] private static partial void JsOpenUrl(string url);
+    [JSImport("reloadPage", "host")] private static partial void JsReloadPage();
 
     // Where the account server (HTTP api, ending in "/") and the game server bridge (WebSocket) live - from window.WW_CONFIG in main.js.
     public static string ApiBase { get { var a = JsGetApi(); return a.EndsWith("/") ? a : a + "/"; } }
     public static string GameUrl => JsGetGameUrl();
     internal static void SetFullscreen(bool on) { try { JsSetFullscreen(on); } catch { } }
     internal static void OpenUrl(string url) { try { JsOpenUrl(url); } catch { } }
+    internal static void ReloadPage() { try { JsReloadPage(); } catch { } }
 
     public static async Task Main() {
         await JSHost.ImportAsync("gl", "../gl.js");

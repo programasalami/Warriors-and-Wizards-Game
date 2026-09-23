@@ -23,8 +23,8 @@ public class Reconnect : IncomingPacket<Reconnect> {
         WorldLoad.Begin(true);
         GameScreen.GameSprite?.OnWorldLoadBegan(true);
 
-        Map.Entities.Clear();
-        Map.EntityStorage.Clear();
+        // Everything of the old world goes: entities, projectiles, particle effects, player / interactive lookups, queued texts.
+        Map.ClearWorldObjects();
 
         var login = GlobalData.Get<LoginData>();
         var hello = Hello.CreatePacket();

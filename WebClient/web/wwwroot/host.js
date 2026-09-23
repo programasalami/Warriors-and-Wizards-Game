@@ -14,6 +14,8 @@ export function openUrl(url) {
         document.body.appendChild(a); a.click(); a.remove();
     } catch (e) { console.log('could not open ' + url); }
 }
+// The newest build: a plain reload fetches it (the build id in the URLs makes the browser skip its cache).
+export function reloadPage() { try { location.reload(); } catch (e) { console.log('could not reload'); } }
 export const getApi = () => window.WW_CONFIG.api;
 export const getGameUrl = () => window.WW_CONFIG.game;
 export function persistFile(name, b64) { try { localStorage.setItem('ww:' + name, b64); } catch (e) { /* storage full / blocked */ } }

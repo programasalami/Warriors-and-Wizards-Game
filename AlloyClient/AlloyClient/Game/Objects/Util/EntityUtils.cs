@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using AlloyClient.Game;
 using OpenTK.Mathematics;
 
 namespace AlloyClient.Game.Objects.Util;
@@ -70,6 +71,7 @@ public static class EntityUtils {
 
     public static Entity GetClosestPlayer(Vector2 position, float radius) {
         var entities = Map.Entities.Values;
+        PerfCounters.EntityScansThisFrame += entities.Count;
         Entity en = null;
         var enDist = float.MaxValue;
 
@@ -89,16 +91,13 @@ public static class EntityUtils {
     }
     
     public static Entity GetClosestEnemy(Vector2 position, float radius) {
-        var entities = Map.Entities.Values;
+        var entities = Map.Enemies.Values;
+        PerfCounters.EntityScansThisFrame += entities.Count;
         Entity en = null;
         var enDist = float.MaxValue;
 
         foreach (var entity in entities) {
-            if (!entity.Properties.IsEnemy)
-                continue;
-            
             Vector2.DistanceSquared(position, entity.Position, out var dist);
-            
             if (!IsWithinHitRadius(dist, radius) || dist >= enDist)
                 continue;
             en = entity;

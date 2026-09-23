@@ -30,17 +30,19 @@ public class Vault : World {
         : base(id, mapId, config) {
     }
 
-    public override World GetInstance(User user) {
-        if (user.GameInfo.Account == null)
-            return null;
+    public override World GetInstance(User user) => user.GameInfo.Account == null ? null : ForAccount(user.GameInfo.Account, MapId, Config);
 
-        if (!_vaults.TryGetValue(user.GameInfo.Account.Id, out var ret) || ret.Deleted) {
-            ret = _vaults[user.GameInfo.Account.Id] = new Vault(0, MapId, Config);
+    // The account's own Vault, made on first use (also how FAST TRAVEL gets there straight from the Character Book, before any portal exists).
+    public static Vault ForAccount(Account account) => ForAccount(account, 0, WorldLibrary.WorldConfigs["Vault"]);
+
+    private static Vault ForAccount(Account account, int mapId, WorldConfig config) {
+        if (!_vaults.TryGetValue(account.Id, out var ret) || ret.Deleted) {
+            ret = _vaults[account.Id] = new Vault(0, mapId, config);
             RealmManager.AddWorld(ret);
-            ret.SetupChests(user.GameInfo.Account);
+            ret.SetupChests(account);
         }
         else {
-            ret.Attach(user.GameInfo.Account);       // the player may have logged in again: their account object is a new one
+            ret.Attach(account);       // the player may have logged in again: their account object is a new one
         }
 
         return ret;

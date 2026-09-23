@@ -1,0 +1,20 @@
+skins sheet index -> CharactersAssets file (Animated, group Full, 32x32)
+0	Archer-Green
+1	Archer-Purple
+2	Character-Base
+3	Human-Soldier-Cyan
+4	Human-Soldier-Red
+5	Human-Worker-Cyan
+6	Human-Worker-Red
+7	Mage-Cyan
+8	Mage-Red
+9	Orc-Grunt
+10	Orc-Peon-Cyan
+11	Orc-Peon-Red
+12	Orc-Soldier-Cyan
+13	Orc-Soldier-Red
+14	Soldier-Blue
+15	Soldier-Red
+16	Soldier-Yellow
+17	Warrior-Blue
+18	Warrior-Red

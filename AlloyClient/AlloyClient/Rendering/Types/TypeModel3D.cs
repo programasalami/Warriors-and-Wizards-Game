@@ -10,9 +10,9 @@ using OpenTK.Mathematics;
 
 namespace AlloyClient.Rendering.Types;
 
-public sealed class TypeModel3D : RenderBase {
+public sealed class TypeModel3D : RenderBase, IStaticProp {
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(TypeModel3D));
-    
+
     public override ModelType ModelType { get; }
 
     public override bool HasShadow => false;
@@ -37,8 +37,8 @@ public sealed class TypeModel3D : RenderBase {
         _rotation = MathHelper.DegreesToRadians(entity.Properties.Rotation);
         Extra = new ExtraData(RenderConfig.TypeModel, RenderConfig.Shade);
     }
-    
-    
+
+
     public override void SetPosition(float x, float y, float z = 0) {
         Position.X = x;
         Position.Y = y;
@@ -48,22 +48,25 @@ public sealed class TypeModel3D : RenderBase {
     public override void SetTexture(AtlasData texture, bool attackFrame) {
         UV = texture.ToVector4(true);
     }
-    
+
     public override void SetVisibility(bool visible) {
         Visible = visible;
     }
-    
+
     public override void SetDepth(float depth) {
         _sortId = depth;
     }
-    
+
     public override void SetAlpha(float alpha) {
         throw new NotSupportedException("Models do not support alpha");
     }
-    
+
     public override void SetName(string name) { }
 
     public override void Draw(List<VertexObject> targets, double time) {
         Render.DrawModel(new VertexModel(Position, UV, new Vector3(_rotation, _sortId, RenderConfig.Shade)));
     }
+
+    public void Bake(List<ModelVertexExpanded> into) =>
+        Render.BakeModel(ModelType, new VertexModel(Position, UV, new Vector3(_rotation, Render.BakedDepthCode(Render.BakedAtPosition, Entity.Jitter), RenderConfig.Shade)), into);
 }

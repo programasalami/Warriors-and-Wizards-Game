@@ -8,7 +8,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Combat;
 
-[Packet(PacketId.ENEMYHIT)]
+[Packet(PacketId.EnemyHit)]
 public record EnemyHit : IIncomingPacket {
     public ushort ProjectileId;
     public EntityId TargetId;

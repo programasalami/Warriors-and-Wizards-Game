@@ -37,7 +37,7 @@ public struct EntityBehavior : IEntityIdentifiable, IDisposable {
 
     public void Load() {
         if (!BehaviorLibrary.ClassicBehaviors.TryGetValue(_objectId, out var rootState)) {
-            _log.Error($"Behavior not found for '{_objectId}'");
+            _log.Debug($"Behavior not found for '{_objectId}'");   // static objects (the dummies) have none on purpose
             return;
         }
         

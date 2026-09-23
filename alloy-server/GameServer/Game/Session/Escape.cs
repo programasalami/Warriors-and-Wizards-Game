@@ -8,7 +8,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Session;
 
-[Packet(PacketId.ESCAPE)]
+[Packet(PacketId.Escape)]
 public record Escape : IIncomingPacket {
     public async Task Handle(User user) {
         if (user.GameInfo.State != GameState.Playing)

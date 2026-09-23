@@ -4,12 +4,12 @@
     <WorldsDir>Resources/World/Data/</WorldsDir>
     <Port>2050</Port>
     <Address>127.0.0.1</Address>
-    <ServerName>Localhost</ServerName>
+    <ServerName>US East</ServerName>
     <TPS>20</TPS>
     <MaxPlayers>1000</MaxPlayers>
-    <Version>0.3.4</Version>
+    <Version>0.3.7</Version>
     <!--<AdminOnly/>-->
     <BehaviorsDir>../../../GameServer/Game/Entities/Behaviors/Library</BehaviorsDir>
     <RealmCount>1</RealmCount>
-    <MaxClientsPerIP>2000</MaxClientsPerIP>
+    <MaxClientsPerIP>10</MaxClientsPerIP>   <!-- raw game-port connections per remote address; 127.0.0.1 (the websocket bridge, every browser player) is never capped -->
 </GameServerConfig>

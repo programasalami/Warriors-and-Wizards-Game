@@ -15,10 +15,16 @@ using GameServer.Game.Systems.Combat;
 using GameServer.Game.Systems.Inventory;
 using GameServer.Game.Systems.Projectiles;
 using GameServer.Game.Worlds;
+using GameServer.Game.Worlds.Logic;
+using Common.Structs;
+using GameServer.Game.Worlds.Logic;
+using Common.Structs;
+using GameServer.Game.Worlds.Logic;
+using Common.Structs;
 
 namespace GameServer.Game.Session;
 
-[Packet(PacketId.HELLO)]
+[Packet(PacketId.Hello)]
 public record Hello : IIncomingPacket {
     public string BuildVersion;
     public int GameId;
@@ -45,6 +51,8 @@ public record Hello : IIncomingPacket {
         var acc = user.GameInfo.Account;
         if (user.State != ConnectionState.Reconnecting) {
             var verify = await Program.AccountServerRpc.VerifyAccount(Username, Password, Program.Guid);
+            if (user.State == ConnectionState.Disconnected)
+                return;
             var status = verify.Status;
             acc = verify.Acc;
             if (acc == null) {
@@ -66,6 +74,8 @@ public record Hello : IIncomingPacket {
         if (acc.IsBanned) {
             // Check if ban has expired
             var bans = await Program.AccountServerRpc.GetActiveBans(acc.Id);
+            if (user.State == ConnectionState.Disconnected)
+                return;
             if (bans.Any(b => b.Permanent) ||
                 bans.Any(b => b.ExpiresAt > DateTime.UtcNow)) // Means the ban hasn't been lifted yet
             {
@@ -82,7 +92,20 @@ public record Hello : IIncomingPacket {
             return;
         }
         
-        RealmManager.Worlds.TryGetValue(GameId, out var world);
+        // Negative ids name a kind of world (see WorldIds): the account's own Vault or its guild's hall are found or made here. Anything
+        // else must be a world that already exists (the Nexus, or the id a Reconnect handed out).
+        World world;
+        if (GameId == WorldIds.Vault) {
+            world = Vault.ForAccount(acc);
+        } else if (GameId == WorldIds.GuildHall) {
+            world = GuildHall.ForAccount(acc);
+            if (world == null) {
+                user.SendFailure(Failure.DEFAULT, "You are not in a guild.");
+                return;
+            }
+        } else {
+            RealmManager.Worlds.TryGetValue(GameId, out world);
+        }
         
         if (GameId == World.TEST_ID) {
             user.SendFailure(Failure.FORCE_CLOSE_GAME, "Not available");
@@ -118,6 +141,8 @@ public record Hello : IIncomingPacket {
         var seed = (uint)new Random().Next(1, int.MaxValue);
         user.SetGameInfo(acc, seed, world);
         user.GameInfo.MuteEndUnix = (await Program.AccountServerRpc.GetMuteState(acc.Id)).MuteEndUnix;
+        if (user.State == ConnectionState.Disconnected)
+            return;
         
         user.SendPacket(new MapInfo(
             world.Map.Data.Width,

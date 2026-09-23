@@ -71,7 +71,10 @@ public sealed class ItemTile : Sprite {
         _unusable.Visible = false;
         AddChild(_unusable);
 
-        _slotDetail = new ObjectRect(new ObjectRectConfig {Texture = TextureHelper.FromGameAtlas(0x0096), Width = Size, Height = Size, OutlineEnabled = false, GlowEnabled = false});
+        // The "what goes here" silhouette: the Dark Dungeon item pictures fill their cell edge to edge (the old 8x8 icons had a wide margin), so the
+        // shape is drawn well inside the slot - a little over half its size, centred - or it looks fat and runs over the frame.
+        var detail = Size * 9 / 16;
+        _slotDetail = new ObjectRect(new ObjectRectConfig {Texture = TextureHelper.FromGameAtlas(0x0096), X = (Size - detail) / 2, Y = (Size - detail) / 2, Width = detail, Height = detail, OutlineEnabled = false, GlowEnabled = false});
         _slotDetail.Visible = false;
         _slotDetail.ColorTransformation = new ColorTransform(0, 0, 0, 1, 54, 54, 54, 0);
         _slotDetail.SetColorSecondary(0, 0);
@@ -222,8 +225,7 @@ public sealed class ItemTile : Sprite {
         if (_pendingDouble) {
             _pendingDouble = false;
             _doubleTimer.Stop();
-            // todo: double Click
-            // equip or use
+            DoubleClick();
             return;
         }
 
@@ -371,6 +373,71 @@ public sealed class ItemTile : Sprite {
         }
 
         return false;
+    }
+
+    // Double-click (2026-09-22): a consumable is used; a piece of gear your class can wear swaps with the matching gear slot (or, from a gear slot,
+    // goes to the first free inventory slot). Anything else does nothing. The server checks every swap and use again.
+    private void DoubleClick() {
+        if (ItemDesc == null || Owner is not Player || Owner != Map.LocalPlayer)
+            return;
+        if (ItemDesc.SlotType == ItemConstants.PotionType || ItemDesc.Consumable) {
+            UseFromSlot(Owner, SlotId, ItemDesc);
+            return;
+        }
+        var slotTypes = Owner.Properties?.SlotTypes;
+        if (slotTypes == null || ItemDesc.SlotType == 0 || !IsUsableByPlayer(ItemDesc))
+            return;
+
+        var gearSlots = Math.Min(4, slotTypes.Count);
+        int target;
+        if (SlotId < gearSlots) {
+            target = -1;                                              // unequip: the first free inventory slot
+            for (var i = gearSlots; i < 12; i++)
+                if (Owner.Equipment[i] == null) { target = i; break; }
+        } else {
+            target = -1;                                              // equip: the gear slot of this item's kind
+            for (var i = 0; i < gearSlots; i++)
+                if (slotTypes[i] == ItemDesc.SlotType) { target = i; break; }
+        }
+        if (target < 0)
+            return;
+
+        var swap = InvSwap.CreatePacket();
+        swap.SlotObj1 = new ObjectSlot { ObjectId = Owner.ObjectId, SlotId = SlotId };
+        swap.SlotObj2 = new ObjectSlot { ObjectId = Owner.ObjectId, SlotId = (byte)target };
+        Client.QueuePacket(swap);
+    }
+
+    public static void UseFromSlot(Entity owner, byte slotId, ItemDesc item) {
+        if (owner == null || item == null)
+            return;
+        useItem((int)Map.LastGameTime.TotalMs, owner.ObjectId, slotId, item.ObjectType, owner.Position.X, owner.Position.Y, (byte)UseType.START_USE);
+    }
+
+    // The C / V keys: the first Health Potion / Magic Potion in the inventory slots. False when there is none.
+    public static bool UseFirst(string itemId) {
+        var player = Map.LocalPlayer;
+        if (player == null)
+            return false;
+        for (var i = 4; i < 12 && i < player.Equipment.Length; i++) {
+            var item = player.Equipment[i];
+            if (item != null && item.ObjectId == itemId) {
+                UseFromSlot(player, (byte)i, item);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // The 1-8 keys: use the consumable in that inventory slot (nothing happens for gear).
+    public static void UseInventorySlot(int index) {
+        var player = Map.LocalPlayer;
+        var slot = 4 + index;
+        if (player == null || index < 0 || index > 7 || slot >= player.Equipment.Length)
+            return;
+        var item = player.Equipment[slot];
+        if (item != null && (item.Consumable || item.SlotType == ItemConstants.PotionType))
+            UseFromSlot(player, (byte)slot, item);
     }
 
     private static void useItem(int time, int objectId, byte slotId, ushort objectType, float itemUsePosX, float itemUsePosY, byte useType) {

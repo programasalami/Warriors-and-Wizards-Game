@@ -20,14 +20,14 @@ using OpenTK.Mathematics;
 namespace AlloyClient.Game;
 
 public class TileMap {
-    
+
     public const int ChunkSize = 16;
     public const int ChunkArea = ChunkSize * ChunkSize;
     public const int ChunkRenderData = ChunkArea * MapTile.MaxTileData;
 
     private int _width;
     private int _height;
-    
+
     private readonly Dictionary<Vector2i, TileChunk> _chunks = [];
 
     public MapTile this[Vector2i coords] => Get(coords);
@@ -39,11 +39,11 @@ public class TileMap {
 
     public void SetTileChange(Vector2i coords) {
         var chunkId = new Vector2i(coords.X / ChunkSize, coords.Y / ChunkSize);
-        
+
         if (!_chunks.TryGetValue(chunkId, out var chunk)) {
             return;
         }
-        
+
         chunk.SetDirty();
     }
 
@@ -58,14 +58,42 @@ public class TileMap {
         data = chunk.GetTileData();
         return true;
     }
-    
-    public void Clear() => _chunks.Clear();
-    
+
+    // Draws one chunk (main thread only): rebuilds its GPU mesh first if its tiles changed since the last draw.
+    public bool DrawChunk(Vector2i chunkCoords) {
+        if (!_chunks.TryGetValue(chunkCoords, out var chunk))
+            return false;
+        chunk.Draw();
+        return true;
+    }
+
+    // Meshes of chunks that were cleared. Clear() can run on the network thread (Client.Disconnect -> Map.Reset), where no GL call
+    // is allowed, so the GPU objects are handed to the next Draw on the main thread instead.
+    private static readonly List<TileChunkMesh> Graveyard = [];
+
+    public void Clear() {
+        lock (Graveyard) {
+            foreach (var chunk in _chunks.Values) {
+                var mesh = chunk.TakeMesh();
+                if (mesh != null)
+                    Graveyard.Add(mesh);
+            }
+        }
+        _chunks.Clear();
+    }
+
+    public static void DeleteOrphanedMeshes() {
+        lock (Graveyard) {
+            foreach (var mesh in Graveyard)
+                mesh.Delete();
+            Graveyard.Clear();
+        }
+    }
     private MapTile Get(Vector2i coords) {
-        if (coords.X < 0 || coords.X > _width || coords.Y < 0 || coords.Y > _height) {
+        if (coords.X < 0 || coords.X >= _width || coords.Y < 0 || coords.Y >= _height) {   // was '>' (off by one: a phantom chunk row/column)
             return null;
         }
-        
+
         var chunkId = new Vector2i(coords.X / ChunkSize, coords.Y / ChunkSize);
 
         if (!_chunks.TryGetValue(chunkId, out var chunk)) {
@@ -74,11 +102,11 @@ public class TileMap {
 
         return chunk.Get(coords);
     }
-    
+
     private class TileChunk {
-        
+
         private readonly MapTile[] _tiles = new MapTile[ChunkArea];
-        
+
         private readonly TileData[] _data = new TileData[ChunkRenderData];
 
         private bool _dirty;
@@ -90,7 +118,30 @@ public class TileMap {
             return _tiles[index] ?? (_tiles[index] = new MapTile(coords));
         }
 
-        public void SetDirty() => _dirty = true;
+        private TileChunkMesh _mesh;
+        private bool _meshDirty = true;
+
+        public void SetDirty() {
+            _dirty = true;
+            _meshDirty = true;
+        }
+
+        public TileChunkMesh TakeMesh() {
+            var mesh = _mesh;
+            _mesh = null;
+            _meshDirty = true;
+            return mesh;
+        }
+
+        public void Draw() {
+            if (_meshDirty) {
+                _mesh ??= new TileChunkMesh();
+                Render.UploadTileChunk(_mesh, GetTileData());
+                _meshDirty = false;
+            }
+            if (_mesh != null)
+                Render.DrawTileChunk(_mesh);
+        }
 
         public ReadOnlySpan<TileData> GetTileData() {
             if (!_dirty) {
@@ -105,21 +156,21 @@ public class TileMap {
 
                 var chunkData = _data.AsSpan(count);
                 var tileData = tile.DrawTile();
-                
+
                 tileData.CopyTo(chunkData);
                 count += tileData.Length;
             }
 
             _renderCount = count;
             _dirty = false;
-            
+
             return new ReadOnlySpan<TileData>(_data, 0, _renderCount);
         }
     }
 }
 
 public static class Map {
-    
+
     public const int ViewRadiusX = 3;
     public const int ViewRadiusY = 2;
     public const int ViewDiameterX = ViewRadiusX * 2 + 1;
@@ -127,7 +178,6 @@ public static class Map {
     public const int VisibleChunks = ViewDiameterX * ViewDiameterY;
 
     private static readonly ILogger Logger = ILogger.CreateLogger(nameof(Map));
-    private static bool _diagDrawLogged;
 
     public const int TileRenderDistance = 20;
 
@@ -144,13 +194,16 @@ public static class Map {
     public static int Background;
     public static bool AllowPlayerTeleport;
     public static bool ShowDisplays;
-    
+
     private static readonly TileMap Tiles = new ();
     public static readonly RenderStorage EntityStorage = new();
     public static readonly Dictionary<int, Player> Players = new();
     public static readonly Dictionary<int, Entity> Entities = new(); // todo: add players to separate dic for minimap prio
     public static readonly Dictionary<int, Entity> InteractiveObjects = new();
-    
+    // Only entities flagged IsEnemy: what the projectile hit tests scan (they used to walk every entity of the world, 60 times a
+    // second per bullet - 2026-09-21 audit, M2).
+    public static readonly Dictionary<int, Entity> Enemies = new();
+
     public static readonly List<ParticleEffect> ParticleGenerators = [];
 
     public static int ParticleGenCount;
@@ -193,7 +246,7 @@ public static class Map {
         Background = background;
         AllowPlayerTeleport = allowTp;
         ShowDisplays = showDisplays;
-        
+
         Minimap.OnNewMap.Dispatch(width, height);
         Tiles.SetDimensions(width, height);
     }
@@ -202,17 +255,20 @@ public static class Map {
         CurrentTime = gameTime.TotalMs;
         var time = gameTime.TotalMs;
         var dt = gameTime.ElapsedMs;
-        
+
         _particleCount = 0;
         var fullMatrix = camera.Matrix;
         var matrix = new DepthMatrix(camera.Matrix);
+        var cullRadius = CullRules.Radius(camera.VisibleTileRadius);
+        var cameraPos = camera.Position;
 
         foreach (var (objectId, entity) in Entities) {
             if (!entity.Update(time, dt)) {
                 Entities.Remove(objectId);
+                Enemies.Remove(objectId);
             }
 
-            entity.UpdateVisibility(ref fullMatrix);
+            entity.UpdateVisibility(ref fullMatrix, in cameraPos, cullRadius);
         }
 
         for (var i = ParticleGenCount - 1; i >= 0; i--) {
@@ -226,17 +282,21 @@ public static class Map {
             ParticleGenerators[ParticleGenCount] = null;
         }
 
+        PerfCounters.ParticleGenerators = ParticleGenCount;
+
         for (var i = Projectiles.Count - 1; i >= 0; i--) {
             var proj = Projectiles[i];
             if (proj.Update(gameTime))
                 continue;
-            
+
             ObjectPools.Projectiles.Push(proj);
 
             var idx = Projectiles.Count - 1;
             Projectiles[i] = Projectiles[idx];
             Projectiles.RemoveAt(idx);
         }
+
+        PerfCounters.Projectiles = Projectiles.Count;
     }
 
     public static void FixedUpdate(in GameTime gameTime) {
@@ -244,9 +304,7 @@ public static class Map {
             projectile.FixedUpdate(in gameTime);
         }
     }
-    
 
-    private static readonly List<TileData> VisibleTiles = new (Render.TileBufferSize);
 
     public static void Draw(in GameTime gameTime, in Camera camera) {
         GL.Disable(EnableCap.DepthTest);
@@ -255,44 +313,42 @@ public static class Map {
         LastGameTime = gameTime;
 
         #region Tile
-        
-        VisibleTiles.Clear();
-        
+
+        TileMap.DeleteOrphanedMeshes();     // GPU objects of a world we left (queued from whatever thread cleared the map)
+
         var camChunkPos = new Vector2i((int)camera.Position.X / TileMap.ChunkSize, (int)camera.Position.Y / TileMap.ChunkSize) - new Vector2i(ViewRadiusX, ViewRadiusY);
 
-        var diagFound = 0;
+        var sect = PerfSections.Begin();
+        Render.BeginTiles();
         for (var i = 0; i < VisibleChunks; i++) {
-            if (!Tiles.GetChunkData(camChunkPos + new Vector2i(i % ViewDiameterX, i / ViewDiameterX), out var data)) {
-                continue;
-            }
-
-            diagFound++;
-            VisibleTiles.AddRange(data); // should probably not do this but cant be bothered currently
+            Tiles.DrawChunk(camChunkPos + new Vector2i(i % ViewDiameterX, i / ViewDiameterX));
         }
 
-        if (!_diagDrawLogged && LocalPlayer != null) {
-            _diagDrawLogged = true;
-            AlloyClient.Networking.Client.Logger.Log(Microsoft.Extensions.Logging.LogLevel.Debug,
-                $"[DIAG] Draw camPos={camera.Position} camChunkPos={camChunkPos} chunksFound={diagFound}/{VisibleChunks} visibleTiles={VisibleTiles.Count} createdChunks=[{string.Join(";", Tiles.DiagChunkKeys())}]");
-        }
-        
-        Render.DrawTiles(VisibleTiles.AsReadOnlySpan());
-
+        PerfSections.End(PerfSections.Section.DrawTiles, sect);
         #endregion
-
         #region Shadows
 
+        sect = PerfSections.Begin();
         Render.StartDrawShadow();
 
         foreach (var type in EntityStorage[ModelType.PbObject]) {
-            type.DrawShadow();
+            if (type.Visible)
+                type.DrawShadow();
         }
+
+        foreach (var type in EntityStorage[ModelType.CrossedCards]) {
+            if (type.Visible)
+                type.DrawShadow();
+        }
+
+        StaticProps.DrawShadows(camera);
 
         foreach (var projectile in Projectiles) {
             Render.DrawShadow(projectile.DrawShadow());
         }
 
         Render.EndShadowDraw();
+        PerfSections.End(PerfSections.Section.DrawShadows, sect);
 
         #endregion
 
@@ -300,7 +356,9 @@ public static class Map {
 
         #region Particles
 
+        sect = PerfSections.Begin();
         Render.DrawParticles(Particles, _particleCount);
+        PerfSections.End(PerfSections.Section.DrawParticles, sect);
 
         #endregion
 
@@ -310,6 +368,7 @@ public static class Map {
 
         RenderTargets.Clear();
 
+        sect = PerfSections.Begin();
         Render.StartDrawModel();
 
         for (var i = 0; i < EntityStorage.Types.Length; i++) {
@@ -330,10 +389,15 @@ public static class Map {
             Render.FlushBufferModel();
         }
 
-        GL.Disable(EnableCap.CullFace);
+        StaticProps.Draw(camera);          // every static wall / board / star / log in view: one pre-built mesh per area, nothing uploaded
+        Render.LastDrawCountEntities += StaticProps.LastDrawnProps;
 
+        GL.Disable(EnableCap.CullFace);
+        PerfSections.End(PerfSections.Section.DrawModels, sect);
+
+        sect = PerfSections.Begin();
         Render.StartDrawEntity();
-        
+
         foreach (var type in EntityStorage[ModelType.PbObject]) {
             if (type.Visible) {
                 type.Draw(RenderTargets, gameTime.TotalMs);
@@ -346,6 +410,7 @@ public static class Map {
 
         Render.FlushBufferEntity(RenderTargets);
         Render.LastDrawCountEntities += RenderTargets.Count;
+        PerfSections.End(PerfSections.Section.DrawEntities, sect);
 
         #endregion
     }
@@ -353,11 +418,11 @@ public static class Map {
     public static MapTile LookupTile(Vector2 position) => LookupTile((int)position.X, (int)position.Y);
 
     public static bool LookupTile(int x, int y, out MapTile tile) => (tile = LookupTile(x, y)) != null;
-    
+
     public static MapTile LookupTile(int x, int y) => LookupTile(new Vector2i(x, y));
-    
+
     public static bool LookupTile(Vector2i position, out MapTile tile) => (tile = LookupTile(position)) != null;
-    
+
     public static MapTile LookupTile(Vector2i position) => Tiles[position];
 
     private static readonly MapTile[] RebuildData = new MapTile[9];
@@ -368,13 +433,13 @@ public static class Map {
         }
 
         tile.SetType(type);
-        
+
         for (var y1 = y - 1; y1 <= y + 1; y1++){
             for (var x1 = x - 1; x1 <= x + 1; x1++) {
                 RebuildTile(LookupTile(x1, y1));
             }
         }
-        
+
         Array.Clear(RebuildData);
     }
 
@@ -382,33 +447,81 @@ public static class Map {
         if (tile is null) {
             return;
         }
-        
+
         var idx = 0;
         for (var y1 = tile.Y - 1; y1 <= tile.Y + 1; y1++){
             for (var x1 = tile.X - 1; x1 <= tile.X + 1; x1++) {
                 RebuildData[idx++] = LookupTile(x1, y1);
             }
         }
-        
+
         tile.Rebuild(RebuildData);
         Tiles.SetTileChange(new Vector2i(tile.X, tile.Y));
     }
 
+    // Hard budget for live particle effects (trails, hit sparks, fountains). Beyond it new effects are dropped rather than letting a
+    // busy fight grow the list without limit (2026-09-21 audit: the runaway fixed-update loop used to add thousands per frame).
+    public const int MaxParticleGenerators = 300;
+
     public static void AddParticleEffect(ParticleEffect effect) {
+        if (effect == null) {
+            return;
+        }
+
+        if (ParticleGenCount >= MaxParticleGenerators) {
+            PerfCounters.ParticleEffectsDroppedTotal++;
+            return;
+        }
+
         if (ParticleGenCount == ParticleGenerators.Count) {
             ParticleGenerators.Add(effect);
         } else {
             ParticleGenerators[ParticleGenCount] = effect;
         }
-        
+
         ParticleGenCount++;
+        PerfCounters.ParticleGenerators = ParticleGenCount;
+    }
+
+    // Everything that belongs to the world the player is leaving: projectiles back to their pool, particle effects, the player /
+    // interactive lookups and any queued damage text. Used by Reset (disconnect) and by Reconnect (world switch) - the switch used to
+    // clear only Entities, leaving ghost bullets, stale "nearby players" and old effects running in the next world.
+    public static void ClearWorldObjects() {
+        foreach (var projectile in Projectiles) {
+            ObjectPools.Projectiles.Push(projectile);
+        }
+        Projectiles.Clear();
+
+        for (var i = 0; i < ParticleGenerators.Count; i++) {
+            ParticleGenerators[i] = null;
+        }
+        ParticleGenerators.Clear();
+        ParticleGenCount = 0;
+        _particleCount = 0;
+
+        Entities.Clear();
+        Enemies.Clear();
+        Players.Clear();
+        InteractiveObjects.Clear();
+        EntityStorage.Clear();
+        StaticProps.Clear();
+        RenderTargets.Clear();
+        Ui.Character.NotificationLayer.ClearQueued();
+
+        PerfCounters.Projectiles = 0;
+        PerfCounters.ParticleGenerators = 0;
     }
 
     public static void AddEntity(Entity en, Position position) {
         if (!Entities.TryAdd(en.ObjectId, en))
             return;
 
-        EntityStorage.Add(en);
+        if (en.Properties != null && en.Properties.IsEnemy)
+            Enemies[en.ObjectId] = en;
+
+        // Static walls / boards / stars / logs go into a pre-built area mesh (StaticProps); everything else is drawn per frame.
+        if (!StaticProps.TryAdd(en, position.X, position.Y))
+            EntityStorage.Add(en);
 
         if (en is Player p) {
             if(p.ObjectId != LocalPlayerId)
@@ -416,7 +529,7 @@ public static class Map {
             p.Ignored = PartyData.IgnoredPlayers.Contains(p.AccountId);
             p.Locked = PartyData.LockedPlayers.Contains(p.AccountId);
         }
-            
+
 
         if (InteractPanel.IsInteractiveObject(en))
             InteractiveObjects.TryAdd(en.ObjectId, en);
@@ -425,13 +538,15 @@ public static class Map {
     }
 
     public static void RemoveEntity(int id) {
-        if (!Entities.Remove(id, out var en)) 
+        if (!Entities.Remove(id, out var en))
             return;
 
+        Enemies.Remove(id);
         Players.Remove(id);
         InteractiveObjects.Remove(id);
 
-        EntityStorage.Remove(en);
+        if (!StaticProps.Remove(en))
+            EntityStorage.Remove(en);
         en.OnRemovedFromMap();
     }
 
@@ -444,7 +559,7 @@ public static class Map {
             count = Particles.Length - _particleCount;
 
         if (count < 1) return;
-        
+
         Array.Copy(particles, 0, Particles, _particleCount, count);
         _particleCount += count;
     }
@@ -456,7 +571,7 @@ public static class Map {
         _particleCount++;
     }
 
-    public static void Reset() { 
+    public static void Reset() {
         Height = 0;
         Name = null;
         DisplayName = null;
@@ -467,19 +582,12 @@ public static class Map {
         ShowDisplays = false;
 
         PartyData.Clear();
-        
-        Entities.Clear();
-        Players.Clear();
-        InteractiveObjects.Clear();
-        EntityStorage.Clear();
-        
-        Projectiles.Clear();
-
+        ClearWorldObjects();
         LocalPlayerId = 0;
         LocalPlayer = null;
 
         LastTickId = 0;
-        
+
         Tiles.Clear();
     }
 
@@ -506,7 +614,7 @@ public class RenderStorage {
     public readonly HashSet<RenderBase>[] Types = new HashSet<RenderBase>[(int)ModelType.Count];
 
     public HashSet<RenderBase> this[ModelType modelType] => Types[(int)modelType];
-    
+
     public RenderStorage() {
         for (var i = 0; i < Types.Length; i++)
             Types[i] = new HashSet<RenderBase>();
@@ -516,7 +624,7 @@ public class RenderStorage {
         for (var i = 0; i < Types.Length; i++)
             Types[i].Clear();
     }
-    
+
     public void Add(Entity entity) {
         var type = entity.RenderBaseType;
         var list = Types[(int)type.ModelType];

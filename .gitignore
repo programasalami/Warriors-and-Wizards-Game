@@ -88,3 +88,6 @@ tmp-loadtest/
 /WebClient/dist/
 /WebClient/web/patched/
 /WebClient/web/patched.props
+
+# ===== Server notes kept out of the repo (2026-09-22): the VPS setup write-up stays a local file =====
+VPS_SETUP.md

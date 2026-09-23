@@ -12,7 +12,7 @@ public readonly record struct Failure(int ErrorId, string ErrorDescription) : IO
     public const int ACCOUNT_IN_USE = 4;
     public const int PORTAL_DISABLED = 5;
     
-    public PacketId ID => PacketId.FAILURE;
+    public PacketId ID => PacketId.Failure;
 
     public void Write(ref SpanWriter wtr) {
         wtr.Write(ErrorId);

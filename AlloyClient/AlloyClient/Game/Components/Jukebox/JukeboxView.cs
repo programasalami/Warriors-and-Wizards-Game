@@ -1,4 +1,5 @@
 using System;
+using OpenTK.Platform;
 using AlloyClient.AppEngine;
 using AlloyClient.Data;
 using AlloyClient.Game.Components.Hud;
@@ -166,7 +167,7 @@ public sealed class JukeboxView : Overlay {
     }
 
     private void OnKeyDown(KeyboardEvent args) {
-        if (args.Code == Settings.Options.Key) {
+        if (args.Code == Settings.Options.Key || args.Code == Scancode.Escape) {      // Escape always closes; the options key is O since 2026-09-22
             CloseOverlay();
         }
     }

@@ -7,7 +7,7 @@ using GameServer.Game.Network.Messaging;
 namespace GameServer.Game.Network.Messaging;
 
 public readonly ref struct Update : IOutgoingPacket {
-    public PacketId ID => PacketId.UPDATE;
+    public PacketId ID => PacketId.Update;
 
     private readonly Span<MapTileData> _tiles;
     private readonly Span<ObjectData> _newEntities;

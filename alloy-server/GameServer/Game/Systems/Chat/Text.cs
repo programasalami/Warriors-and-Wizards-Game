@@ -6,7 +6,7 @@ namespace GameServer.Game.Systems.Chat;
 
 public readonly record struct Text(string Name, EntityId ObjId, int NumStars, byte BubbleTime, string Recipent, string Txt)
     : IOutgoingPacket {
-    public PacketId ID => PacketId.TEXT;
+    public PacketId ID => PacketId.Text;
 
     public void Write(ref SpanWriter wtr) {
         wtr.WriteUTF(Name);

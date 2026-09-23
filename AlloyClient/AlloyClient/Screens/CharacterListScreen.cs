@@ -114,6 +114,34 @@ public class CharacterListScreen : TitleScreenBase {
         _book.SetCharacters(sorted, lastPlayed >= 0 ? lastPlayed : 0);
     }
 
+    // ALLOY_PERFTEST only (Game/DevPerfTest.cs): play the last-played character by itself.
+    private double _perfTestWaitMs;
+    private bool _perfTestPressed;
+
+    private bool _outdatedShown;
+
+    public override void Update(Alloy.Engine.GameTime gameTime) {
+        base.Update(gameTime);
+        // The version check that Disconnect started can answer after this screen was built: put the prompt up as soon as it knows.
+        if (!_outdatedShown && AppEngine.VersionCheck.IsOutdated) {
+            _outdatedShown = true;
+            AppEngine.VersionCheck.ShowDialogIfOutdated();
+        }
+        if (!AlloyClient.Dev.DevPerfTest.Enabled || _perfTestPressed)
+            return;
+        _perfTestWaitMs += gameTime.ElapsedMs;
+        if (_perfTestWaitMs < 3000)
+            return;
+        var chars = GlobalData.Get<CharacterListData>()?.Characters;
+        if (chars == null || chars.Length == 0)
+            return;
+        _perfTestPressed = true;
+        if (AlloyClient.Dev.DevPerfTest.TimelineMode)
+            Settings.FastTravel.Set(Data.FastTravel.DefaultKey);     // the Nexus, where a second player can walk in (changes the saved Spawn Location)
+        var pick = System.Array.Find(chars, c => c.Id == (int) Settings.LastPlayedCharacterId) ?? chars[0];
+        OnPlay(pick);
+    }
+
     // The book says which character to play: the selected one on the Characters page, the last-played one on the Profile page.
     private void OnPlay(Character character) {
         if (character == null) {

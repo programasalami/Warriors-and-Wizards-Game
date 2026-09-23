@@ -12,7 +12,7 @@ public sealed unsafe class VertexBuffer<T> where T : unmanaged, IVertexData<T> {
     
     public VertexBuffer(VertexStride stride, int vertexCount) {
         Length = vertexCount;
-        Length = vertexCount * sizeof(T);
+        LengthBytes = vertexCount * sizeof(T);
         Stride = stride;
         
         GL.GenBuffer(out Handle);

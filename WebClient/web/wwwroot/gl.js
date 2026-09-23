@@ -80,6 +80,7 @@ function makeVao() {
     return { native: gl.createVertexArray(), attribs, bindings, dirty: false };
 }
 export const genVertexArray = () => reg(vaos, makeVao());
+export const deleteVertexArray = (id) => { const v = vaos[id]; if (v) { if (curVao === v) { curVao = null; gl.bindVertexArray(null); } gl.deleteVertexArray(v.native); vaos[id] = null; } };
 export function bindVertexArray(id) {
     curVao = id ? vaos[id] : null;
     gl.bindVertexArray(curVao ? curVao.native : null);

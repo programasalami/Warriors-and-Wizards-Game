@@ -20,7 +20,8 @@ public class NetworkHandler {
     public User User { get; }
     public Socket Socket { get; private set; }
 
-    private readonly Dictionary<PacketId, Func<IIncomingPacket>> _packetFactory =
+    // Static (2026-09-21 audit): it was an instance field, so each of the 1000 pre-allocated Users compiled its own copy.
+    private static readonly Dictionary<PacketId, Func<IIncomingPacket>> _packetFactory =
         PacketLib.LoadIncoming()
             .ToDictionary(kvp => kvp.Key, kvp =>
                 Expression.Lambda<Func<IIncomingPacket>>(
@@ -49,7 +50,8 @@ public class NetworkHandler {
     // Reset this instance's values for a possible future connection
     public void Reset() {
         IP = null;
-
+        _pendingHandler = null;
+        _pendingReceive.Clear();
         _sendState.Reset();
         _receiveState.Reset();
     }
@@ -160,16 +162,60 @@ public class NetworkHandler {
         return true;
     }
 
+    // A handler that is still awaiting something (Hello / Load / Create talk to the AccountServer). Until it finishes no further
+    // packet of THIS user is handled, so the order Hello -> Load is kept; other users and the worlds are not held up. The code after
+    // each await runs back on the game thread (GameThreadSynchronizationContext). 2026-09-21 audit (C5): this used to be
+    // GetAwaiter().GetResult() on the game thread.
+    private Task _pendingHandler;
+    public const int WarnPacketsPerDrain = 200;
+    public const int MaxPacketsPerDrain = 2000;
+
     public void HandleIncomingPackets() {
+        if (_pendingHandler != null) {
+            if (!_pendingHandler.IsCompleted)
+                return;
+            var finished = _pendingHandler;
+            _pendingHandler = null;
+            if (finished.IsFaulted) {
+                _log.Error($"Error handling packet for user {User.Id}: {finished.Exception?.GetBaseException()}");
+                User.Disconnect("Internal error handling packet", DisconnectReason.Failure);
+                return;
+            }
+        }
+
+        var handledThisDrain = 0;
         while (_pendingReceive.TryDequeue(out var pkt)) {
             if (User.State == ConnectionState.Disconnected || !Socket.Connected)
                 break;
 
+            // Packet budget (2026-09-21 audit, F26): an honest client sends a handful of packets per tick. Hundreds in one drain
+            // are logged; thousands mean a flood and the connection is dropped.
+            handledThisDrain++;
+            if (handledThisDrain == WarnPacketsPerDrain)
+                _log.Warn($"[PLAUSIBILITY] user {User.Id} sent {WarnPacketsPerDrain}+ packets in one tick (queued {_pendingReceive.Count} more)");
+            if (handledThisDrain > MaxPacketsPerDrain) {
+                _log.Warn($"[PLAUSIBILITY] user {User.Id} flooded {MaxPacketsPerDrain}+ packets in one tick: disconnecting");
+                User.Disconnect("Packet flood", DisconnectReason.IllegalAction);
+                break;
+            }
+
+            Task task;
             try {
-                pkt.Handle(User).GetAwaiter().GetResult();
+                task = pkt.Handle(User);
             }
             catch (Exception ex) {
                 _log.Error($"Error handling packet for user {User.Id}: {ex}");
+                User.Disconnect("Internal error handling packet", DisconnectReason.Failure);
+                break;
+            }
+
+            if (!task.IsCompleted) {
+                _pendingHandler = task;
+                break;
+            }
+
+            if (task.IsFaulted) {
+                _log.Error($"Error handling packet for user {User.Id}: {task.Exception?.GetBaseException()}");
                 User.Disconnect("Internal error handling packet", DisconnectReason.Failure);
                 break;
             }

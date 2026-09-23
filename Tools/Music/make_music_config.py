@@ -3,7 +3,8 @@
 The server plays this library on a shuffle for everybody; each track needs its length, so the tool measures every file with ffprobe. To add a song to the game:
 drop the file into Content/Sound/Music, run this tool, rebuild and deploy (server AND clients: the clients need the audio file, the server needs this list).
 
-The menu / title-screen music is NOT part of the in-game library: files whose name starts with one of MENU_PREFIXES are skipped.
+The menu / title-screen music is NOT part of the in-game library: files whose name starts with one of MENU_PREFIXES are skipped, and so are a world's
+own fixed tracks (WORLD_PREFIXES: Realm_*).
 (Main_Music is the title-screen track today; a future Menu_Music file is skipped too.)
 
 Run:  python Tools/Music/make_music_config.py
@@ -21,6 +22,7 @@ MUSIC_DIR = ROOT + 'AlloyClient/AlloyClient/Content/Sound/Music/'
 OUT = ROOT + 'alloy-server/Common/Resources/Config/Data/musicConfig.xml'
 EXTENSIONS = ('.ogg', '.mp3', '.wav')
 MENU_PREFIXES = ('main_music', 'menu_music')
+WORLD_PREFIXES = ('realm_',)          # a world's own fixed music (the Realm plays Realm_* by itself, see InGameMusic.RealmTrack): never in the jukebox library
 
 
 def find_ffprobe():
@@ -46,7 +48,7 @@ def title(stem):
 
 def main():
     ffprobe = find_ffprobe()
-    files = sorted(f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(EXTENSIONS) and not f.lower().startswith(MENU_PREFIXES))
+    files = sorted(f for f in os.listdir(MUSIC_DIR) if f.lower().endswith(EXTENSIONS) and not f.lower().startswith(MENU_PREFIXES + WORLD_PREFIXES))
     if not files:
         sys.exit('no in-game tracks found in ' + MUSIC_DIR)
 

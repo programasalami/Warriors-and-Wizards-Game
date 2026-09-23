@@ -118,8 +118,9 @@ public static class AppRequests {
         return result == string.Empty ? new AppResponse { Success = true } : new AppResponse { Success = false, Message = result };
     }
     
-    // Delete
-    
+    // The book's DELETE button (2026-09-21): the server soft-deletes the character (it stays in the account, marked deleted, never listed again).
+    public static Task<AppResponse> DeleteCharacter(int charId) => InGameAction("/char/delete", new() { { "charId", charId.ToString() } });
+
     //Fame
 
     public static async Task<AppResponse> GetCharList() {
@@ -272,6 +273,24 @@ public static class AppRequests {
         }
 
         return fallback;
+    }
+
+    // ---- the News Board: the patch notes the server ships (Resources/News/PatchNotes.txt) ------------------------------------------------------------
+
+    public struct NewsBoardResult {
+        public NewsBoardData Data;
+        public string Error;
+    }
+
+    public static async Task<NewsBoardResult> GetNewsBoard() {
+        var response = await SendInGameRequest("/news/board", null);
+        if (response == null) {
+            return new NewsBoardResult { Error = "Could not reach the server." };
+        }
+
+        return NewsBoardData.TryParse(response, out var data)
+            ? new NewsBoardResult { Data = data }
+            : new NewsBoardResult { Error = "The News Board is not available on this server yet." };
     }
 
     // ---- the shared in-game music (the Jukebox) ----------------------------------------------------------------------------------------------------

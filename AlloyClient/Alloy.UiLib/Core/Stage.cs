@@ -61,6 +61,11 @@ public sealed class Stage : Sprite {
         }
 
         CurrentHighestSprite = null;
+
+        // Held editing keys (Backspace, Delete, the arrows) repeat here, since the window never re-sends them.
+        if (_manualTextInput.TryRepeat(_keyboard, gameTime.TotalMs, out var heldKey)) {
+            TextInput.ActiveInput?.OnManualTextInput(heldKey);
+        }
         
         InternalUpdateLoop();
     }

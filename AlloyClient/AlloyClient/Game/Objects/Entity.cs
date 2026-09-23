@@ -26,7 +26,7 @@ public class Entity {
 
     public int ObjectId;
     public ushort Type;
-    
+
     public readonly Signal<int> InventoryUpdate = new();
 
     public float HeightOffset;
@@ -45,7 +45,7 @@ public class Entity {
 
     public MapTile Tile;
     public ObjectProperties Properties;
-    
+
     public double AttackStart;
     public float AttackAngle;
 
@@ -102,11 +102,11 @@ public class Entity {
     public TextureData TextureData;
 
     public AtlasData Texture;
-    
+
     public bool Flipped;
 
     public float FacingAngle;
-    
+
     public float Jitter;
 
     public ParticleEffect Effect;
@@ -150,7 +150,15 @@ public class Entity {
         if (!string.IsNullOrEmpty(props.Model)) {
             return new TypeModel3D(props.Model, this);
         }
-        
+
+        if (props.CrossedCards > 0) {
+            return new TypeCrossedCards(this);
+        }
+
+        if (props.FlatOnGround && props.Thickness > 0) {
+            return new TypeFlatStack(this);
+        }
+
         if (props.DrawOnGround) {
             return new TypeGroundObject(this);
         }
@@ -225,14 +233,13 @@ public class Entity {
         return true;
     }
 
-    public void UpdateVisibility(ref Matrix4 matrix) {
-        /*var dx = Position.X - Camera.Position.X;
-        var dy = Position.Y + Camera.Position.Y;
-        var distanceSquared = dx * dx + dy * dy;
-        const int playerSightRadiusSquared = Map.TileRenderDistance * Map.TileRenderDistance;
-        RenderBaseType.SetVisibility(distanceSquared <= playerSightRadiusSquared);*/
-        RenderBaseType.SetVisibility(true);
-        
+    // cullRadius: tiles from the camera beyond which nothing is drawn (CullRules). The local player is always drawn.
+    public void UpdateVisibility(ref Matrix4 matrix, in Vector2 cameraPos, float cullRadius) {
+        var visible = this == Map.LocalPlayer || CullRules.IsVisible(Position, cameraPos, cullRadius);
+        RenderBaseType.SetVisibility(visible);
+        if (!visible)
+            return;
+
         //TODO: double check mg to make sure
         //var sort = Vector3.Transform(new Vector3(Position.X, Position.Y, 0), matrix).Y;
         var sort = Vector3.TransformPerspective(new Vector3(Position.X, Position.Y, 0), matrix).Y;
@@ -245,7 +252,7 @@ public class Entity {
         if (tile == null) {
             return false;
         }
-        
+
         Position.X = x;
         Position.Y = y;
 
@@ -405,16 +412,16 @@ public class Entity {
         AttackStart = Main.GameTime.TotalMs;
         AttackAngle = attackAngle;
     }
-    
+
     public virtual AtlasData GetTexture(double time, out bool attackFrame, out bool flipped) {
         const float ZeroLimit = 0.00001f;
         const float NegZeroLimit = -ZeroLimit;
-        
-        
+
+
         var texture = new AtlasData();
         var action = AnimationType.Stand;
         attackFrame = flipped = false;
-        
+
         if (TextureData.HasAnimationData) {
             var idx = 0d;
             if (time < AttackStart + AttackPeriod) {
@@ -432,7 +439,7 @@ public class Entity {
                 } else {
                     action = AnimationType.Stand;
                 }
-                
+
                 idx = time % walkPer / walkPer;
             }
 

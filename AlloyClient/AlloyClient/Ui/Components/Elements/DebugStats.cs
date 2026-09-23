@@ -1,148 +1,138 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Numerics;
+using System;
 using Alloy.Engine;
+using AlloyClient.Core;
+using AlloyClient.Game;
+using AlloyClient.Logging;
 using AlloyClient.Rendering;
 using Alloy.UiLib;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
+using Microsoft.Extensions.Logging;
 
 namespace AlloyClient.Ui.Components.Elements;
 
+// The DEV / F5 readout. Rewritten 2026-09-22 ("fact-check the FPS readout"):
+//  - FPS and the frame-time percentiles are over the last ONE second (FrameStats: frames / the window's real length, no per-frame sort).
+//  - The limiter is named next to the FPS (VSync at the monitor's rate / an FPS cap / none), because on this PC VSync pins the number at 60
+//    whatever the game costs.
+//  - Where the frame's time goes: CPU work (update / fixed / draw), the GPU's own time (GL timer query), the swap wait, the cap sleep.
+//  - "Unlimited" = what the frame rate would be without the limiter: 1000 / the larger of CPU work and GPU time. That is the number to
+//    push up on a VSynced machine; friends with VSync off see it directly as their FPS.
+//  - Draw calls and uploaded bytes per frame (GpuStats), the memory / world / loop rows as before.
+//  - Every 10 s the same numbers go to the console log ([FPS] ...) so a run can be read back afterwards.
 public class DebugStats : Sprite {
-    
+
     private const int Outline = 3;
+    private const int Indent = 8;
+    private const int LogEverySeconds = 10;
 
-    private const int WindowTimeSeconds = 5; // was 30 but the sorting was eating up +100ms at 2000 fps, probably cuz i have black desert running in the background lmao, 30 seconds was overkill anyways
-    private const int WindowTimeMs = 1000 * WindowTimeSeconds;
-    private const int StartingFrameCount = WindowTimeSeconds * 3000;
+    private static readonly ILogger Logger = ILogger.CreateLogger(nameof(DebugStats));
 
-    private double _framesSeconds;
+    private readonly FrameStats _frames = new();
+    private int _secondsSinceLog;
 
-    private readonly Queue<double> _frameTimes = new (StartingFrameCount);
-    private double[] _workingFrameTimes = new double[StartingFrameCount];
-    private double _statisticsTimer;
-    private int _frameCount;
+    private readonly SimpleText _fps = Row("FPS: 0", 2);
+    private readonly SimpleText _frameTimes = Row("Frame ms (1 s): avg 0  P90 0  P99 0  max 0", Indent);
+    private readonly SimpleText _cpu = Row("CPU work: 0 ms (update 0 / fixed 0 / draw 0)", Indent);
+    private readonly SimpleText _gpu = Row("GPU: - ms  swap wait: 0 ms  sleep: 0 ms", Indent);
+    private readonly SimpleText _unlimited = Row("Unlimited: -", Indent);
+    private readonly SimpleText _traffic = Row("Draw calls: 0, uploads: 0 KB/frame", Indent);
+    private readonly SimpleText _memory = Row("Memory", 2);
+    private readonly SimpleText _gcAlloc = Row("Total: 0 MB", Indent);
+    private readonly SimpleText _gcAllocDelta = Row("Allocated: 0 KB/s", Indent);
+    private readonly SimpleText _gcCounts = Row("Collections gen0/1/2: 0/0/0", Indent);
+    private readonly SimpleText _world = Row("World", 2);
+    private readonly SimpleText _tiles = Row("Tiles: 0", Indent);
+    private readonly SimpleText _shadows = Row("Shadows: 0", Indent);
+    private readonly SimpleText _entities = Row("Entities: 0", Indent);
+    private readonly SimpleText _particles = Row("Particles: 0", Indent);
+    private readonly SimpleText _ui = Row("Ui: 0", Indent);
+    private readonly SimpleText _loop = Row("Loop", 2);
+    private readonly SimpleText _fixedSteps = Row("Fixed steps: 0 (dropped 0)", Indent);
+    private readonly SimpleText _projectiles = Row("Projectiles: 0", Indent);
+    private readonly SimpleText _particleGens = Row("Particle gens: 0 (dropped 0)", Indent);
+    private readonly SimpleText _statusTexts = Row("Status texts: 0 (dropped 0)", Indent);
+    private readonly SimpleText _packets = Row("Packets/frame: 0, send buf 0 B", Indent);
+    private readonly SimpleText _scans = Row("Entity scans/frame: 0", Indent);
 
-    private readonly SimpleText _frameTimeTimer = new (new TextConfig {Text = $"Frame time over the last {WindowTimeSeconds} seconds", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _avgFrameTime = new (new TextConfig {Text = "Avg: 0 ms", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _p90FrameTime = new (new TextConfig {Text = "P90: 0 ms", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _p99FrameTime = new (new TextConfig {Text = "P99: 0 ms", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _maxFrameTime = new (new TextConfig {Text = "Max: 0 ms", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _fps = new (new TextConfig {Text = "FPS: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _memory = new (new TextConfig {Text = "Memory", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _gcAlloc = new (new TextConfig {Text = "Allocated: 0 MB", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _gcAllocDelta = new (new TextConfig {Text = "Allocated delta: 0 B", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _gcGen0Count = new (new TextConfig {Text = "Gen0 count: 0", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _gcGen1Count = new (new TextConfig {Text = "Gen1 count: 0", X = 8, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _tiles = new (new TextConfig {Text = "Tiles: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _shadows = new (new TextConfig {Text = "Shadows: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _entities = new (new TextConfig {Text = "Entities: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _particles = new (new TextConfig {Text = "Particles: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
-    private readonly SimpleText _ui = new(new TextConfig {Text = "Ui: 0", X = 2, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop});
-    
     private long _lastGcBytes;
-    
+
+    private static SimpleText Row(string text, int x) =>
+        new(new TextConfig { Text = text, X = x, FontSize = 16, FontType = FontType.Bold, OutlineThickness = Outline, Anchor = UiAnchor.LeftTop });
+
     public DebugStats() {
-        AddChild(_fps);
-        AddChild(_frameTimeTimer);
-        AddChild(_avgFrameTime);
-        AddChild(_p90FrameTime);
-        AddChild(_p99FrameTime);
-        AddChild(_maxFrameTime);
-        AddChild(_memory);
-        AddChild(_gcAlloc);
-        AddChild(_gcAllocDelta);
-        AddChild(_gcGen0Count);
-        AddChild(_gcGen1Count);
-        AddChild(_tiles);
-        AddChild(_shadows);
-        AddChild(_entities);
-        AddChild(_particles);
-        AddChild(_ui);
-        
-        _fps.Y = 4;
-        _frameTimeTimer.Y = _fps.Y + _fps.Height + 4;
-        _avgFrameTime.Y = _frameTimeTimer.Y + _frameTimeTimer.Height + 4;
-        _p90FrameTime.Y = _avgFrameTime.Y + _avgFrameTime.Height + 4;
-        _p99FrameTime.Y = _p90FrameTime.Y + _p90FrameTime.Height + 4;
-        _maxFrameTime.Y = _p99FrameTime.Y + _p99FrameTime.Height + 4;
-        _memory.Y = _maxFrameTime.Y + _maxFrameTime.Height + 4;
-        _gcAlloc.Y = _memory.Y + _memory.Height + 4;
-        _gcAllocDelta.Y = _gcAlloc.Y + _gcAlloc.Height + 4;
-        _gcGen0Count.Y = _gcAllocDelta.Y + _gcAllocDelta.Height + 4;
-        _gcGen1Count.Y = _gcGen0Count.Y + _gcGen0Count.Height + 4;
-        _tiles.Y = _gcGen1Count.Y + _gcGen1Count.Height + 4;
-        _shadows.Y = _tiles.Y + _tiles.Height + 4;
-        _entities.Y = _shadows.Y + _shadows.Height + 4;
-        _particles.Y = _entities.Y + _entities.Height + 4;
-        _ui.Y = _particles.Y + _particles.Height + 4;
+        SimpleText[] rows = [
+            _fps, _frameTimes, _cpu, _gpu, _unlimited, _traffic,
+            _memory, _gcAlloc, _gcAllocDelta, _gcCounts,
+            _world, _tiles, _shadows, _entities, _particles, _ui,
+            _loop, _fixedSteps, _projectiles, _particleGens, _statusTexts, _packets, _scans
+        ];
+        var y = 4;
+        foreach (var row in rows) {
+            AddChild(row);
+            row.Y = y;
+            y += (int)row.Height + 4;
+        }
     }
 
     public void Update(GameTime gameTime) {
-        var elapsed = gameTime.ElapsedMs;
-        _frameTimes.Enqueue(elapsed);
-        _framesSeconds += elapsed;
-        _statisticsTimer += elapsed;
-
-        // Drop frames that fall outside the 30s window
-        while (_framesSeconds > WindowTimeMs) {
-            _framesSeconds -= _frameTimes.Dequeue();
-        }
-
-        _frameCount++;
-
-        if (_statisticsTimer < 1000) {
+        if (!_frames.Add(gameTime.ElapsedMs))
             return;
-        }
 
-        if (_frameTimes.Count == 0) {
-            // A single frame hitch longer than the rolling window can drain the
-            // queue entirely; skip this cycle rather than indexing into nothing.
-            _statisticsTimer = 0;
-            _frameCount = 0;
-            return;
-        }
+        var snap = _frames.Take();
+        var limiter = Limiter(snap.AvgMs);
+        var cpu = FrameTiming.WorkMs;
+        var gpu = FrameTiming.GpuMs;
+        var busiest = Math.Max(cpu, gpu);
+        var unlimited = busiest > 0 ? 1000d / busiest : 0;
 
-        if (_workingFrameTimes.Length < _frameTimes.Count) {
-            _workingFrameTimes = new double[BitOperations.RoundUpToPowerOf2((uint)_frameTimes.Count)];
-        }
+        _fps.SetText($"FPS: {snap.Fps:F1}  ({limiter})");
+        _frameTimes.SetText($"Frame ms (1 s): avg {snap.AvgMs:F2}  P90 {snap.P90Ms:F2}  P99 {snap.P99Ms:F2}  max {snap.MaxMs:F2}");
+        _cpu.SetText($"CPU work: {cpu:F2} ms (update {PerfCounters.UpdateMs:F2} / fixed {PerfCounters.FixedUpdateMs:F2} / draw {PerfCounters.DrawMs:F2})");
+        _gpu.SetText(gpu >= 0
+            ? $"GPU: {gpu:F2} ms  swap wait: {FrameTiming.SwapMs:F2} ms  sleep: {FrameTiming.SleepMs:F2} ms"
+            : $"GPU: n/a  swap wait: {FrameTiming.SwapMs:F2} ms  sleep: {FrameTiming.SleepMs:F2} ms");
+        _unlimited.SetText(unlimited > 0
+            ? $"Unlimited: ~{unlimited:F0} FPS (1000 / {(cpu >= gpu ? "CPU" : "GPU")} {busiest:F2} ms)"
+            : "Unlimited: -");
+        _traffic.SetText($"Draw calls: {PerfCounters.DrawCallsLastFrame}, uploads: {PerfCounters.UploadBytesLastFrame / 1024} KB/frame");
 
-        _frameTimes.CopyTo(_workingFrameTimes, 0);
-
-        var data = _workingFrameTimes.AsSpan(0, _frameTimes.Count);
-        data.Sort();
-
-        var sum = 0d;
-        for (var i = 0; i < data.Length; i++) {
-            sum += data[i];
-        }
-        
-        var fps = _frameCount / 1.0;
-        var count = data.Length;
-        var avgFrameTime = sum / count;
-        var p90FrameTime = data[(int) (count * 0.90f)];
-        var p99FrameTime = data[(int) (count * 0.99f)];
-        var maxFrameTime = data[count - 1];
-        
-        _statisticsTimer = 0;
-        _frameCount = 0;
-
-        _avgFrameTime.SetText($"Avg: {Math.Round(avgFrameTime, 3)} ms"); // Over 30 seconds
-        _p90FrameTime.SetText($"P90: {Math.Round(p90FrameTime, 3)} ms");
-        _p99FrameTime.SetText($"P99: {Math.Round(p99FrameTime, 3)} ms");
-        _maxFrameTime.SetText($"Max: {Math.Round(maxFrameTime, 3)} ms");
-        _fps.SetText($"FPS: {Math.Round(fps, 1)}");
-        _gcAlloc.SetText($"Total: {Math.Round(GC.GetTotalMemory(false) / 1000000f, 2)} MB");
+        _gcAlloc.SetText($"Total: {GC.GetTotalMemory(false) / 1_000_000d:F2} MB");
         var gcBytes = GC.GetTotalAllocatedBytes();
-        _gcAllocDelta.SetText($"Allocated delta: {Math.Round((gcBytes - _lastGcBytes) / 1000.0, 2)} KB");
+        _gcAllocDelta.SetText($"Allocated: {(gcBytes - _lastGcBytes) / 1000d:F1} KB/s");
         _lastGcBytes = gcBytes;
-        _gcGen0Count.SetText($"Gen0 count: {GC.CollectionCount(0)}");
-        _gcGen1Count.SetText($"Gen1 count: {GC.CollectionCount(1)}");
+        _gcCounts.SetText($"Collections gen0/1/2: {GC.CollectionCount(0)}/{GC.CollectionCount(1)}/{GC.CollectionCount(2)}");
+
         _tiles.SetText($"Tiles: {Render.LastDrawCountTiles}");
         _shadows.SetText($"Shadows: {Render.LastDrawCountShadows}");
         _entities.SetText($"Entities: {Render.LastDrawCountEntities}");
         _particles.SetText($"Particles: {Render.LastDrawParticleCount}");
-        _ui.SetText($"Ui: {UiRender.LastRenderCount}");
+        _ui.SetText($"Ui: {UiRender.LastRenderCount} (batches {Alloy.UiLib.Rendering.SpriteRender.LastBatchCount})");
+        _fixedSteps.SetText($"Fixed steps: {PerfCounters.FixedStepsThisFrame} (dropped {PerfCounters.FixedStepsDroppedTotal})");
+        _projectiles.SetText($"Projectiles: {PerfCounters.Projectiles}");
+        _particleGens.SetText($"Particle gens: {PerfCounters.ParticleGenerators} (dropped {PerfCounters.ParticleEffectsDroppedTotal})");
+        _statusTexts.SetText($"Status texts: {PerfCounters.StatusTextsLive} (dropped {PerfCounters.StatusTextsDroppedTotal})");
+        _packets.SetText($"Packets/frame: {PerfCounters.PacketsQueuedThisFrame}, send buf {PerfCounters.SendBufferBytes} B, dropped {PerfCounters.PacketsDroppedTotal}");
+        _scans.SetText($"Entity scans/frame: {PerfCounters.EntityScansThisFrame}");
+
+        if (++_secondsSinceLog >= LogEverySeconds) {
+            _secondsSinceLog = 0;
+            Logger.Info($"[FPS] {snap.Fps:F1} ({limiter}) frame avg {snap.AvgMs:F2} p99 {snap.P99Ms:F2} max {snap.MaxMs:F2} ms | cpu {cpu:F2} gpu {gpu:F2} swap {FrameTiming.SwapMs:F2} sleep {FrameTiming.SleepMs:F2} ms | unlimited ~{unlimited:F0} | draws {PerfCounters.DrawCallsLastFrame} uploads {PerfCounters.UploadBytesLastFrame / 1024} KB | ents {Render.LastDrawCountEntities} tiles {Render.LastDrawCountTiles} ui {UiRender.LastRenderCount}");
+        }
+    }
+
+    // What holds the frame rate down, in words: the monitor (VSync), a cap from the options, the desktop compositor, or nothing.
+    public static string Limiter(double avgFrameMs) => Describe(Settings.VSync, Settings.FpsCap, FrameTiming.RefreshRate, FrameTiming.SwapMs, avgFrameMs);
+
+    // With VSync off and no cap, a WINDOWED game on Windows can still be paced by the desktop compositor: SwapBuffers blocks until the
+    // desktop's next refresh (no tearing either, the compositor shows whole frames). That shows as most of the frame spent in the swap.
+    public static string Describe(bool vsync, int fpsCap, int refreshRate, double swapMs = 0, double avgFrameMs = 0) {
+        if (vsync)
+            return refreshRate > 0 ? $"VSync {refreshRate} Hz" : "VSync";
+        if (fpsCap > 0)
+            return $"cap {fpsCap}";
+        if (avgFrameMs > 0 && swapMs > avgFrameMs * 0.5)
+            return "desktop compositor: the swap waits";
+        return "no limit";
     }
 }

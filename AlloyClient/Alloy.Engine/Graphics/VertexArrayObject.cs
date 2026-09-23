@@ -6,5 +6,5 @@ public sealed class VertexArrayObject {
 
     public void Bind() => GL.BindVertexArray(Handle);
 
-    public void Dispose() => GL.DeleteBuffer(Handle);
+    public void Dispose() => GL.DeleteVertexArray(Handle);   // was GL.DeleteBuffer (wrong object type: the VAO leaked)
 }

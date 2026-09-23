@@ -61,7 +61,7 @@ public class Player : Entity {
     public int DexterityBoost;
     public int VitalityBoost;
     public int WisdomBoost;
-    
+
     public new double AttackPeriod;
     public new double AttackStart;
 
@@ -142,13 +142,21 @@ public class Player : Entity {
 
     private static float Wrap2Pi(float a) => (a % MathHelper.TwoPi + MathHelper.TwoPi) % MathHelper.TwoPi;
 
+    // Free rotation ramps up and down over ~SpinEaseMs instead of starting at full speed the instant the key goes down (2026-09-22:
+    // with the props standing still in the world now, a jump-start made the whole scene lurch).
+    private const float SpinEaseMs = 80f;
+    private float _spin;
+
     private void UpdateCameraRotation(double dt) {
         float angle = Settings.CameraAngle;
 
         if (!Settings.SnapRotation) {
             _snapLastAngle = float.NaN;
-            if (Rotate != 0) {
-                angle = (float) (angle + dt * Settings.RotateSpeed * Rotate);
+            _spin += (Rotate - _spin) * (1f - MathF.Exp(-(float) dt / SpinEaseMs));
+            if (Rotate == 0 && MathF.Abs(_spin) < 0.01f)
+                _spin = 0f;
+            if (_spin != 0) {
+                angle = (float) (angle + dt * Settings.RotateSpeed * _spin);
                 Settings.CameraAngle.Set(Wrap2Pi(angle));
             }
             return;
@@ -188,7 +196,7 @@ public class Player : Entity {
     private void HandleRelativeMovement(double time, double dt) {
         UpdateCameraRotation(dt);
         float angle = Settings.CameraAngle;
-        
+
         var moveSpeed = GetMoveSpeed();
             var moveVectorAngle = MathF.Atan2(RelativeMoveVector.Y, RelativeMoveVector.X);
 
@@ -235,7 +243,7 @@ public class Player : Entity {
 
             WalkTo((float) (Position.X + dt * MovementVector.X), (float) (Position.Y + dt * MovementVector.Y));
             RenderBaseType.SetPosition(Position.X, Position.Y, Z);
-        
+
     }
 
     public override bool Update(double time, double dt) {
@@ -358,10 +366,10 @@ public class Player : Entity {
 
     public override AtlasData GetTexture(double time, out bool attackFrame, out bool flipped) {
         var texture = new AtlasData();
-        
+
         var action = AnimationType.Stand;
         var idx = 0d;
-        
+
         if (time < AttackStart + AttackPeriod) {
             action = AnimationType.Attack;
             idx = (time - AttackStart) % AttackPeriod / AttackPeriod;
@@ -395,26 +403,26 @@ public class Player : Entity {
         if (HasConditionEffect(ConditionEffect.Dazed)) {
             return MinAttackFreq;
         }
-        
+
         var attFreq = MinAttackFreq + Dexterity / 75f * (MaxAttackFreq - MinAttackFreq);
 
         if (HasConditionEffect(ConditionEffect.Berserk))
             attFreq *= 1.25f;
-        
+
         return attFreq;
     }
 
     public void Shoot(float attackAngle, GameTime gameTime) {
         if (HasConditionEffect(ConditionEffect.Stunned) || HasConditionEffect(ConditionEffect.Paused))
             return;
-        
+
         var item = Equipment[0];
 
         if (item == null)
             return;
 
         var temp = AttackFrequency();
-        
+
         AttackPeriod = 1 / temp * (1 / item.RateOfFire);
 
         if (gameTime.TotalMs < AttackStart + AttackPeriod)
@@ -422,9 +430,9 @@ public class Player : Entity {
 
         AttackAngle = attackAngle;
         AttackStart = gameTime.TotalMs;
-        
+
         var props = ObjectLibrary.TypeToObjectProps[item.ObjectType];
-        
+
         var projType = ObjectLibrary.IdToObjectType[props.Projectiles[0].ObjectId];
         var objProps =  ObjectLibrary.TypeToObjectProps[projType];
         var projProps = props.Projectiles[0];
@@ -439,10 +447,10 @@ public class Player : Entity {
             var dmg = Random.Shared.NextRange(projProps.MinDamage, projProps.MaxDamage); // Migrate to match server rng
             proj.Reset(bId, dmg, angle * MathHelper.RadToDeg, this, objProps, projProps, null, Position);
             Map.AddProjectile(proj);
-            
+
             var shoot = PlayerShoot.CreatePacket();
             shoot.Angle = angle;
-            
+
             Client.QueuePacket(shoot);
         }
     }

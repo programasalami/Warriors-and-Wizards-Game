@@ -11,6 +11,7 @@ namespace GameServer.Game.Systems.Chat;
 
 public struct PlayerChat : IEntityIdentifiable, IDisposable {
     private const int TextCooldown = 500;
+    public const int MaxTextLength = 256;
     
     public EntityId Id { get; set; }
 
@@ -27,6 +28,14 @@ public struct PlayerChat : IEntityIdentifiable, IDisposable {
 
     public bool ValidateSpeak(RealmTime time, string text) {
         var user = _world.Users[_playerId];
+
+        if (string.IsNullOrWhiteSpace(text))
+            return false;
+        if (text.Length > MaxTextLength) {
+            user.SendError($"Message too long (max {MaxTextLength} characters).");
+            return false;
+        }
+
         if (user.GameInfo.Account.IsAdmin)
             return true;
 

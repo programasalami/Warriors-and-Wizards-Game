@@ -1,0 +1,163 @@
+[
+ {
+  "type": 2560,
+  "name": "Old Sword",
+  "tier": 0,
+  "slot": 1,
+  "slotName": "Sword",
+  "description": "An old blade, nicked and dulled by the years. Whoever carried it before you is long gone, but it still cuts.",
+  "boosts": [],
+  "damage": [
+   55,
+   100
+  ],
+  "rateOfFire": 0.8,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a00.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2663,
+  "name": "Old Armor",
+  "tier": 0,
+  "slot": 7,
+  "slotName": "Armor",
+  "description": "Old leather armor, cracked at the seams and patched more than once. It has taken its share of blows and can take a few more.",
+  "boosts": [
+   {
+    "stat": "DEF",
+    "amount": 3
+   }
+  ],
+  "damage": null,
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a67.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2665,
+  "name": "Old Ring",
+  "tier": 0,
+  "slot": 9,
+  "slotName": "Ring",
+  "description": "An old silver ring, worn thin. It has been on more hands than anyone can count, and every one of them lived a little longer for it.",
+  "boosts": [
+   {
+    "stat": "HP",
+    "amount": 10
+   }
+  ],
+  "damage": null,
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a69.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2594,
+  "name": "Health Potion",
+  "tier": 1,
+  "slot": 10,
+  "slotName": "Potion",
+  "description": "A potion that instantly restores health points.",
+  "boosts": [],
+  "damage": null,
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": true,
+  "soulbound": false,
+  "icon": "items/0a22.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2606,
+  "name": "Old Spell",
+  "tier": 0,
+  "slot": 11,
+  "slotName": "Spell",
+  "description": "It's old and not as strong as it used to be, but it's the easiest spell to come by.",
+  "boosts": [],
+  "damage": [
+   10,
+   15
+  ],
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a2e.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2664,
+  "name": "Old Robe",
+  "tier": 0,
+  "slot": 14,
+  "slotName": "Robe",
+  "description": "An old robe, faded and frayed at the hem. Whoever wore it before you left a little of their magic in the weave.",
+  "boosts": [
+   {
+    "stat": "DEF",
+    "amount": 1
+   },
+   {
+    "stat": "MP",
+    "amount": 10
+   }
+  ],
+  "damage": null,
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a68.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2662,
+  "name": "Old Helmet",
+  "tier": 0,
+  "slot": 16,
+  "slotName": "Helmet",
+  "description": "An old helmet from a war nobody remembers. The leather is worn and the steel is dull, but it has kept heads safe for longer than you have been alive.",
+  "boosts": [
+   {
+    "stat": "DEF",
+    "amount": 2
+   }
+  ],
+  "damage": null,
+  "rateOfFire": null,
+  "numProjectiles": null,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a66.png",
+  "source": "Equip.xml"
+ },
+ {
+  "type": 2711,
+  "name": "Old Staff",
+  "tier": 0,
+  "slot": 17,
+  "slotName": "Staff",
+  "description": "An old wooden staff, worn smooth by the hands that held it before yours. It still remembers a spell or two.",
+  "boosts": [],
+  "damage": [
+   10,
+   25
+  ],
+  "rateOfFire": 1.0,
+  "numProjectiles": 2,
+  "consumable": false,
+  "soulbound": false,
+  "icon": "items/0a97.png",
+  "source": "Equip.xml"
+ }
+]

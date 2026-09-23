@@ -800,7 +800,7 @@ function initMaker() {
     makerReady = true;
     const sheet = $('mkSheet');
     for (const name of Object.keys(P.sheets).filter((n) => !P.sheets[n].animated)) sheet.add(new Option(name + '  (' + P.sheets[name].w + 'x' + P.sheets[name].h + ')', name));
-    sheet.value = P.sheets.equipAndConsume ? 'equipAndConsume' : sheet.options[0].value;
+    sheet.value = P.sheets.dungeonItems ? 'dungeonItems' : sheet.options[0].value;      // the item sheet (Dark Dungeon pack since 2026-09-21)
     for (const p of P.projectiles) $('mkProj').add(new Option(p, p));
     for (const id of ['mkKind', 'mkName', 'mkType', 'mkDesc', 'mkTier', 'mkSlot', 'mkMin', 'mkMax', 'mkRate', 'mkProj', 'mkSpeed', 'mkLife', 'mkShots', 'mkClass', 'mkSize', 'mkStatic', 'mkOccupy', 'mkTarget']) {
       $(id).addEventListener('input', refreshMaker);

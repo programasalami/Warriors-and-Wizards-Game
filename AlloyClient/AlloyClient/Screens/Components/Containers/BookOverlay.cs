@@ -380,14 +380,17 @@ public class BookOverlay : Overlay {
     // Everything lives on the right page, one item per line: title, "Username:", the input,
     // a gap, "Password:", the input, then the submit/back buttons. The left page is left
     // completely blank - reserved for other registration-related features later.
+    // The left page of both forms is the Wizard's little show (BookActor): it restarts every time the page is flipped to.
     private Container BuildRegisterPage() {
         var container = new Container();
+        container.AddChild(new BookActor(BookActor.Mood.Register, PageAreaLeft, LeftPageRight, PageAreaTop, PageAreaBottom));
         BuildRightPageForm(container, "Register", OnRegister);
         return container;
     }
 
     private Container BuildSignInPage() {
         var container = new Container();
+        container.AddChild(new BookActor(BookActor.Mood.SignIn, PageAreaLeft, LeftPageRight, PageAreaTop, PageAreaBottom));
         BuildRightPageForm(container, "Sign In", OnSignIn);
         return container;
     }
@@ -401,14 +404,18 @@ public class BookOverlay : Overlay {
 
         // Label-to-input gap bumped from 26 to 32 (below) - at 26 the label's descenders were
         // touching the box's top edge.
-        var usernameInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 93, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Anchor = UiAnchor.Middle });
+        var usernameInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 93, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, BoxAlpha = 0f, Width = RightPageContentWidth, DefaultText = "", Anchor = UiAnchor.Middle });
         container.AddChild(usernameInput);
 
         var passwordLabel = new SimpleText(new TextConfig { Text = "Password:", FontSize = LabelFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, OutlineColor = 0x000000, X = RightPageCenterX, Y = PageAreaTop + 136, Anchor = UiAnchor.Middle });
         container.AddChild(passwordLabel);
 
-        var passwordInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 168, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, Width = RightPageContentWidth, DefaultText = "", Password = true, Anchor = UiAnchor.Middle });
+        var passwordInput = new TextInput(new InputConfig { X = RightPageCenterX, Y = PageAreaTop + 168, FontSize = InputFontSize, FontType = FontType.Bold, FontGroup = FontGroup.MyriadPro, Color = PageTextColor, BoxColor = 0x000000, BoxAlpha = 0f, Width = RightPageContentWidth, DefaultText = "", Password = true, Anchor = UiAnchor.Middle });
         container.AddChild(passwordInput);
+
+        // Tab walks the two fields (and wraps); the boxes themselves are invisible on the book (BoxAlpha 0), the words sit straight on the page.
+        usernameInput.NextInput = passwordInput;
+        passwordInput.NextInput = usernameInput;
 
         // One row, Back on the left and Proceed on the right of the form's own center line -
         // replaced the old two separate text-button rows.

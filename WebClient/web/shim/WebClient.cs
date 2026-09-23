@@ -168,6 +168,7 @@ public static class Client {
 
     public static void QueuePacket(IOutgoingPacket pkt) {
         if (pkt.PacketId == PacketId.Unknown) return;
+        Game.PerfCounters.PacketsQueuedThisFrame++;
 
         var buffer = _scratch;
         var writer = new SpanWriter(buffer.AsSpan()) { Position = 5 };
@@ -194,6 +195,9 @@ public static class Client {
         }
 
         Map.Reset();
+        // Every drop - a server restart for an update included - asks the account server again which build it wants now, so the book says
+        // "Update required" straight away instead of after a failed PLAY (2026-09-22; mirrored in the web shim).
+        _ = AppEngine.VersionCheck.FetchAsync();
         LoaderFlows.ToCharacterList();
     }
 
@@ -201,7 +205,7 @@ public static class Client {
         var login = GlobalData.Get<LoginData>();
         var hello = Hello.CreatePacket();
         hello.BuildVersion = Settings.BuildVersion;
-        hello.GameId = -1;
+        hello.GameId = Data.FastTravel.GameIdFor(Settings.FastTravel.Value, GlobalData.Get<AccountData>());      // the FAST TRAVEL choice - mirror of Client.SendHello (this file replaces Client.cs wholesale in the web build; it sent -1 = Nexus until 2026-09-22)
         hello.Username = login.Username;
         hello.Password = login.Password;
         hello.MapJSON = "";

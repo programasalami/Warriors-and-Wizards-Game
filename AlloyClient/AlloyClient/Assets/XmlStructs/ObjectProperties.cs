@@ -9,12 +9,12 @@ namespace AlloyClient.Assets.XmlStructs;
 public class ObjectProperties {
     public readonly ushort ObjectType;
     public readonly string ObjectId;
-    
+
     public readonly string DisplayId;
     public readonly string DisplayName;
-    
+
     public readonly Dictionary<byte, ProjectileProperties> Projectiles;
-    
+
     public readonly PlayerProperties PlayerProperties;
 
     public readonly string Class;
@@ -49,25 +49,34 @@ public class ObjectProperties {
     // XML <FlatOnGround/>: draw the sprite lying in the ground plane (rotates with the world, no
     // shadow, always behind standing objects) instead of as a camera-facing billboard.
     public readonly bool FlatOnGround;
-    
+
+    // XML <CrossedCards>N</CrossedCards> (or <CrossedCards/> = 2): draw the sprite as N upright copies of its picture spread evenly
+    // round the vertical axis and fixed in the world (2 = a cross, 4 = a star) instead of a billboard that turns to face the camera
+    // (TypeCrossedCards, 2026-09-22). 0 = an ordinary billboard.
+    public readonly int CrossedCards;
+
+    // XML <Thickness>t</Thickness> on a <FlatOnGround/> object (the logs): draw the flat picture as a stack of layers t tiles high so it
+    // has a visible side (TypeFlatStack, 2026-09-22). 0 = the plain flat sprite.
+    public readonly float Thickness;
+
     public readonly string Description;
-    
+
     public readonly ushort PlayerClassType;
     public readonly bool Skin;
 
     public readonly bool Container;
     public readonly bool LockedPortal;
-    
+
     public readonly List<int> SlotTypes;
     public readonly List<ushort?> Equipment;
 
     public ObjectProperties(XElement e) {
         ObjectType = e.GetAttribute<ushort>("type");
         ObjectId = e.GetAttribute<string>("id");
-        
+
         DisplayId = e.GetValue<string>("DisplayId");
         DisplayName = string.IsNullOrWhiteSpace(DisplayId) ? ObjectId : DisplayId;
-        
+
         Projectiles = [];
         foreach (var proj in e.Elements("Projectile")) {
             var props = new ProjectileProperties(proj);
@@ -85,11 +94,11 @@ public class ObjectProperties {
         IsPlayer = e.GetValue<bool>("Player");
         IsEnemy = e.GetValue<bool>("Enemy");
         IsAlly = e.GetValue<bool>("Ally");
-        
+
         if (IsPlayer) {
             PlayerProperties = new PlayerProperties(e);
         }
-        
+
         EnemyOccupySquare = e.GetValue<bool>("EnemyOccupySquare");
         OccupySquare = e.GetValue<bool>("OccupySquare");
         FullOccupy = e.GetValue<bool>("FullOccupy");
@@ -104,9 +113,11 @@ public class ObjectProperties {
         SizeStep = e.GetValue("SizeStep", 5);
         BottomInset = e.GetValue("BottomInset", 0f);
         FlatOnGround = e.HasElement("FlatOnGround");
-        
+        Thickness = e.GetValue("Thickness", 0f);
+        CrossedCards = e.HasElement("CrossedCards") ? Math.Clamp(int.TryParse(e.Element("CrossedCards")?.Value, out var cards) ? cards : 2, 1, 8) : 0;
+
         Description = e.GetValue<string>("Description");
-        
+
         PlayerClassType = e.GetValue<ushort>("PlayerClassType");
         Skin = e.GetValue<bool>("Skin");
 
@@ -130,7 +141,7 @@ public class ObjectProperties {
                     Equipment.Add(null);
                     continue;
                 }
-                
+
                 var objectType = Convert.ToUInt16(clean, Alloy.Common.Utils.GetBase(clean));
                 Equipment.Add(objectType);
             }

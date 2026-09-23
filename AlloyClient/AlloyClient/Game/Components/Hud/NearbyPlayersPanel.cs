@@ -6,6 +6,7 @@ using AlloyClient.Game.Components.Hud.Panels;
 using AlloyClient.Game.Objects;
 using AlloyClient.Networking;
 using AlloyClient.Networking.Packets.Outgoing;
+using AlloyClient.Ui;
 using Alloy.UiLib.BuiltIn;
 using Alloy.UiLib.Core;
 
@@ -16,7 +17,7 @@ namespace AlloyClient.Game.Components.Hud;
 // Clicking a name opens a small menu above the frame with that player's class and level, and - for staff only - Mute / Kick shortcuts (the same chat commands as the admin
 // dashboard; the server checks the rank). Trade, whisper and friend requests are not in the game yet (the server has no handlers for them), so there is nothing to offer for them.
 public sealed class NearbyPlayersPanel : Sprite {
-    public const int Width = Panel.PanelWidth;
+    public const int Width = HudView.MinimapFrame;      // sits under the minimap, so exactly its frame's width
     public const int Height = Panel.PanelHeight;
 
     private const int RowsTop = 12;
@@ -44,7 +45,8 @@ public sealed class NearbyPlayersPanel : Sprite {
     }
 
     // The screen area the open menu takes (design units, relative to the HUD), or null - it must not fire the weapon when clicked.
-    public (float X, float Y, float W, float H)? MenuRect => _menu == null ? null : (X, Y - _menu.MenuHeight - MenuGap, Width, _menu.MenuHeight);
+    // The menu opens UNDER the frame now (the minimap is above it).
+    public (float X, float Y, float W, float H)? MenuRect => _menu == null ? null : (X, Y + Height + MenuGap, Width, _menu.MenuHeight);
 
     public void Update() {
         var shown = 0;
@@ -83,7 +85,7 @@ public sealed class NearbyPlayersPanel : Sprite {
         CloseMenu();
         _menuPlayerId = player.ObjectId;
         _menu = new PlayerMenu(player, CloseMenu);
-        _menu.Y = -_menu.MenuHeight - MenuGap;
+        _menu.Y = Height + MenuGap;
         AddChild(_menu);
     }
 
@@ -181,28 +183,34 @@ public sealed class NearbyPlayersPanel : Sprite {
             var mute = staff ? AdminRules.Mute(player.Name, "30m", null) : null;
             var hasActions = kick != null && mute != null;
 
-            MenuHeight = hasActions ? 112 : 62;
-            AddChild(OptionsStyle.Panel(Width, MenuHeight));
-
-            AddChild(OptionsStyle.Label(player.Name, FontGroup.MyriadPro, 20f, Pad, 10, UiAnchor.LeftTop, WaWStyle.Highlight, 1));
-            var cls = player.Properties?.DisplayName ?? string.Empty;
-            AddChild(OptionsStyle.Label(cls.Length > 0 ? $"{cls}  -  Level {player.Level}" : $"Level {player.Level}", FontGroup.MyriadPro, 14f, Pad, 36, UiAnchor.LeftTop, OptionsStyle.Tan, 1));
+            // A parchment scroll (the same plate as the options' buttons) with dark ink, instead of the bare walnut panel that read as "no frame";
+            // the name is cut so it never runs into the close button (2026-09-22).
+            MenuHeight = hasActions ? 124 : 72;
+            AddChild(new NineSliceRect(new NineSliceConfig {
+                SliceData = SliceLibrary.DarkAgesParchment, CutX = OptionsStyle.ScrollCut, CutY = OptionsStyle.ScrollCut, Width = Width, Height = MenuHeight
+            }));
 
             var closeButton = WaWStyle.CloseButton(close);
-            closeButton.X = Width - closeButton.Width - 10;
-            closeButton.Y = 8;
+            closeButton.X = Width - closeButton.Width - Pad;
+            closeButton.Y = Pad;
             AddChild(closeButton);
+
+            var name = player.Name ?? string.Empty;
+            if (name.Length > 14) name = name[..13] + "..";
+            AddChild(OptionsStyle.Label(name, FontGroup.MyriadPro, 20f, Pad + 4, Pad + closeButton.Height / 2, UiAnchor.MiddleLeft, OptionsStyle.ParchmentInk, 1));
+            var cls = player.Properties?.DisplayName ?? string.Empty;
+            AddChild(OptionsStyle.Label(cls.Length > 0 ? $"{cls}  -  Level {player.Level}" : $"Level {player.Level}", FontGroup.MyriadPro, 14f, Pad + 4, Pad + closeButton.Height + 14, UiAnchor.MiddleLeft, OptionsStyle.ParchmentInk, 0));
 
             if (hasActions) {
                 const int buttonWidth = 100;
                 var muteButton = WaWStyle.TextButton("Mute 30m", buttonWidth, 34, 16f, () => Do(mute, close));
                 muteButton.X = Pad;
-                muteButton.Y = 66;
+                muteButton.Y = MenuHeight - 34 - Pad;
                 AddChild(muteButton);
 
                 var kickButton = WaWStyle.TextButton("Kick", buttonWidth, 34, 16f, () => Do(kick, close));
                 kickButton.X = Pad + buttonWidth + 8;
-                kickButton.Y = 66;
+                kickButton.Y = MenuHeight - 34 - Pad;
                 AddChild(kickButton);
             }
         }

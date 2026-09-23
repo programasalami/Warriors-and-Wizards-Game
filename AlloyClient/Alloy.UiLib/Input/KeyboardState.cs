@@ -86,4 +86,25 @@ internal struct ManualTextInput {
 
         _lastKeyDown = Key.Unknown;
     }
+
+    // Polled every frame (Stage.Update): the window layer sends ONE key-down per press, never the operating system's repeats, so a held Backspace
+    // used to delete a single character. While the last editing key is still held, this fires it again after InitDelay and then every RepeatDelay.
+    public bool TryRepeat(in KeyboardState keys, double time, out Key key) {
+        key = _lastKeyDown;
+        if (key == Key.Unknown) {
+            return false;
+        }
+
+        if (!keys.IsKeyDown(key)) {
+            _lastKeyDown = Key.Unknown;
+            return false;
+        }
+
+        if (time < _nextTickTime) {
+            return false;
+        }
+
+        _nextTickTime = time + RepeatDelay;
+        return true;
+    }
 }

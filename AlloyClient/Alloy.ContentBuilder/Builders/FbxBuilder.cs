@@ -11,6 +11,12 @@ public static class FbxBuilder {
     private static readonly AssimpContext Importer = new ();
     
     public static void Process(FolderSettings settings, Paths paths) {
+        // No FBX models ship any more (retired 2026-09-21; every model is built in code), so the folder may not exist at all.
+        if (!Directory.Exists(settings.Folder)) {
+            Console.WriteLine($"No {settings.Ext} folder at {settings.Folder} - nothing to import.");
+            return;
+        }
+
         var files = Directory.GetFiles(settings.Folder, settings.Ext, SearchOption.AllDirectories);
         
         var count = 0;

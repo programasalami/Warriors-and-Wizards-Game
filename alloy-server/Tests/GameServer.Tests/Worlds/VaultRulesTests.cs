@@ -40,20 +40,20 @@ public class VaultRulesTests {
 
     [Fact]
     public void ACleanChestHasEightSlotsAndDropsWhatTheGameNoLongerHas() {
-        var cleaned = VaultRules.Clean([0xa01, 0xdead, -1, 0xa02], t => t is 0xa01 or 0xa02);
+        var cleaned = VaultRules.Clean([0xa00, 0xdead, -1, 0xa69], t => t is 0xa00 or 0xa69);
         Assert.Equal(8, cleaned.Length);
-        Assert.Equal([0xa01, -1, -1, 0xa02, -1, -1, -1, -1], cleaned);
+        Assert.Equal([0xa00, -1, -1, 0xa69, -1, -1, -1, -1], cleaned);
         Assert.Equal(Enumerable.Repeat(-1, 8), VaultRules.Clean(null, _ => true));
         Assert.Equal(8, VaultRules.Clean(new int[50], _ => true).Length);
     }
 
     [Fact]
     public void TheChestListGrowsToTheAccountsCountAndKeepsWhatWasSaved() {
-        var saved = new List<VaultChest> { new() { ChestId = 0, ItemTypes = [0xa01, -1, -1, -1, -1, -1, -1, -1], ItemDatas = [] } };
+        var saved = new List<VaultChest> { new() { ChestId = 0, ItemTypes = [0xa00, -1, -1, -1, -1, -1, -1, -1], ItemDatas = [] } };
         var list = VaultRules.Chests(saved, 3, _ => true);
 
         Assert.Equal(3, list.Count);
-        Assert.Equal(0xa01, list[0].ItemTypes[0]);
+        Assert.Equal(0xa00, list[0].ItemTypes[0]);
         Assert.All(list[1].ItemTypes, t => Assert.Equal(-1, t));
         Assert.Equal([0, 1, 2], list.Select(c => c.ChestId));
     }

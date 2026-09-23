@@ -24,9 +24,9 @@ public struct EntityCombat : IEntityIdentifiable, IDisposable {
 
     public int TotalDamageReceived;
     public readonly SparseSet<DamageRecord> DamageRecords;
-    
+
     private readonly World _world;
-    
+
     public EntityCombat(World world, ref Entity en) {
         Id = en.Id;
         _world = world;
@@ -38,7 +38,7 @@ public struct EntityCombat : IEntityIdentifiable, IDisposable {
         var dmg = Random.Shared.Next(minDamage, maxDamage);
         return dmg;
     }
-    
+
     public void Damage(EntityId fromId, int damage, int fromAccId) { // Applies damage directly, perform any modifications to the amount before calling this
         TotalDamageReceived += damage;
 
@@ -60,14 +60,19 @@ public struct EntityCombat : IEntityIdentifiable, IDisposable {
         ref var stats = ref _world.EntityStats.Get(Id);
         if (stats.Id == EntityId.Null)
             return;
-        
+
+        if (TotalDamageReceived > 0 && _world.Users.TryGetValue(Id, out var godUser) && godUser.GameInfo.God) {
+            TotalDamageReceived = 0;       // /god: the hits land (texts, records) but never lower the health
+            return;
+        }
+
         var hp = stats.GetInt(StatType.HP);
         var newHp = hp - TotalDamageReceived;
         stats.Set(StatType.HP, newHp);
 
         if (newHp <= 0)
             Death(ref stats);
-        
+
         TotalDamageReceived = 0;
     }
 
@@ -78,6 +83,9 @@ public struct EntityCombat : IEntityIdentifiable, IDisposable {
             _world.Users[Id].Disconnect(reason: DisconnectReason.Death);
             return;
         }
+        Progression.AwardKill(_world, ref en, ref this);        // XP / levels / fame for every player in the damage records (2026-09-22)
+        if (en.Desc.Enemy && _world.TryGetMapOrigin(Id, out var origin))
+            _world.AddTimedAction(ProgressionRules.MapEnemyRespawnMs, w => w.SpawnFromMap(origin));      // the Nexus targets come back
         _world.LeaveWorld(Id);
     }
 

@@ -30,6 +30,9 @@ public struct InputConfig {
     public UiAnchor Anchor = UiAnchor.LeftTop;
     
     public Action OnChange = null;
+
+    // 0 hides the box entirely (the input still works and is still clickable); 1 draws it as usual.
+    public float BoxAlpha = 1f;
     
     public InputConfig() { }
 }
@@ -44,6 +47,12 @@ public sealed class TextInput : Sprite {
     internal static TextInput ActiveInput;
     
     public string Text => _inputText.ToString();
+
+    // Enter in this field (null: nothing). Forms set it to their submit action so Enter works like the button (2026-09-22).
+    public Action OnSubmit;
+
+    // Where Tab goes from this field (null: Tab does nothing). Forms set it on each field so Tab walks their inputs in order.
+    public TextInput NextInput { get; set; }
     private readonly StringBuilder _inputText = new();
     private bool _isDefaultText = true;
     
@@ -97,6 +106,7 @@ public sealed class TextInput : Sprite {
         var rectConfig = new NineSliceConfig { Width = _width, Height = (int)(_font.LineHeight * _fontScale) + CutY * 3, SliceData = config.BoxSlice, CutX = CutX, CutY = CutY};
         _textBox = new NineSliceRect(rectConfig);
         _textBox.SetColor(config.BoxColor);
+        _textBox.Alpha = config.BoxAlpha;
         AddChild(_textBox);
 
         _glyphs.Setup(config.Color, config.OutlineColor, _outlineThickness);
@@ -257,6 +267,12 @@ public sealed class TextInput : Sprite {
     
     internal void OnManualTextInput(Key key) {
         switch (key) {
+            case Key.Tab when NextInput != null:
+                NextInput.Focus();          // Focus() unfocuses this one first
+                break;
+            case Key.Return or Key.KeypadEnter when OnSubmit != null:
+                OnSubmit.Invoke();
+                break;
             case Key.Backspace when _inputText.Length > 0:
                 if (_caretIndex == -1) {
                     _inputText.Remove(_inputText.Length - 1, 1);

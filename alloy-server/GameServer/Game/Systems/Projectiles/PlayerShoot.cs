@@ -1,7 +1,7 @@
 using GameServer.Game.Network.Messaging;
 using System;
-using System.Drawing.Imaging;
 using System.Numerics;
+using Common;
 using Common.Network;
 using Common.Projectiles.ProjectilePaths;
 using Common.Resources.Xml;
@@ -16,8 +16,9 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Projectiles;
 
-[Packet(PacketId.PLAYERSHOOT)]
+[Packet(PacketId.PlayerShoot)]
 public record PlayerShoot : IIncomingPacket {
+    private static readonly Logger _log = new(typeof(PlayerShoot));
     public float Angle;
 
     public async Task Handle(User user) {
@@ -32,6 +33,15 @@ public record PlayerShoot : IIncomingPacket {
         var projDesc = weapon.Projectiles[0];
         if (projDesc == null)
             return;
+
+        // Log-only (2026-09-21 audit, C7): is the client shooting faster than its dexterity and weapon allow? Nothing is refused yet.
+        var info = user.GameInfo;
+        var period = FireRateBucket.AttackPeriodMs(player.Stats.GetInt(StatType.Dexterity), weapon.RateOfFire);
+        if (!info.FireRate.TryShoot(GameLogic.WorldTime.TotalElapsedMs, period, weapon.NumProjectiles)) {
+            info.FireRateViolations++;
+            if (info.FireRateViolations == 1 || info.FireRateViolations % 50 == 0)
+                _log.Warn($"[PLAUSIBILITY] user {user.Id} ({info.Account?.Name}) fires faster than allowed (period {period:F0} ms, {weapon.NumProjectiles} per attack); {info.FireRateViolations} so far this session");
+        }
 
         var damage = player.Combat.GetProjectileDamage(projDesc.MinDamage, projDesc.MaxDamage);
         var pos = player.Stats.Pos;

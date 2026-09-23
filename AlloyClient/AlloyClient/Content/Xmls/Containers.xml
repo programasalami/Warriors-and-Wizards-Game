@@ -2,83 +2,83 @@
 <Objects>
     <Object type="0x0500" id="Loot Bag 0">
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x20</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <Object type="0x0506" id="Loot Bag 1">
         <DisplayId>Loot Bag</DisplayId>
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x21</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <Object type="0x0507" id="Loot Bag 2">
         <DisplayId>Loot Bag</DisplayId>
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <CanPutSoulboundObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x22</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <Object type="0x0508" id="Loot Bag 3">
         <DisplayId>Loot Bag</DisplayId>
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <CanPutSoulboundObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x23</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <Object type="0x0509" id="Loot Bag 4">
         <DisplayId>Loot Bag</DisplayId>
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <CanPutSoulboundObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x24</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <Object type="0x050B" id="Loot Bag 5">
         <DisplayId>Loot Bag</DisplayId>
         <Class>Container</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
         <Container />
         <CanPutNormalObjects />
         <CanPutSoulboundObjects />
         <Loot />
-        <Texture>
-            <File>icons</File>
-            <Index>0x25</Index>
-        </Texture>
-        <Size>80</Size>
+        <Size>40</Size>
         <SlotTypes>0, 0, 0, 0, 0, 0, 0, 0</SlotTypes>
     </Object>
     <!-- The Vault (your personal storage world): Vault Chest is an open chest with 8 slots that only its owner can use; its contents are kept in the account

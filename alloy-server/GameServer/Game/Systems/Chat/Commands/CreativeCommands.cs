@@ -7,6 +7,21 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Chat.Commands;
 
+// /god - your own character takes no damage until you type it again (owner only, 2026-09-22; made for measuring the client among enemies).
+[Command("god", CommandPermissionLevel.Owner)]
+public class GodCommand : Command {
+    public override Task ExecuteAsync(User user, string args) {
+        var on = args?.Trim().ToLowerInvariant() switch {
+            "on" => true,
+            "off" => false,
+            _ => !user.GameInfo.God
+        };
+        user.GameInfo.God = on;
+        user.SendInfo(on ? "God mode ON: you take no damage." : "God mode OFF.");
+        return Task.CompletedTask;
+    }
+}
+
 [Command("spawn", CommandPermissionLevel.Owner)]
 public class SpawnCommand : Command {
     public override async Task ExecuteAsync(User user, string args) {
@@ -26,17 +41,13 @@ public class SpawnCommand : Command {
         if (!int.TryParse(rgs[0], out spawnCount))
             spawnCount = -1;
 
-        var desc = XmlLibrary.Id2Object(string.Join(' ', spawnCount == -1 ? rgs : rgs.Skip(1)), false);
+        // Forgiving name lookup (SpawnRules): any case, a typed plural, the display name or a unique partial match; players are never spawnable.
+        var desc = SpawnRules.Resolve(string.Join(' ', spawnCount == -1 ? rgs : rgs.Skip(1)), XmlLibrary.ObjectDescs.Values, out var lookupError);
         if (spawnCount == -1)
             spawnCount = 1;
 
         if (desc == null) {
-            user.SendError("null object desc");
-            return;
-        }
-
-        if (desc.Player) {
-            user.SendError("Can't spawn this entity");
+            user.SendError(lookupError);
             return;
         }
 

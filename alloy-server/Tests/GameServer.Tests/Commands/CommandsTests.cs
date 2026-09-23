@@ -138,8 +138,8 @@ public class CommandsTests {
 
     public class ItemSearchTests {
         private static readonly List<ItemSearch.Entry> Items = [
-            new(0xa00, "Used Sword"), new(0xa01, "Iron Sword"), new(0xa02, "Steel Sword"), new(0xa03, "Bronze Sword"), new(0xa04, "Gold Sword"),
-            new(0xa97, "Used Staff"), new(0xa98, "Iron Staff"), new(0xa22, "Health Potion"), new(0xa2e, "Old Spell"), new(0xa66, "Broken Helmet")
+            new(0xa00, "Old Sword"), new(0xa01, "Iron Sword"), new(0xa02, "Steel Sword"), new(0xa03, "Bronze Sword"), new(0xa04, "Gold Sword"),
+            new(0xa97, "Old Staff"), new(0xa98, "Iron Staff"), new(0xa22, "Health Potion"), new(0xa2e, "Old Spell"), new(0xa66, "Broken Helmet")
         ];
 
         [Fact]

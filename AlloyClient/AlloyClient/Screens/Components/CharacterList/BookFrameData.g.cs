@@ -45,6 +45,7 @@ internal static class BookFrameData {
         new(-12, 216, 43, 37),
         new(-12, 264, 43, 37),
         new(-12, 312, 43, 37),
+        new(-12, 360, 43, 37),     // Tab7 (FAST TRAVEL): not in the pack - Tab6's art one slot lower, see Tools/BookUi/build_fast_travel.py
     ];
 
     // Vertical extent (native px) of each tab's idle body.
@@ -55,12 +56,14 @@ internal static class BookFrameData {
         (216, 253),
         (264, 301),
         (312, 349),
+        (360, 397),
     ];
 
     // Tab face centre (sprite-local native px) and the tab icons true native sizes, in tab order.
     internal const float TabFaceCenterX = 14.0f;
     internal const float TabFaceCenterY = 16.5f;
     internal static readonly (int W, int H)[] TabIconSizes = [
+        (16, 16),
         (16, 16),
         (16, 16),
         (16, 16),

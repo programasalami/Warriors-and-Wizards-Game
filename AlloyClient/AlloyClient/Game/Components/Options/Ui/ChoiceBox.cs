@@ -57,5 +57,8 @@ public class ChoiceBox<T> : Sprite {
         _selected = selected >= _values.Length ? 0 : selected;
         _char.SetText(_labels[_selected]);
         _setting?.Set((T) _values[_selected]);
+        // Saved the moment it changes (2026-09-22): settings used to reach settings.xml only on a clean exit or PLAY, so a crash, a forced close or a
+        // second game window saving on exit threw the change away (the user's VSync-off kept coming back as on).
+        Settings.SaveSettings();
     }
 }

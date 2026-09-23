@@ -65,10 +65,23 @@ public class IpcServer {
 
             jsonRpc.StartListening();
 
-            // Completion waits until the client disconnects or the connection breaks
-            await jsonRpc.Completion;
-
-            await handler.Close();
+            // Completion waits until the client disconnects or the connection breaks. It THROWS when the connection breaks
+            // (a GameServer exiting, cleanly or not), which used to skip Close() below, so that server's account locks were never
+            // released and every player of it got "Account in use" until this process was restarted (2026-09-21 audit, F40).
+            try {
+                await jsonRpc.Completion;
+            }
+            catch (Exception ex) {
+                _log.Info($"[RPC] GameServer {handler.ServerId} connection ended: {ex.GetType().Name}");
+            }
+            finally {
+                try {
+                    await handler.Close();
+                }
+                catch (Exception ex) {
+                    _log.Error($"[RPC] Releasing locks of GameServer {handler.ServerId} failed: {ex}");
+                }
+            }
             _log.Info($"[RPC] GameServer {handler.ServerId} has disconnected.");
         }
     }

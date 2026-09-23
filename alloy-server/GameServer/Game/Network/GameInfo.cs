@@ -24,10 +24,19 @@ public class GameInfo {
     public World World;
     public Character Char;
     public EntityId PlayerId;
-    
+
     public ref Entity Player => ref World.Entities.Get(PlayerId);
     // When this account's mute ends (unix seconds, UTC): 0 = not muted, long.MaxValue = no end. Set at login and whenever a moderator mutes / unmutes them.
     public long MuteEndUnix;
+
+    // Log-only plausibility checks (see Systems/Combat/PlausibilityRules.cs): when the last Move arrived, the fire-rate bucket,
+    // and how many times each check tripped this session (logged sparingly, never enforced yet).
+    public long LastMoveAtMs;
+    public int MoveViolations;
+    public int FameXpCarry;
+    public bool God;                     // /god (owner only, 2026-09-22): this character takes no damage - for tests among enemies              // XP towards the next character fame point (1 per 1,000 XP, Progression)
+    public FireRateBucket FireRate;
+    public int FireRateViolations;
 
     public bool IsMuted => MuteEndUnix != 0 && (MuteEndUnix == long.MaxValue || MuteEndUnix > DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 
@@ -47,13 +56,15 @@ public class GameInfo {
 
     public void Load(Character chr, World world) {
         State = GameState.Playing;
+        LastMoveAtMs = 0;
+        FireRate = default;
         Char = chr;
-        
+
         var plr = new Entity(chr.ObjectType);
         ref var newPlr = ref world.EnterPlayer(ref plr, User);
         newPlr.InitPlayer(User, world, Account, Char);
         newPlr.MoveToSpawn(world);
-        
+
         PlayerId = newPlr.Id;
     }
 
@@ -64,9 +75,8 @@ public class GameInfo {
             return;
         }
 
-        ref var inv = ref World.EntityInventories.Get(PlayerId);
-        if (inv.Id != EntityId.Null)
-            inv.Save(Char);
+        // Refresh the character record from the live entity and queue it for the AccountServer before the entity is destroyed.
+        Systems.Persistence.CharacterSaver.SaveUser(User);
 
         World.LeaveWorld(PlayerId);
         State = GameState.Idle;
@@ -78,5 +88,9 @@ public class GameInfo {
         World = null;
         Char = null;
         PlayerId = EntityId.Null;
+        LastMoveAtMs = 0;
+        MoveViolations = 0;
+        FireRate = default;
+        FireRateViolations = 0;
     }
 }

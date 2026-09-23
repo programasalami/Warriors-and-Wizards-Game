@@ -187,8 +187,14 @@ public sealed class UserInput : Sprite {
             case true when Settings.ResetCameraAngle.Equals(key):
                 Settings.CameraAngle.Set(0f);
                 break;
+            case true when Settings.CenterPlayerKey.Equals(key):      // Player Position: Centered <-> Lowered (the key had no handler before 2026-09-22)
+                Settings.LowerPlayerView.Set(!Settings.LowerPlayerView);
+                break;
             case true when Settings.PerformanceStats.Equals(key):
                 GameScreen.GameSprite?.ToggleDebugStats();
+                break;
+            case true when Settings.ToggleStatusBars.Equals(key):
+                Settings.ShowStatusBars.Set(!Settings.ShowStatusBars);
                 break;
             case true when Settings.Options.Equals(key):
                 if (GameScreen.GameSprite != null) {
@@ -200,25 +206,36 @@ public sealed class UserInput : Sprite {
                 }
                 break;
             // Inventory //
+            // 1-8 use the consumable in that inventory slot; C / V drink the first Health / Magic Potion (all did nothing before 2026-09-22).
             case true when Settings.InvOne.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(0);
                 break;
             case true when Settings.InvTwo.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(1);
                 break;
             case true when Settings.InvThree.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(2);
                 break;
             case true when Settings.InvFour.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(3);
                 break;
             case true when Settings.InvFive.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(4);
                 break;
             case true when Settings.InvSix.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(5);
                 break;
             case true when Settings.InvSeven.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(6);
                 break;
             case true when Settings.InvEight.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(7);
                 break;
             case true when Settings.HealthPotion.Equals(key):
+                Hud.Inventory.ItemTile.UseFirst("Health Potion");
                 break;
             case true when Settings.MagicPotion.Equals(key):
+                Hud.Inventory.ItemTile.UseFirst("Magic Potion");
                 break;
             // Chat //
             case true when Settings.Chat.Equals(key):

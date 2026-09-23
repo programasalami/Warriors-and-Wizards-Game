@@ -2,11 +2,11 @@
 <Objects>
     <Object type="0x017e" id="Red Pillar">
         <Class>GameObject</Class>
-        <Model>Pillar</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xa8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Static />
         <OccupySquare />
         <EnemyOccupySquare />
@@ -14,21 +14,21 @@
     <Object type="0x01df" id="Guild Register">
         <Class>GuildRegister</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xb0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
         <OccupySquare />
         <ShadowSize>0</ShadowSize>
-        <Size>110</Size>
+        <Size>55</Size>
         <Static />
     </Object>
     <Object type="0x01e0" id="Weapon Rack">
         <Class>GameObject</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xb8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
-        <Size>100</Size>
+        <Size>50</Size>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/wooden_walls_death</DeathSound>
         <Static />
@@ -38,14 +38,11 @@
     <Object type="0x01e1" id="Wood Panel Banner">
         <Class>Wall</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xc0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Top>
-            <Texture>
-                <File>guildHall</File>
-                <Index>0xc1</Index>
-            </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/wooden_walls_death</DeathSound>
@@ -58,14 +55,11 @@
     <Object type="0x01e2" id="Wood Panel Window">
         <Class>Wall</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xc8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Top>
-            <Texture>
-                <File>guildHall</File>
-                <Index>0xc1</Index>
-            </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/wooden_walls_death</DeathSound>
@@ -77,11 +71,11 @@
     </Object>
     <Object type="0x01e3" id="Table">
         <Class>GameObject</Class>
-        <Model>Table</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xd0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Color>0x9E5D21</Color>
         <Static />
         <FullOccupy />
@@ -91,14 +85,11 @@
     <Object type="0x01e4" id="Wood Panel Wall">
         <Class>Wall</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xd8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Top>
-            <Texture>
-                <File>guildHall</File>
-                <Index>0xc1</Index>
-            </Texture>
         </Top>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/wooden_walls_death</DeathSound>
@@ -111,21 +102,21 @@
     <Object type="0x01e5" id="Guild Chronicle">
         <Class>GuildChronicle</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xe0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
         <OccupySquare />
         <ShadowSize>0</ShadowSize>
-        <Size>120</Size>
+        <Size>60</Size>
         <Static />
     </Object>
     <Object type="0x01e7" id="Guild Board">
         <Class>GuildBoard</Class>
-        <Model>Sign</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xe8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Static />
         <OccupySquare />
         <ShadowSize>75</ShadowSize>
@@ -133,9 +124,10 @@
     <Object type="0x1806" id="Target Strong">
         <Class>GameObject</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xf0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/stone_walls_death</DeathSound>
         <MaxHitPoints>700</MaxHitPoints>
@@ -146,9 +138,10 @@
     <Object type="0x1807" id="Dummy Strong">
         <Class>GameObject</Class>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xf8</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <HitSound>monster/wooden_walls_hit</HitSound>
         <DeathSound>monster/stone_walls_death</DeathSound>
         <MaxHitPoints>700</MaxHitPoints>
@@ -158,11 +151,11 @@
     </Object>
     <Object type="0x187a" id="Table Edge UL">
         <Class>GameObject</Class>
-        <Model>Table Edge</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0xd0</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Color>0x9E5D21</Color>
         <Rotation>0</Rotation>
         <Static />
@@ -172,11 +165,11 @@
     </Object>
     <Object type="0x187b" id="Table Edge UR">
         <Class>GameObject</Class>
-        <Model>Table Edge</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0x100</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Color>0x9E5D21</Color>
         <Rotation>90</Rotation>
         <Static />
@@ -186,11 +179,11 @@
     </Object>
     <Object type="0x187c" id="Table Edge LR">
         <Class>GameObject</Class>
-        <Model>Table Edge</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0x108</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Color>0x9E5D21</Color>
         <Rotation>180</Rotation>
         <Static />
@@ -200,11 +193,11 @@
     </Object>
     <Object type="0x187d" id="Table Edge LL">
         <Class>GameObject</Class>
-        <Model>Table Edge</Model>
         <Texture>
-            <File>guildHall</File>
-            <Index>0x110</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
         <Color>0x9E5D21</Color>
         <Rotation>270</Rotation>
         <Static />
@@ -215,8 +208,8 @@
     <Object type="0x1912" id="Armoire">
         <Class>ReskinVendor</Class>
         <Texture>
-            <File>guildHallLarge</File>
-            <Index>0x00</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
         <ShadowSize>55</ShadowSize>
         <Z>-0.1</Z>

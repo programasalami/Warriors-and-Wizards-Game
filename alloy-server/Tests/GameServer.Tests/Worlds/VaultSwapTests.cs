@@ -17,9 +17,9 @@ namespace GameServer.Tests.Worlds;
 /// while a Vault Chest stays. (Before the fix in EntityInventoryManager a swap with a container lost the container's item or copied the player's.)
 /// </summary>
 public class VaultSwapTests {
-    private const int IronSword = 0xa01;
-    private const int SteelSword = 0xa02;
-    private const int GoldStaff = 0xa9b;
+    private const int IronSword = 0xa00;      // Old Sword (the tiered weapons were removed 2026-09-21)
+    private const int SteelSword = 0xa69;     // Old Ring
+    private const int GoldStaff = 0xa97;      // Old Staff
     private const int LootBag0 = 0x0500;
 
     // A real account always has a stats block with a class entry for each class it has played.
@@ -177,5 +177,32 @@ public class VaultSwapTests {
 
         Assert.Equal(IronSword, PlayerItem(s, 4));
         Assert.Equal(EntityId.Null, s.Vault.Entities.Get(bagId).Id);       // the empty bag is gone
+    }
+    // 2026-09-21: taking an equipped item off into an EMPTY inventory slot used to throw inside the world tick (IsEquippable on a null item), so the
+    // sword and helmet were back in their slots after the next login. Equipping from the inventory and refusing a staff in the sword slot must keep working.
+    [Fact]
+    public void UnequippingIntoAnEmptyInventorySlotWorks() {
+        var s = Build(9110);
+        s.Vault.EntityInventories.Get(s.PlayerId).SetItem(0, Item(IronSword));
+
+        Swap(s, s.User, s.PlayerId, 0, s.PlayerId, 4);
+
+        Assert.Equal(-1, PlayerItem(s, 0));
+        Assert.Equal(IronSword, PlayerItem(s, 4));
+
+        Swap(s, s.User, s.PlayerId, 4, s.PlayerId, 0);        // and back on
+        Assert.Equal(IronSword, PlayerItem(s, 0));
+        Assert.Equal(-1, PlayerItem(s, 4));
+    }
+
+    [Fact]
+    public void AStaffStillCannotGoInTheSwordSlot() {
+        var s = Build(9111);
+        s.Vault.EntityInventories.Get(s.PlayerId).SetItem(4, Item(GoldStaff));
+
+        Swap(s, s.User, s.PlayerId, 4, s.PlayerId, 0);
+
+        Assert.Equal(-1, PlayerItem(s, 0));
+        Assert.Equal(GoldStaff, PlayerItem(s, 4));
     }
 }

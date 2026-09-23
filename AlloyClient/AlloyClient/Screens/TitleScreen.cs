@@ -18,20 +18,19 @@ namespace AlloyClient.Screens;
 
 public class TitleScreen : TitleScreenBase {
 
-    // Used elsewhere (e.g. ServersTitleScreen's back button) - unrelated to the row buttons below.
     public const int FontSize = 24;
 
-    // PLAY/SERVERS/SETTINGS all render at this same size, so they line up in a
+    // PLAY/PORTAL/SETTINGS all render at this same size, so they line up in a
     // neat, even list. Icon is sized a bit bigger than the word's cap height on purpose, so it
     // still reads as the dominant part of each row.
     private const float RowFontSize = 30f;
     private const int RowHeight = 32;
 
-    // Bumped up from the original 14, then again from 23, then again from 26, per repeated
-    // feedback that it should read bigger still - NotJamSignature21's thin cursive strokes read
-    // as barely legible at small sizes against the busy parchment texture, even with an outline.
-    // MaxWidth below is a wrap safety net if a future message doesn't fit at this size.
-    private const int HeaderFontSize = 24;
+    // The guest header ("Click PLAY to begin your adventure") is ONE line laid out piece by piece (BuildGuestHeader), so
+    // it must fit the scroll's writable width (InteriorWidth - padding = 284 design px) at this size. 24 was right for
+    // the thin cursive font used before every font went back to MyriadPro (2026-09-21), whose wider glyphs pushed the
+    // line off the scroll; 16 fits with a little room. The welcome-back line keeps its own size below.
+    private const int HeaderFontSize = 16;
 
     // The pulsing PLAY word doesn't need to read as bigger than the rest of the sentence - it
     // already stands out via font + motion - so it renders a touch smaller than the surrounding
@@ -148,18 +147,19 @@ public class TitleScreen : TitleScreenBase {
     private readonly TextButton _switchAccountsButton;
 
     private readonly TitleMenuButton _play;
-    private readonly TitleMenuButton _servers;
+    private readonly TitleMenuButton _portal;
     private readonly TitleMenuButton _settings;
     private readonly TitleMenuButton[] _rows;
 
     public TitleScreen() : base(Components.ScreenType.Title) {
-        // Only PLAY is wired up for now. SERVERS technically navigates somewhere already, but that screen isn't in a
-        // working state (the server list doesn't render right), so it's a placeholder like SETTINGS until it gets
-        // properly built (planned after the login frame and character select/creation revamps). LEGENDS was removed.
+        // PLAY and PORTAL are wired up; SETTINGS is a placeholder until it gets built. SERVERS was removed (2026-09-21): with one server
+        // there is nothing to pick on the title screen - the server list and where PLAY spawns you live on the Character Book's FAST TRAVEL
+        // page instead. LEGENDS was removed earlier.
         _play = new TitleMenuButton("PLAY", OnPlay, RowFontSize, RowHeight, HoverColor);
-        _servers = new TitleMenuButton("SERVERS", null, RowFontSize, RowHeight, HoverColor);
+        // PORTAL opens the in-client Portal (PortalScreen): the same player profiles, leaderboards, guilds and wiki as portal.<domain>.
+        _portal = new TitleMenuButton("PORTAL", OnPortal, RowFontSize, RowHeight, HoverColor);
         _settings = new TitleMenuButton("SETTINGS", null, RowFontSize, RowHeight, HoverColor);
-        _rows = [_play, _servers, _settings];
+        _rows = [_play, _portal, _settings];
 
         var isLoggedIn = TryGetWelcomeBackMessage(out var welcomeMessage);
         Sprite[] headerSegments = isLoggedIn
@@ -350,6 +350,21 @@ public class TitleScreen : TitleScreenBase {
         return false;
     }
 
+    // ALLOY_PERFTEST only (Game/DevPerfTest.cs): press PLAY by itself once the saved sign-in is loaded.
+    private double _perfTestWaitMs;
+    private bool _perfTestPressed;
+
+    public override void Update(Alloy.Engine.GameTime gameTime) {
+        base.Update(gameTime);
+        if (!AlloyClient.Dev.DevPerfTest.Enabled || _perfTestPressed || !GlobalData.Contains<LoginData>())
+            return;
+        _perfTestWaitMs += gameTime.ElapsedMs;
+        if (_perfTestWaitMs < 3000)
+            return;
+        _perfTestPressed = true;
+        OnPlay();
+    }
+
     private void OnPlay() {
         // The server would turn this build away at connect time anyway: stop here, with the reason and where to get the current one.
         if (VersionCheck.ShowDialogIfOutdated()) {
@@ -372,6 +387,10 @@ public class TitleScreen : TitleScreenBase {
             book.AddEventListener(BookOverlay.LoginEvent, () => ScreenManager.FadeTo(new TitleScreen()));
             OverlayManager.Set(book);
         }
+    }
+
+    private static void OnPortal() {
+        ScreenManager.FadeTo(new PortalScreen());
     }
 
     private void OnSwitchAccounts() {

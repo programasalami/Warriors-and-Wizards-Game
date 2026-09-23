@@ -8,7 +8,7 @@ using GameServer.Game.Network;
 
 namespace GameServer.Game.Systems.Combat;
 
-[Packet(PacketId.PLAYERHIT)]
+[Packet(PacketId.PlayerHit)]
 public record PlayerHit : IIncomingPacket {
     private static readonly Logger _log = new(typeof(PlayerHit));
 

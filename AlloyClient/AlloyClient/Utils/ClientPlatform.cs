@@ -31,6 +31,9 @@ public static class ClientPlatform {
         }
     }
 
+    // Only meaningful in the browser build (its shim reloads the page); the desktop client has nothing to reload.
+    public static void ReloadPage() { }
+
     public static void OpenUrl(string url) {
         if (!IsHttpUrl(url)) {
             return;

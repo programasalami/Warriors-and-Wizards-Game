@@ -10,7 +10,7 @@ using GameServer.Game.Systems.Projectiles;
 
 namespace GameServer.Game.Session;
 
-[Packet(PacketId.CREATE)]
+[Packet(PacketId.Create)]
 public record Create : IIncomingPacket {
     public short ClassType;
     public short SkinType;
@@ -22,6 +22,8 @@ public record Create : IIncomingPacket {
 
     public async Task Handle(User user) {
         var result = await Program.AccountServerRpc.CreateCharacter(user.GameInfo.Account, (ushort)ClassType, (ushort)SkinType);
+        if (user.State == ConnectionState.Disconnected)
+            return;
         var chr = result.Char;
         var status = result.Status;
         if (chr == null) {

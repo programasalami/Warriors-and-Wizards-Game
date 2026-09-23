@@ -1,0 +1,118 @@
+[
+ {
+  "type": 782,
+  "name": "Wizard",
+  "description": "The wizard deals damage from a long distance and blasts enemies with powerful spells.",
+  "stats": {
+   "HP": {
+    "start": 100,
+    "max": 670
+   },
+   "MP": {
+    "start": 100,
+    "max": 385
+   },
+   "ATT": {
+    "start": 12,
+    "max": 75
+   },
+   "DEF": {
+    "start": 0,
+    "max": 25
+   },
+   "SPD": {
+    "start": 10,
+    "max": 50
+   },
+   "DEX": {
+    "start": 15,
+    "max": 75
+   },
+   "VIT": {
+    "start": 12,
+    "max": 40
+   },
+   "WIS": {
+    "start": 12,
+    "max": 60
+   }
+  },
+  "slots": [
+   17,
+   11,
+   14,
+   9
+  ],
+  "slotNames": [
+   "Staff",
+   "Spell",
+   "Robe",
+   "Ring"
+  ],
+  "startingEquipment": [
+   2711,
+   2606,
+   2664,
+   2665
+  ],
+  "icon": "classes/030e.png"
+ },
+ {
+  "type": 797,
+  "name": "Warrior",
+  "description": "The warrior wears strong armor and uses his magic helmet to inspire his allies in battle.",
+  "stats": {
+   "HP": {
+    "start": 200,
+    "max": 770
+   },
+   "MP": {
+    "start": 100,
+    "max": 252
+   },
+   "ATT": {
+    "start": 15,
+    "max": 75
+   },
+   "DEF": {
+    "start": 0,
+    "max": 25
+   },
+   "SPD": {
+    "start": 7,
+    "max": 50
+   },
+   "DEX": {
+    "start": 10,
+    "max": 50
+   },
+   "VIT": {
+    "start": 10,
+    "max": 75
+   },
+   "WIS": {
+    "start": 10,
+    "max": 50
+   }
+  },
+  "slots": [
+   1,
+   16,
+   7,
+   9
+  ],
+  "slotNames": [
+   "Sword",
+   "Helmet",
+   "Armor",
+   "Ring"
+  ],
+  "startingEquipment": [
+   2560,
+   2662,
+   2663,
+   2665
+  ],
+  "icon": "classes/031d.png"
+ }
+]

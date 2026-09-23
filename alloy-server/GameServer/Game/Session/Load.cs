@@ -10,7 +10,7 @@ using GameServer.Game.Systems.Projectiles;
 
 namespace GameServer.Game.Session;
 
-[Packet(PacketId.LOAD)]
+[Packet(PacketId.Load)]
 public record Load : IIncomingPacket {
     public int CharId;
 
@@ -27,6 +27,8 @@ public record Load : IIncomingPacket {
         var chr = user.GameInfo.Char;
         if (user.State != ConnectionState.Reconnecting) {
             chr = await Program.AccountServerRpc.GetCharacter(user.GameInfo.Account.Id, CharId);
+            if (user.State == ConnectionState.Disconnected)
+                return;
             if (chr == null) {
                 user.SendFailure(Failure.DEFAULT, $"Failed to load character #{CharId}");
                 return;

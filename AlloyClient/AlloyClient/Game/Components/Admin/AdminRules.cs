@@ -70,19 +70,26 @@ public static class AdminRules {
     private static bool IsSimpleName(string name) => !string.IsNullOrWhiteSpace(name) && name.Length <= 60 && !name.Any(char.IsControl);
 }
 
-// Which art is ours. A definition is "new" when its sheet is one of the sheets drawn / bought for this game; everything else is still the original source's art
-// (see the vault note "Asset Replacement": the goal is to make the original count zero). A few cells on a new sheet are still original art (StockCells).
+// Which art is ours. Since the 2026-09-21 rework every sheet in Game.atlas comes from the three bought packs (GrasslandAssets, DarkDungeonAssets,
+// CharactersAssets - one artist), so nothing is "original" any more. What remains to do is the PLACEHOLDERS: objects that borrow a pack picture
+// that was not made for them (the guild hall furniture drawn as crates, portals drawn as torches, repeated weapon tiers...) - see
+// Tools/Sheets/build_pack_sheets.py (its MAP) and the generated ArtPlaceholders.Names. The dashboard shows those as PLACEHOLDER so the list of
+// what still needs art of its own stays visible; the goal is to make that count zero.
 public static class ArtRules {
     private static readonly HashSet<string> NewSheets = new(StringComparer.Ordinal) {
-        "grasslands", "smallplants", "mediumplants", "smalltrees", "mediumtrees", "flatprops", "largeobjects", "equipandconsume", "players"
+        "grasslands", "smallplants", "mediumplants", "smalltrees", "mediumtrees", "flatprops", "largeobjects", "players", "skins",
+        "dungeon", "dungeondecor", "dungeonitems", "dungeonmonsters", "hudicons"
     };
 
-    // Original (stock) pictures that sit on a new sheet until they are replaced: "sheet:index" (lower-case sheet). Health Potion = equipAndConsume cell 8.
-    private static readonly HashSet<string> StockCells = new(StringComparer.Ordinal) { "equipandconsume:8" };
+    private static readonly HashSet<string> Placeholders = new(ArtPlaceholders.Names, StringComparer.Ordinal);
 
     public static bool IsNewSheet(string sheet) => !string.IsNullOrEmpty(sheet) && NewSheets.Contains(sheet.ToLowerInvariant());
 
-    public static bool IsNew(string sheet, int index) => IsNewSheet(sheet) && !StockCells.Contains(sheet.ToLowerInvariant() + ":" + index);
+    public static bool IsPlaceholder(string objectId) => !string.IsNullOrEmpty(objectId) && Placeholders.Contains(objectId);
 
-    public static string Label(string sheet, int index = -1) => string.IsNullOrEmpty(sheet) ? "no art" : IsNew(sheet, index) ? "NEW" : "ORIGINAL";
+    // "Done" art: on one of our sheets AND not a stand-in.
+    public static bool IsNew(string sheet, int index, string objectId = null) => IsNewSheet(sheet) && !IsPlaceholder(objectId);
+
+    public static string Label(string sheet, int index = -1, string objectId = null) =>
+        string.IsNullOrEmpty(sheet) ? "no art" : !IsNewSheet(sheet) ? "ORIGINAL" : IsPlaceholder(objectId) ? "PLACEHOLDER" : "NEW";
 }

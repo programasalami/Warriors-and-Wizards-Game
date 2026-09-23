@@ -52,7 +52,25 @@ public class Program {
             SocketServer.Start(config.Port, config.MaxPlayers);
         }
 
+        InstallShutdownHandlers();
         GameLogic.Run(config.MsPT);
+        await GameLogic.ShutdownAsync();
+        Logger.Flush(2000);
+    }
+
+    // Ctrl+C, SIGTERM (systemd stop on the VPS) and the console window closing end the game loop cleanly: characters are saved,
+    // players are told, then the process exits. 2026-09-21 audit (H9). ProcessExit waits a few seconds for that to finish.
+    private static void InstallShutdownHandlers() {
+        Console.CancelKeyPress += (_, e) => { e.Cancel = true; GameLogic.RequestStop(); };
+        try {
+            System.Runtime.InteropServices.PosixSignalRegistration.Create(System.Runtime.InteropServices.PosixSignal.SIGTERM,
+                ctx => { ctx.Cancel = true; GameLogic.RequestStop(); });
+        }
+        catch (Exception) { /* not supported here: ProcessExit below still runs */ }
+        AppDomain.CurrentDomain.ProcessExit += (_, _) => {
+            GameLogic.RequestStop();
+            GameLogic.ShutdownCompleted.Wait(6000);
+        };
     }
     
     // If the RPC pipe to AccountServer ever drops (e.g. AccountServer restarts),

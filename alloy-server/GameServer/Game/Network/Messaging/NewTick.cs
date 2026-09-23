@@ -18,7 +18,7 @@ using GameServer.Game.Network.Messaging;
 namespace GameServer.Game.Network.Messaging;
 
 public readonly struct NewTick : IOutgoingPacket {
-    public PacketId ID => PacketId.NEWTICK;
+    public PacketId ID => PacketId.NewTick;
 
     private readonly PooledList<ObjectStatusData> _statuses;
 

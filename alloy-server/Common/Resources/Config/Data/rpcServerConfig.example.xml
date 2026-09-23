@@ -1,5 +1,7 @@
 <RpcServerConfig>
-    <ListenAddress>0.0.0.0</ListenAddress>
+    <!-- The game server runs on the same machine, so the RPC hub only needs loopback. Use 0.0.0.0 only if the game server is elsewhere,
+         and then keep port 8081 closed in the firewall (see VPS_SETUP.md). -->
+    <ListenAddress>127.0.0.1</ListenAddress>
     <ListenPort>8081</ListenPort>
     <CertificatePfxPath>Resources/Config/Data/rpc-server.pfx</CertificatePfxPath>
     <CertificatePassword>changeme</CertificatePassword>

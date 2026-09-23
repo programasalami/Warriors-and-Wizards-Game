@@ -84,7 +84,7 @@ $version = Get-Version
 Write-Host "`nPromoting game version $version" -ForegroundColor DarkGray
 if (-not $SkipChecks) {
     Step 'Checking the build: both solutions must build and every test must pass'
-    foreach ($job in @(@('AlloyClient', 'AlloyTk.sln'), @('alloy-server', 'RealmServer.sln'))) {
+    foreach ($job in @(@('AlloyClient', 'WarriorsAndWizards.Client.sln'), @('alloy-server', 'WarriorsAndWizards.Server.sln'))) {
         Push-Location (Join-Path $src $job[0])
         try {
             dotnet build $job[1] --nologo -v:q

@@ -24,7 +24,7 @@ public sealed class HudView : Sprite {
     private const int GearGap = 4;
     private const int TabsGap = 14;        // between the player plate and the first tab
     private const int PopupGap = 8;       // above and below a popup, between the plate and the gear
-    private const int MinimapFrame = Minimap.MapSize + 20;
+    public const int MinimapFrame = Minimap.MapSize + 20;     // the minimap's walnut frame; the nearby-players panel under it is the same width
 
     private readonly Sprite _minimapBox;
     private readonly PlayerPlate _plate;
@@ -158,6 +158,11 @@ public sealed class HudView : Sprite {
 
         _plate.Update();
         _equipped.UpdateAbilitySlot();
+        _equipped.Sync();          // the slot pictures follow the inventory even if an InventoryUpdate signal was missed (2026-09-22)
+        _inventory.Sync();
+        if (_pack.IsOpen) {
+            _pack.Sync();
+        }
         _nearby.Update();
         _interact.Update();
         if (Map.LocalPlayer.HasBackPack != _hadBackpack) {
@@ -193,11 +198,12 @@ public sealed class HudView : Sprite {
         _gear.X = Margin;
         _gear.Y = designH - gearHeight - Margin;
 
-        // the nearby-players frame sits where the interact panel used to pop up; the interact panel slides over to its right, on the same line
-        _nearby.X = Margin + EquippedGrid.Width + 12;
-        _nearby.Y = designH - Panel.PanelHeight - Margin;
-        _interact.X = _nearby.X + NearbyPlayersPanel.Width + 12;
-        _interact.Y = _nearby.Y;
+        // the nearby-players frame hangs directly under the minimap, as wide as its frame (2026-09-21, by request); the interact panel pops up
+        // at the bottom, right of the gear, where the nearby frame used to be
+        _nearby.X = _minimapBox.X;
+        _nearby.Y = _minimapBox.Y + MinimapFrame + 8;
+        _interact.X = Margin + EquippedGrid.Width + 12;
+        _interact.Y = designH - Panel.PanelHeight - Margin;
 
         // the tabs hang from the top edge in the middle; the popups open in the gap between the plate and the gear, lined up with the plate's sides
         _tabs.X = Margin + PlayerPlate.Width + TabsGap;

@@ -21,7 +21,7 @@ import cv2
 import numpy as np
 from PIL import Image
 
-PACK = os.path.expanduser('~/Desktop/RPGW_Caves_v2.1')
+PACK = os.path.expanduser('~/Desktop/Extra Assets/RPGW_Caves_v2.1')
 OUT = 'AlloyClient/AlloyClient/Content/Title/TitleMap.png'
 DATA_OUT = 'AlloyClient/AlloyClient/Screens/Components/CaveBackdropData.g.cs'
 W, H = 1280, 720
@@ -112,17 +112,9 @@ RING_G, RING_C = piece(64, 0, 192, 277), piece(64, 416, 192, 277)
 HEX_G, HEX_C = piece(320, 0, 128, 232), piece(320, 416, 128, 232)
 
 # (piece, x, y, flip, lit) - x, y = top-left in map coordinates; lit=True pieces also get warm ambience
-CLIFFS = [
-    # left edge
-    (RING_G, -122, -70, False, True), (RING_C, -100, 190, True, False), (HEX_G, -66, 470, False, True),
-    # top edge (only the lit faces hang into view)
-    (HEX_C, 236, -168, False, False), (HEX_G, 410, -178, False, True), (RING_G, 606, -214, True, True),
-    (HEX_G, 830, -176, True, True), (RING_C, 1010, -206, False, False),
-    # right edge
-    (RING_G, 1204, -50, True, True), (RING_C, 1190, 236, False, False), (HEX_G, 1236, 520, True, True),
-    # a free-standing mass between the logo and the scroll, and one in the lower right
-    (HEX_C, 552, 470, False, False), (RING_C, 1110, 590, True, False),
-]
+# 2026-09-21: NO cliff masses any more - the map is open floor edge to edge, so the cave battle's fighters can walk in and out of the picture at any
+# point of any edge without ever crossing a wall. The pieces are kept above for the day the map gets walls with real openings.
+CLIFFS = []
 cliff_mask = np.zeros((H + 2 * EXT, W + 2 * EXT), np.uint8)
 GLOW_SPOTS = []      # warm-light centres (map coords) taken from the lit pieces' faces
 for img, x, y, flip, lit in CLIFFS:

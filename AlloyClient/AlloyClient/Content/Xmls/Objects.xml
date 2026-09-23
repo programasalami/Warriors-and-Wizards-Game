@@ -2,99 +2,106 @@
 <Objects>
     <Object type="0x071d" id="Portal to Nexus">
         <Class>Portal</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <IntergamePortal />
         <DungeonName>Nexus</DungeonName>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0x80</Index>
-        </Texture>
     </Object>
     <Object type="0x0720" id="Vault Portal">
         <Class>Portal</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <IntergamePortal />
         <DungeonName>Vault</DungeonName>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0x88</Index>
-        </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
     <!-- Realm Portal: the Nexus spawns one live portal per RealmCount on the map's "Realm Portals" tiles (Nexus.AddRealmPortal) and links it to a new Realm
          world, so it has no DungeonName. It borrows the Vault Portal's texture. -->
     <Object type="0x0704" id="Realm Portal">
         <Class>Portal</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <IntergamePortal />
         <RealmPortal />
-        <Texture>
-            <File>guildHall</File>
-            <Index>0x88</Index>
-        </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
     <Object type="0x01c7" id="White Fountain">
         <Class>GameObject</Class>
-        <Model>Tower</Model>
-        <Effect color="0x4165D5">Fountain</Effect>
         <Texture>
-            <File>guildHall</File>
-            <Index>0x90</Index>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
         </Texture>
+        <Size>50</Size>
+        <Effect color="0x4165D5">Fountain</Effect>
     </Object>
     <Object type="0x072f" id="Guild Hall Portal">
         <Class>GuildHallPortal</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <IntergamePortal />
         <DungeonName>Guild Hall</DungeonName>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0x98</Index>
-        </Texture>
         <ShadowSize>0</ShadowSize>
     </Object>
     <Object type="0x0736" id="Guild Hall Upgrade 1">
         <DisplayId>Guild Hall Upgrade</DisplayId>
         <Class>GuildMerchant</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <Price>10000</Price>
         <GuildItem>GuildHallUpgrade</GuildItem>
         <GuildItemParam>Guild Hall 2</GuildItemParam>
         <Description>This will make your Guild Hall larger and more attractive. Note that this will take effect after
             the Guild Hall is empty for a few minutes.
         </Description>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0xa0</Index>
-        </Texture>
         <OccupySquare />
         <Static />
     </Object>
     <Object type="0x0737" id="Guild Hall Upgrade 2">
         <DisplayId>Guild Hall Upgrade</DisplayId>
         <Class>GuildMerchant</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <Price>100000</Price>
         <GuildItem>GuildHallUpgrade</GuildItem>
         <GuildItemParam>Guild Hall 3</GuildItemParam>
         <Description>This will make your Guild Hall larger and more attractive. Note that this will take effect after
             the Guild Hall is empty for a few minutes.
         </Description>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0xa0</Index>
-        </Texture>
         <OccupySquare />
         <Static />
     </Object>
     <Object type="0x0738" id="Guild Hall Upgrade 3">
         <DisplayId>Guild Hall Upgrade</DisplayId>
         <Class>GuildMerchant</Class>
+        <Texture>
+            <File>dungeonItems</File>
+            <Index>0x13</Index>
+        </Texture>
+        <Size>50</Size>
         <Price>250000</Price>
         <GuildItem>GuildHallUpgrade</GuildItem>
         <GuildItemParam>Guild Hall 4</GuildItemParam>
         <Description>This will make your Guild Hall larger and more attractive. Note that this will take effect after
             the Guild Hall is empty for a few minutes.
         </Description>
-        <Texture>
-            <File>guildHall</File>
-            <Index>0xa0</Index>
-        </Texture>
         <OccupySquare />
         <Static />
     </Object>
@@ -110,6 +117,7 @@
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
         <BottomInset>0.067</BottomInset>
+        <CrossedCards>4</CrossedCards>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -126,6 +134,7 @@
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
         <BottomInset>0.089</BottomInset>
+        <CrossedCards>4</CrossedCards>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -138,6 +147,7 @@
         </Texture>
         <RealSize>48</RealSize>
         <BottomInset>0.07</BottomInset>
+        <CrossedCards>6</CrossedCards>
         <Static />
     </Object>
     <Object type="0x9f03" id="Forest Shrub">
@@ -148,6 +158,7 @@
         </Texture>
         <RealSize>50</RealSize>
         <BottomInset>0.06</BottomInset>
+        <CrossedCards>6</CrossedCards>
         <Static />
     </Object>
     <Object type="0x9f04" id="Forest Log">
@@ -160,6 +171,7 @@
         <DeathSound>monster/rocks_death</DeathSound>
         <RealSize>48</RealSize>
         <FlatOnGround />
+        <Thickness>0.15</Thickness>
         <Static />
         <OccupySquare />
     </Object>
@@ -238,6 +250,7 @@
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
         <BottomInset>0.067</BottomInset>
+        <CrossedCards>4</CrossedCards>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -254,6 +267,7 @@
         <MaxSize>52</MaxSize>
         <SizeStep>2</SizeStep>
         <BottomInset>0.089</BottomInset>
+        <CrossedCards>4</CrossedCards>
         <Static />
         <OccupySquare />
         <BlocksSight />
@@ -266,6 +280,7 @@
         </Texture>
         <RealSize>48</RealSize>
         <BottomInset>0.07</BottomInset>
+        <CrossedCards>6</CrossedCards>
         <Static />
     </Object>
     <Object type="0x9f0e" id="Forest Small Rock">
@@ -281,6 +296,18 @@
     <!-- The Bug Board: stand next to it to read the bug reports players have pinned up and to write your own (see BugBoardView). Drawn by Tools/ForestContent/draw_props.py. -->
     <Object type="0x9f10" id="Bug Board">
         <Class>BugBoard</Class>
+        <Model>Bug Board</Model>
+        <Texture>
+            <File>largeObjects</File>
+            <Index>0x00</Index>
+        </Texture>
+        <RealSize>48</RealSize>
+        <Static />
+        <OccupySquare />
+    </Object>
+    <!-- The News Board (2026-09-21): the patch notes, read from the server (Resources/News/PatchNotes.txt). Same picture and mesh as the Bug Board. -->
+    <Object type="0x9f14" id="News Board">
+        <Class>NewsBoard</Class>
         <Model>Bug Board</Model>
         <Texture>
             <File>largeObjects</File>
@@ -312,6 +339,7 @@
         <DeathSound>monster/rocks_death</DeathSound>
         <RealSize>48</RealSize>
         <FlatOnGround />
+        <Thickness>0.15</Thickness>
         <Static />
         <OccupySquare />
     </Object>

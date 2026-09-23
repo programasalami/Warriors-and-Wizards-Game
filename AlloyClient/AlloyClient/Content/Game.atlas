@@ -10,11 +10,11 @@
     <Image name="mediumTrees" w="80" h="120">MediumTrees_80x120.png</Image>
     <Image name="flatProps" w="48" h="48">FlatProps_48x48.png</Image>
     <Image name="largeObjects" w="80" h="120">LargeObjects_80x120.png</Image>
-    <Image name="equipAndConsume" w="16" h="16">EquipAndConsume_16x16.png</Image>
-    <Image name="guildHall" w="8" h="8">GuildHall_8x8.png</Image>
-    <Image name="guildHallLarge" w="16" h="16">GuildHallLarge_16x16.png</Image>
-    <Image name="icons" w="8" h="8">Icons_8x8.png</Image>
-    <Image name="caveMonsters" w="16" h="16">CaveMonsters_16x16.png</Image>
-    <Animated name="npcs" w="8" h="8">Npcs_8x8.png</Animated>
     <Animated name="players" w="32" h="32" group="Full">Players.png</Animated>
+    <Image name="dungeon" w="16" h="16">Dungeon_16x16.png</Image>
+    <Image name="dungeonDecor" w="16" h="16">DungeonDecor_16x16.png</Image>
+    <Image name="dungeonItems" w="16" h="16">DungeonItems_16x16.png</Image>
+    <Image name="dungeonMonsters" w="16" h="16">DungeonMonsters_16x16.png</Image>
+    <Image name="hudIcons" w="16" h="16">HudIcons_16x16.png</Image>
+    <Animated name="skins" w="32" h="32" group="Full">Skins.png</Animated>
 </Atlas>

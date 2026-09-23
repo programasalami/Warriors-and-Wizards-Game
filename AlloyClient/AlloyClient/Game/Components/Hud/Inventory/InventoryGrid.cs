@@ -59,4 +59,17 @@ public sealed class InventoryGrid : Sprite {
         _tiles[slot - _offset].SetItem(_owner.Equipment[slot]);
     }
     
+
+    // Self-healing display (2026-09-22): redraws every tile whose picture no longer matches the owner's inventory. The HUD calls it each frame for the
+    // player's own grids. The InventoryUpdate signal is still the normal path; this catches an update that was missed (in the browser build a /give
+    // put the item in the inventory but the slot stayed empty until the HUD was rebuilt - the trigger that was lost could not be found by reading).
+    // Eight reference comparisons per frame; SetItem only runs on a mismatch.
+    public void Sync() {
+        for (var i = 0; i < NumSlots; i++) {
+            var slot = i + _offset;
+            var item = slot < _owner.Equipment.Length ? _owner.Equipment[slot] : null;
+            if (!ReferenceEquals(_tiles[i].ItemDesc, item))
+                _tiles[i].SetItem(item);
+        }
+    }
 }

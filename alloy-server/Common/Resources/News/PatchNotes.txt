@@ -1,0 +1,126 @@
+# Warriors & Wizards - patch notes. The News Board in the Nexus shows this file, newest entry first.
+#
+# HOW TO WRITE AN ENTRY (do this at the end of every work session, before deploying):
+#   ## 2026-09-21 - A short title
+#   ## 2026-09-23 - v0.3.6 - A short title      (optional: the game version this update ships in, shown in the release history)
+#   - one line per change, written for players (what they see, not how it was built)
+#   - keep to the things that matter to them
+# Lines starting with # are comments and are never shown. Blank lines are ignored. Entries are shown in file order, so put the newest at the top.
+
+## 2026-09-22 - v0.3.7 - XP you can see, a smarter Portal
+- XP, level-ups, fame and potion heals now float up over your head ("+70 XP", "Level 5!", "+1 Fame", "+30 HP"). They were sent all along but never shown. Several at once stack instead of piling up.
+- If the servers update while you are playing, the game now tells you "Update required" as soon as you are back in the book, instead of bouncing you out of every PLAY with no reason. In the browser the prompt has a Refresh button that loads the new version.
+- The Portal: Last Seen now shows when you last entered the game, and new accounts show when they were created. Accounts made before today have no creation date on record, so theirs stays empty.
+- The Portal search finds more: one or two letters match names that start with them, three or more match anywhere in the name (exact name first, then names starting with it).
+- The in-game Portal has an X next to the back arrow that leaves the Portal in one click.
+- A brand new launcher (WaWLauncher): a real window with a progress bar, download speed, the installed and newest version, a big PLAY button, and check boxes for a desktop shortcut, a Start menu shortcut and closing the launcher when the game starts. Open game folder, Release notes and Repair are one click away.
+- The game is now a single WarriorsAndWizards.exe sitting right next to the launcher, instead of hiding in a folder of 200 files. Your old install moves over by itself the next time you start it; your settings stay.
+- The website puts the Windows and Linux downloads front and centre, the Download page is much shorter, and every page uses easier-to-read fonts. The browser version is still there as the "web version".
+
+## 2026-09-22 - v0.3.6 - Release history
+- The Portal has a release history now: every update, newest first, with the game version it came with. On the website it is the new Releases tab; in the game it is RELEASE HISTORY on the Portal's home page.
+- The News Board in the Nexus shows each update's version next to its date.
+- The Portal website has a Home link back to warriorsandwizards.com.
+- The game window is called Warriors & Wizards now.
+- Rocks are plain pictures again (the crossed look stays on trees, bushes and the shrub).
+- Options: the Extra tab is sorted into Minimap, Camera, Display and Items sections (it scrolls), and gained Toggle Performance Stats, Bag Priority, Snap Camera Rotation, Player Position, Default Camera Angle, Toggle Player Position, Reset Map Scale, Fullscreen, Fullscreen type and Switch item to/from backpack from the other tabs. Your own choices and keys are kept.
+
+## 2026-09-22 - v0.3.6 - A faster world
+- The game draws walls, boards, trees, bushes, rocks and logs much faster: they are now built once per area instead of being rebuilt every single frame. On a test PC the part of each frame spent on them fell from about 3 milliseconds to about 0.1, and it no longer grows while you walk.
+- Owners: /god makes your own character take no damage (type it again to switch it off).
+
+## 2026-09-22 - v0.3.6 - Your settings stick
+- Fixed: changing an option (VSync, keys, anything on the options pages) was only saved when the game closed normally or you pressed PLAY, so a crash or a forced close brought the old value back next time. Every change is now saved the moment you make it.
+
+## 2026-09-22 - v0.3.5 - Steady props and an honest FPS readout
+- Bushes, shrubs, rocks and trees no longer whirl on the spot when you turn the camera: each now stands in the world as a star of upright pictures (four for trees, six for bushes, a plain cross for rocks), so the camera walks round them the way it does round the Bug Board.
+- Logs still lie on the ground and turn with it, but they have thickness again: the picture is stacked into a raised shape with a darker side, so a log reads as an object and not as a patch of ground.
+- Your marker on the minimap is a bigger green square now instead of the blue arrow that kept changing size. The new Extra tab in the options lets you pick its shape (square, circle, diamond, triangle) and colour.
+- Long entries on the News Board no longer run off the bottom of the window: a page stops at the last line that fits and the entry continues on the next page.
+- Turning the camera with Q / E now starts and stops smoothly instead of jumping to full speed.
+- The DEV readout (F5) tells the truth now: FPS over the last second and what is holding it there (VSync at your monitor's rate, an FPS cap, or nothing), what each frame costs on the CPU and on the GPU, how long it waits for the monitor, and the frame rate you would get with no limit at all. Draw calls and uploaded data per frame are listed too, and the numbers go to the console every 10 seconds.
+
+## 2026-09-22 - v0.3.5 - New default keys, one placeholder picture, fixes
+- Fixed: thin coloured lines under the floating orbs and squared around the crystal glows on the title screen.
+- Combat pays off now: killing an enemy gives every player who hit it XP (a tenth of its health), levels come with stat growth and a full heal, and every 1,000 XP earns a point of character fame.
+- The two targets in the Nexus you can destroy pay XP like any enemy and stand back up five seconds later. (The three DPS dummies cannot die.)
+- Your health and magic regenerate over time: Vitality sets the health rate, Wisdom the magic rate.
+- Health Potions work: double-click one, press C, or press its slot number (1-8). Shift-click still works too.
+- Double-click a piece of gear in your inventory to equip it (or a worn piece to take it off).
+- Enter submits the Sign In and Register forms.
+- Loot bags disappear after a minute.
+- The nearby-player menu sits on a parchment scroll and the name no longer runs into its close button.
+- New default keys: O opens the options, F escapes to the Nexus, C drinks a health potion, Z toggles centering on your character, X resets the camera angle. Escape still closes any open window. Your own key choices are kept.
+- Fixed: the Player Position key (Z) did nothing. It now switches your character between the exact middle of the screen and the lowered position that shows more ahead. The old "Center On Player" switch in the Graphics tab, which never did anything, is gone; use Player Position on the Controls tab.
+- Fixed: spawning a monster with the owner's command froze the Nexus for everyone until the server was restarted. Spawned monsters now enter the world properly, and a failing timed action is dropped instead of stalling the world. The spawn command also understands "pirates", any capitalisation, display names and unique partial names, and suggests names when several match.
+- Fixed: an item given to you (or picked up) could stay invisible in your inventory until you changed worlds. The inventory now redraws itself whenever it falls out of step.
+- Fixed: walking looked slightly skippy in the browser, the character shifting back and forth a pixel or two. The camera is now placed after the character moves each frame, so it stays pinned.
+- Fixed: Spawn Location now works in the browser too. The web client always sent you to the Nexus whatever you picked; the downloadable client was fine.
+- The Warrior's armor slot is simply called Armor now (it was Heavy Armor, from a time with more classes).
+- The Old Robe has its picture back (it shares the Old Armor's look on purpose).
+- Fixed: on the Daily Gift page, "You got ..." and "Next gift in ..." were drawn on top of each other after opening a gift.
+- Fixed: after picking a new key in the options, the key name sat off-centre in its box until the menu was reopened.
+- Everything still waiting for its own art (the DPS dummies, the guild hall furniture, the portals, loot bags, projectiles) shows the same Health Potion picture for now, so it is obvious what is a stand-in.
+- Fixed: a deleted character no longer takes up a slot. Delete both of yours and you get two NEW tiles back, one per free slot.
+
+## 2026-09-21 - News Board, character slots and deleting characters
+- A News Board stands in the Nexus: walk up to it to read these notes in the game.
+- The Characters page shows a BUY SLOT tile once your slots are full: 1000 fame buys one more character.
+- Characters can be deleted from their Details page. A YES / NO check keeps a slipped click from costing you a character.
+- A brand new account is pointed straight at the Characters page from Last Played: click the link to flip there.
+- The sign-in book has a Wizard on its left page who greets you, then wanders and casts while you type.
+- Typing: Tab jumps to the next box, held keys repeat, and the sign-in book's boxes have no outlines.
+- The tabs of the character book show a small parchment tip with the page's name.
+
+## 2026-09-21 - Spawn Location, new art everywhere, music and gear
+- New SPAWN LOCATION tab in the character book: pick the Nexus, your Vault or your guild's hall and PLAY takes you straight there.
+- The SERVERS button left the title screen; the server list lives on that same tab now.
+- A full art pass: every tile, object and item now comes from one artist's packs. The guild hall, portals, loot bags and status icons wear new pictures.
+- The starter set is complete: every new character starts with a weapon, an ability, armor and a ring. Old Sword and Old Staff got their names.
+- New option "Player Position": Lowered puts your character below the middle of the screen so you see further ahead.
+- Music sorted out: the menus keep their own track, the Nexus plays the jukebox, the Realm has its own song.
+- Fixed: taking off a weapon or helmet into an empty inventory slot did not stick. It does now.
+- Fixed: the nearby players panel moved under the minimap; the title screen's scroll is back on the web client.
+- The sign-in book got a visitor: a Wizard on the left page with something to say.
+
+## 2026-09-21 - The Portal
+- The Portal is open at portal.warriorsandwizards.com: player profiles, guilds, leaderboards, and an item and class wiki.
+- The same Portal is inside the game too: press PORTAL on the title screen.
+- The website now has a Portal link and a beta notice.
+
+## 2026-09-21 - The big engine audit
+- Shooting while walking no longer drops the frame rate; the game holds 60 frames on old machines.
+- Damage numbers no longer pile up into a wall of text that froze the game.
+- The HP and MP bars under your character stopped flickering, and you can hide them (hotkey H, or the options page).
+- Free camera rotation is back; a 45-degree snap stays available in the options.
+- Your character is saved regularly while you play, and logins are protected against brute force.
+- The starter helmet is now the Old Helmet.
+
+## 2026-09-21 - Launcher, downloads and forums
+- A launcher for Windows and Linux: it downloads the game, keeps it up to date and starts it.
+- The website's Download page explains both, and the forums are live at forums.warriorsandwizards.com.
+
+## 2026-09-20 - Realm, Vault, rewards and the Nexus boards
+- The Realm: a 140x140 forest island behind the Nexus portal. No monsters yet - they are next.
+- Your Vault works: chests that keep your items between sessions.
+- Daily Gift, Daily Spin and an Inbox, all in the character book. Levels now go up to 999.
+- The Bug Board and the Jukebox stand in the Nexus: report what breaks, and pick the music everybody hears.
+- Ranks and moderation for staff, and an admin dashboard.
+
+## 2026-09-20 - The Nexus reskinned
+- The Nexus is a forest clearing now, built from the grassland art, with a river, bridges and a lake.
+- All art sheets were rebuilt and the unused stock objects removed.
+
+## 2026-09-18 - Character select and class art
+- A new character select screen, and the Warrior and Wizard drawn at the right size, on the ground, with their bullets leaving from the right spot.
+
+## 2026-09-16 - A new title screen
+- The title screen was rebuilt with a scroll, new fonts and icons, and MP3 music support.
+- The login and register frames got their wooden boards.
+
+## 2026-09-13 - Launch bugs squashed
+- Fixed the black screen on older Intel graphics, flickering, the "flat colored square" sprites and a pile of status effects every new character spawned with.
+- Inventory drag and drop and item tooltips work.
+
+## 2026-09-09 - Warriors & Wizards begins
+- The first build: the client and the servers, merged from their two open-source roots, running together for the first time.

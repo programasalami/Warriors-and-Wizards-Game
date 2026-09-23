@@ -29,7 +29,15 @@ public class MusicLibraryTests {
     [Fact]
     public void TheMenuMusicIsNotInTheInGameLibrary() {
         Assert.DoesNotContain(MusicConfig.Config.Tracks, t => t.File.StartsWith("Main_Music", StringComparison.OrdinalIgnoreCase)
-                                                            || t.File.StartsWith("Menu_Music", StringComparison.OrdinalIgnoreCase));
+                                                            || t.File.StartsWith("Menu_Music", StringComparison.OrdinalIgnoreCase)
+                                                            || t.File.StartsWith("Realm_", StringComparison.OrdinalIgnoreCase));
+    }
+
+    // 2026-09-21: the jukebox plays Dreamtune alone until more songs are chosen for it.
+    [Fact]
+    public void TheJukeboxLibraryIsDreamtuneForNow() {
+        var track = Assert.Single(MusicConfig.Config.Tracks);
+        Assert.Equal("Dreamtune.ogg", track.File);
     }
 
     [Fact]
@@ -54,7 +62,8 @@ public class MusicLibraryTests {
         var listed = MusicConfig.Config.Tracks.Select(t => t.File).ToHashSet(StringComparer.OrdinalIgnoreCase);
         foreach (var file in Directory.GetFiles(folder).Select(Path.GetFileName)) {
             var menu = file!.StartsWith("Main_Music", StringComparison.OrdinalIgnoreCase) || file.StartsWith("Menu_Music", StringComparison.OrdinalIgnoreCase);
-            Assert.True(menu || listed.Contains(file), $"'{file}' is in Content/Sound/Music but not in musicConfig.xml: run Tools/Music/make_music_config.py");
+            var world = file.StartsWith("Realm_", StringComparison.OrdinalIgnoreCase);       // a world's own fixed music (the client plays it by itself)
+            Assert.True(menu || world || listed.Contains(file), $"'{file}' is in Content/Sound/Music but not in musicConfig.xml: run Tools/Music/make_music_config.py");
         }
     }
 }

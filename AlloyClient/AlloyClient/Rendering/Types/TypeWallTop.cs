@@ -8,7 +8,7 @@ using OpenTK.Mathematics;
 namespace AlloyClient.Rendering.Types;
 
 public sealed class TypeWallTop : RenderBase {
-    
+
     private float _sortId;
 
     public override ModelType ModelType {
@@ -23,9 +23,9 @@ public sealed class TypeWallTop : RenderBase {
         Entity = renderBaseType.Entity;
         Extra = new ExtraData(RenderConfig.TypeWall, RenderConfig.NoShade);
     }
-    
+
     public override void SetPosition(float x, float y, float z = 0) {
-        Position.X = x - 0.5f; // fixme: move the 0.5 to vertex data 
+        Position.X = x - 0.5f; // fixme: move the 0.5 to vertex data
         Position.Y = y - 0.5f;
         Position.Z = z;
     }
@@ -45,10 +45,13 @@ public sealed class TypeWallTop : RenderBase {
     public override void SetAlpha(float alpha) {
         throw new NotSupportedException("Walls do not support alpha");
     }
-    
+
     public override void SetName(string name) { }
 
     public override void Draw(List<VertexObject> targets, double time) {
         Render.DrawModel(new VertexModel(Position, UV, new Vector3(0, _sortId, RenderConfig.NoShade)));
     }
+
+    public void BakeInto(float depthCode, List<ModelVertexExpanded> into) =>
+        Render.BakeModel(ModelType, new VertexModel(Position, UV, new Vector3(0, depthCode, RenderConfig.NoShade)), into);
 }

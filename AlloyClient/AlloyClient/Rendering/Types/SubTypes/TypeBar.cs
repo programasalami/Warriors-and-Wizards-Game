@@ -12,6 +12,8 @@ public class TypeBar : SubRenderBase {
         get => 0.12f * 2;
     }
 
+    public const float FillDepthOffset = 0.0004f;
+    public const float BackgroundDepthOffset = 0.0002f;
     private Color _bgColor = Color.FromHexRGB(0x111111);
     private Vector4 _bgScale = new Vector4(0.72f, 0.12f, 0, 0);
 
@@ -36,7 +38,16 @@ public class TypeBar : SubRenderBase {
     public override void Draw(float yOffset, List<VertexObject> targets, double time) {
         _bgScale.W = yOffset;
         Scale.W = yOffset;
-        targets.Add(new VertexObject(Parent.Position, UV, Scale, Rotation, Extra, Color));
-        targets.Add(new VertexObject(Parent.Position, UV, _bgScale, Rotation, Extra/* + new Vector4(0, 0.001f, 0, 0)*/, _bgColor)); // TODO: make bar outlines ddx/ddy instead of 2nd quad
+        // The fill, its dark background and the character sprite used to share ONE depth value; the entity list is sorted with an
+        // unstable sort every frame, so the order of the two bar quads flipped between frames and the background sometimes covered
+        // the fill (the depth test rejects equal depth): the bars blinked whenever the sort input changed - walking, rotating,
+        // shooting. Depth = SortId in Object.vert (smaller is nearer): fill nearest, background just behind it, both in front of
+        // the sprite. The offsets are far smaller than the spacing between neighbouring entities (about 0.028 per tile).
+        var fill = Extra;
+        fill.SortId -= FillDepthOffset;
+        var background = Extra;
+        background.SortId -= BackgroundDepthOffset;
+        targets.Add(new VertexObject(Parent.Position, UV, Scale, Rotation, fill, Color));
+        targets.Add(new VertexObject(Parent.Position, UV, _bgScale, Rotation, background, _bgColor));
     }
 }

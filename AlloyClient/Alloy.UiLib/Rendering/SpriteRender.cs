@@ -17,7 +17,12 @@ public static class SpriteRender {
     // were drawn from the wrong data for a frame: the loading cover with a small black corner and no logo, tabs / buttons stretching, the dashboard flickering.
     // Fix: a small ring of SEPARATE buffer sets, one per batch in turn, so an upload never touches memory a recent draw may still be reading. (Orphaning the
     // buffers instead - re-allocating them for every upload - made this driver flash black frames, so the buffers are never re-allocated.)
-    private const int BufferSetCount = 8;
+    // 32 sets (was 8): one frame's batches must never wrap around onto a set the GPU may still be reading. A frame with the F5
+    // readout, chat, damage texts and the HUD can exceed 8 batches, which is exactly the documented race (HP/MP bars blinking
+    // while walking / shooting). LastBatchCount on the F5 readout shows the real number per frame.
+    private const int BufferSetCount = 32;
+    public static int LastBatchCount { get; private set; }
+    private static int _batchesThisFrame;
 
     private sealed class BufferSet {
         public StorageBuffer<SpriteInstanceData> Instances;
@@ -61,8 +66,9 @@ public static class SpriteRender {
     }
 
     internal static void StartDraw() {
+        _batchesThisFrame = 0;
         UiRender.UiShader.Apply();
-        
+
         GL.Disable(EnableCap.DepthTest);
         GL.Disable(EnableCap.StencilTest);
 
@@ -74,7 +80,7 @@ public static class SpriteRender {
     internal static void Draw(SpriteInstanceData data, ReadOnlySpan<ushort> indices, ReadOnlySpan<VertexUi> vertices) {
         if (_instanceCount + 1 > InstanceBufferSize || _indexCount + indices.Length > IndexBufferSize || _vertexCount + vertices.Length > VertexBufferSize)
             Flush();
-        
+
         _instanceData[_instanceCount] = data;
         var instanceId = _instanceCount++;
         var numVertices = (ushort)0;
@@ -91,12 +97,13 @@ public static class SpriteRender {
             _vertices[_vertexCount + i] = new SpriteVertexData(vertices[i], instanceId);
         }
         _vertexCount += numVertices;
-        
+
         UiRender.LastRenderCount++;
     }
 
     internal static void EndDraw() {
         Flush();
+        LastBatchCount = _batchesThisFrame;
         GL.BindVertexArray(0);
     }
 
@@ -109,15 +116,23 @@ public static class SpriteRender {
 
         var set = _sets[_nextSet];
         _nextSet = (_nextSet + 1) % BufferSetCount;
+        _batchesThisFrame++;
 
         set.Vao.Bind();
         set.Instances.BindToIndex(0);
+        // Whole arrays, deliberately (2026-09-21 audit, M4 tried and REVERTED): uploading only the used range made the HP/MP bars
+        // blink while walking / shooting on the Intel HD 4400. Full-size uploads keep every buffer of a set identical in shape from
+        // batch to batch, which this driver evidently needs. Do not retry without the dxcam flicker measurement.
         set.Instances.SetData(_instanceData.AsSpan());
         set.Indices.SetData(_indices.AsSpan());
         set.Vertices.SetData(_vertices.AsSpan());
 
         GL.DrawElements(PrimitiveType.Triangles, _indexCount, DrawElementsType.UnsignedShort, 0);
-        
+        GpuStats.DrawCalls++;
+        GpuStats.UploadBytes += (long)InstanceBufferSize * System.Runtime.CompilerServices.Unsafe.SizeOf<SpriteInstanceData>()
+                                + (long)IndexBufferSize * sizeof(ushort)
+                                + (long)VertexBufferSize * System.Runtime.CompilerServices.Unsafe.SizeOf<SpriteVertexData>();
+
         _instanceCount = 0;
         _indexCount = 0;
         _vertexCount = 0;

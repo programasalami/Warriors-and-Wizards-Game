@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The Portal - The Portal</title>
+<meta name="description" content="The Portal: public player profiles, guilds, leaderboards and the item wiki of Warriors & Wizards.">
+<link rel="icon" href="/assets/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/css/portal.css">
+</head>
+<body data-page="home">
+<main class="wrap">
+<div class="hero">
+  <h1>The Portal</h1>
+  <form class="big-search" id="big-search" autocomplete="off">
+    <input type="search" name="q" placeholder="Player name" aria-label="Find a player" maxlength="16" autofocus>
+    <button class="btn btn-primary" type="submit">Search</button>
+    <div class="suggest"></div>
+  </form>
+  <p id="online" style="margin-top:18px"><span class="loading">Counting players...</span></p>
+</div>
+<div class="grid-3">
+  <div class="panel"><h2>Top players</h2><div id="top-fame"><span class="loading">Loading...</span></div><p class="small" style="margin-top:10px"><a href="/top/fame">Full list &rarr;</a></p></div>
+  <div class="panel"><h2>Top characters</h2><div id="top-chars"><span class="loading">Loading...</span></div><p class="small" style="margin-top:10px"><a href="/top/chars">Full list &rarr;</a></p></div>
+  <div class="panel"><h2>Top guilds</h2><div id="top-guilds"><span class="loading">Loading...</span></div><p class="small" style="margin-top:10px"><a href="/top/guilds">Full list &rarr;</a></p></div>
+</div>
+<div class="grid-2">
+  <div class="panel"><h2>Wiki</h2><p>Every item and class in the game, with stats, damage and who can use what.</p><p><a class="btn" href="/wiki/items">Items</a> <a class="btn" href="/wiki/classes">Classes</a></p></div>
+  <div class="panel"><h2>Release history</h2><p>Every update to the game, newest first, with the version it came with.</p><p><a class="btn" href="/releases.html">Read</a></p></div>
+  <div class="panel"><h2>Graveyard</h2><p>The fallen of the realm will be remembered here once the game records its deaths.</p><p><a class="btn" href="/graveyard">Visit</a></p></div>
+</div>
+</main>
+<script src="/js/portal.js"></script>
+</body>
+</html>

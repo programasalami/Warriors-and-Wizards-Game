@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -59,6 +60,7 @@ internal class Program {
         }
 
         var semaphore = new SemaphoreSlim(config.MaxConcurrentRequests);
+        Shutdown.Install(() => { try { listener.Stop(); } catch { } });   // makes GetContextAsync below throw, which ends the loop
 
         while (true) {
             HttpListenerContext context;
@@ -67,6 +69,9 @@ internal class Program {
             }
             catch (HttpListenerException) {
                 break; // listener was stopped (e.g. on shutdown)
+            }
+            catch (ObjectDisposedException) {
+                break;
             }
 
             // Dispatch first, wait for a processing slot inside the task. Waiting on the
@@ -81,6 +86,47 @@ internal class Program {
                     semaphore.Release();
                 }
             });
+        }
+
+        await Shutdown.FinishAsync();
+    }
+
+    // Ctrl+C, SIGTERM (systemd stop on the VPS) and the console window closing all end here: the HTTP listener stops, then the
+    // batched database writes (DbWriter<T>) are flushed before the process ends. 2026-09-21 audit (H9): nothing used to be flushed.
+    private static class Shutdown {
+        private static readonly ManualResetEventSlim _done = new(false);
+        private static int _requested;
+        private static Action _stopListener;
+
+        public static void Install(Action stopListener) {
+            _stopListener = stopListener;
+            Console.CancelKeyPress += (_, e) => { e.Cancel = true; Request(); };
+            try {
+                PosixSignalRegistration.Create(PosixSignal.SIGTERM, ctx => { ctx.Cancel = true; Request(); });
+            }
+            catch (Exception) { /* not supported on this platform: ProcessExit below still runs */ }
+            AppDomain.CurrentDomain.ProcessExit += (_, _) => { Request(); _done.Wait(4000); };
+        }
+
+        private static void Request() {
+            if (Interlocked.Exchange(ref _requested, 1) == 1)
+                return;
+            Log.Info("Shutdown requested: stopping the HTTP listener and flushing database writes...");
+            _stopListener?.Invoke();
+        }
+
+        public static async Task FinishAsync() {
+            try {
+                await DbClient.Dispose();
+                Log.Info("Database writes flushed. Bye.");
+            }
+            catch (Exception e) {
+                Log.Error($"Error while flushing on shutdown: {e}");
+            }
+            finally {
+                Logger.Flush(2000);
+                _done.Set();
+            }
         }
     }
 
@@ -148,6 +194,14 @@ internal class Program {
             }
 
             query = HttpUtility.ParseQueryString(new string(buffer, 0, totalRead));
+            // The Portal's public API is called with plain GETs from a browser: merge the URL's query string in (the game client
+            // always POSTs a form, so this changes nothing for it).
+            if (!string.IsNullOrEmpty(context.Request.Url.Query)) {
+                var urlQuery = HttpUtility.ParseQueryString(context.Request.Url.Query);
+                foreach (var key in urlQuery.AllKeys)
+                    if (key != null && query[key] == null)
+                        query[key] = urlQuery[key];
+            }
         }
         catch (HttpListenerException) {
             return;
@@ -165,7 +219,9 @@ internal class Program {
 
         try {
             var data = Encoding.UTF8.GetBytes(response);
-            context.Response.ContentType = "text/*";
+            // JSON answers (the Portal's /public/* handlers) get their real type; everything else stays as it was
+            var trimmed = response.TrimStart();
+            context.Response.ContentType = trimmed.StartsWith('{') || trimmed.StartsWith('[') ? "application/json; charset=utf-8" : "text/*";
             await context.Response.OutputStream.WriteAsync(data, 0, data.Length);
             context.Response.Close();
         }
@@ -176,7 +232,21 @@ internal class Program {
         Log.Fatal(args.ExceptionObject);
     }
 
+    // The caller's address for rate limits and logs. Requests that nginx forwards (the browser client's /api, The Portal's /api/public)
+    // all arrive from this machine, so for those the header nginx sets (X-Forwarded-For) names the real visitor; the header is
+    // trusted only when the connection really comes from this machine, never from the internet.
     private static string GetContextIP(HttpListenerContext context) {
-        return context.Request.RemoteEndPoint.ToString().Split(':')[0];
+        var remote = context.Request.RemoteEndPoint;
+        var address = remote?.Address.ToString() ?? "";
+        var forwarded = context.Request.Headers["X-Forwarded-For"];
+        if (!string.IsNullOrWhiteSpace(forwarded) && remote != null && IsThisMachine(remote.Address))
+            return forwarded.Split(',')[0].Trim();
+        return address;
+    }
+
+    private static bool IsThisMachine(IPAddress address) {
+        if (IPAddress.IsLoopback(address)) return true;
+        try { return Dns.GetHostAddresses(Dns.GetHostName()).Contains(address) || address.ToString() == AppEngineConfig.Config?.Address; }
+        catch (Exception) { return false; }
     }
 }
