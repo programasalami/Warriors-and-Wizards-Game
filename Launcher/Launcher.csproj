@@ -19,8 +19,8 @@
     <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
     <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
     <DebugType>none</DebugType>
-    <ApplicationIcon Condition="Exists('..\AlloyClient\AlloyClient\alloy.ico')">..\AlloyClient\AlloyClient\alloy.ico</ApplicationIcon>
-    <Version>2.0.0</Version>
+    <ApplicationIcon Condition="Exists('..\WaW-Client\WaWClient\waw.ico')">..\WaW-Client\WaWClient\waw.ico</ApplicationIcon>
+    <Version>2.1.0</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <BuiltInComInteropSupport>false</BuiltInComInteropSupport>
   </PropertyGroup>
@@ -31,6 +31,8 @@
     <None Remove="Tests\**" />
     <EmbeddedResource Remove="Tests\**" />
     <EmbeddedResource Include="Assets\*.png" />
+    <!-- the title font, loaded as avares://WaWLauncher/Assets/Fonts#Not Jam Signature 21 -->
+    <AvaloniaResource Include="Assets\Fonts\*.ttf" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Avalonia.Desktop" Version="12.1.3" />

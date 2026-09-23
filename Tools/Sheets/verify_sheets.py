@@ -18,9 +18,9 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, '..', '..'))
-CONTENT = os.path.join(REPO, 'AlloyClient', 'AlloyClient', 'Content')
+CONTENT = os.path.join(REPO, 'WaW-Client', 'WaWClient', 'Content')
 SHEETS = os.path.join(CONTENT, 'Sheets')
-CLIENT = os.path.join(REPO, 'AlloyClient', 'AlloyClient')
+CLIENT = os.path.join(REPO, 'WaW-Client', 'WaWClient')
 HOME = os.path.expanduser('~')
 RETIRED = ['guildHall', 'guildHallLarge', 'icons', 'caveMonsters', 'npcs', 'equipAndConsume']
 ENGINE_SHEETS = {'tileAlphaBlend'}          # blending masks, not a picture anyone sees

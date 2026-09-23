@@ -1,8 +1,8 @@
-// Browser version of AlloyClient/Utils/ClientPlatform.cs (swapped in by tools/patch_rules_more.py).
+// Browser version of WaWClient/Utils/ClientPlatform.cs (swapped in by tools/patch_rules_more.py).
 using System;
 using WarriorsWeb;
 
-namespace AlloyClient.Utils;
+namespace WaWClient.Utils;
 
 public static class ClientPlatform {
 

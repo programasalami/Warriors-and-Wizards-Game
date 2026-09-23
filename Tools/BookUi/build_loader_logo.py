@@ -5,7 +5,7 @@ import os
 from PIL import Image
 
 SRC = os.path.expanduser('~/Desktop/LoaderLogo.png')
-OUT = 'AlloyClient/AlloyClient/Content/Ui/Loader/Logo.png'
+OUT = 'WaW-Client/WaWClient/Content/Ui/Loader/Logo.png'
 W, H = 420, 336
 
 im = Image.open(SRC).convert('RGBA')

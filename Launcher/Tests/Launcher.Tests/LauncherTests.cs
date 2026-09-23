@@ -228,6 +228,15 @@ public class LauncherTests {
         Assert.Equal("12 KB", Updater.Human(12 * 1024));
     }
 
+    // deploy -Launcher publishes the csproj's <Version> in the manifest, while a running launcher compares against SelfUpdate.Version: if they
+    // differ, every launcher re-downloads the "newer" copy on every start, forever.
+    [Fact]
+    public void TheLauncherKnowsItsOwnPublishedVersion() {
+        var csproj = File.ReadAllText(Path.Combine(FindRepoRoot(), "Launcher", "Launcher.csproj"));
+        var published = System.Text.RegularExpressions.Regex.Match(csproj, "<Version>([^<]+)</Version>").Groups[1].Value;
+        Assert.Equal(published, SelfUpdate.Version);
+    }
+
     private static string FindRepoRoot() {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir != null && !File.Exists(Path.Combine(dir.FullName, "deploy.ps1")))

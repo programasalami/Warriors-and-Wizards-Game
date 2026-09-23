@@ -4,7 +4,7 @@ import sys
 if '--force' not in sys.argv:
     raise SystemExit('obsolete: see Tools/Sheets/README.md (run with --force to run it anyway)')
 """Cuts the first four weapon tiers out of the four metal sheets (Tools/Weapons/source, 16x16 cells, 24 columns) into
-AlloyClient/AlloyClient/Content/Sheets/Weapons.png - one row of 16x16 cells, atlas name "weapons" (Game.atlas).
+WaW-Client/WaWClient/Content/Sheets/Weapons.png - one row of 16x16 cells, atlas name "weapons" (Game.atlas).
 
 Cell index (Equip.xml <Index>):   0 Used Sword   1 Iron Sword   2 Steel Sword   3 Bronze Sword   4 Gold Sword
                                   5 Used Staff   6 Iron Staff   7 Steel Staff   8 Bronze Staff   9 Gold Staff
@@ -17,7 +17,7 @@ import os
 from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-OUT = os.path.join(HERE, '..', '..', 'AlloyClient', 'AlloyClient', 'Content', 'Sheets', 'Weapons.png')
+OUT = os.path.join(HERE, '..', '..', 'WaW-Client', 'WaWClient', 'Content', 'Sheets', 'Weapons.png')
 CELL = 16
 SWORD = (7, 0)          # the broad sword, top row
 USED_SWORD = (7, 1)     # the same sword one row down

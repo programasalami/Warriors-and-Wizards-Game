@@ -1,4 +1,4 @@
-"""Builds the in-game music library (alloy-server/Common/Resources/Config/Data/musicConfig.xml) from the audio files in AlloyClient/AlloyClient/Content/Sound/Music.
+"""Builds the in-game music library (WaW-Server/Common/Resources/Config/Data/musicConfig.xml) from the audio files in WaW-Client/WaWClient/Content/Sound/Music.
 
 The server plays this library on a shuffle for everybody; each track needs its length, so the tool measures every file with ffprobe. To add a song to the game:
 drop the file into Content/Sound/Music, run this tool, rebuild and deploy (server AND clients: the clients need the audio file, the server needs this list).
@@ -18,8 +18,8 @@ import sys
 from xml.sax.saxutils import quoteattr
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'
-MUSIC_DIR = ROOT + 'AlloyClient/AlloyClient/Content/Sound/Music/'
-OUT = ROOT + 'alloy-server/Common/Resources/Config/Data/musicConfig.xml'
+MUSIC_DIR = ROOT + 'WaW-Client/WaWClient/Content/Sound/Music/'
+OUT = ROOT + 'WaW-Server/Common/Resources/Config/Data/musicConfig.xml'
 EXTENSIONS = ('.ogg', '.mp3', '.wav')
 MENU_PREFIXES = ('main_music', 'menu_music')
 WORLD_PREFIXES = ('realm_',)          # a world's own fixed music (the Realm plays Realm_* by itself, see InGameMusic.RealmTrack): never in the jukebox library

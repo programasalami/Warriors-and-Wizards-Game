@@ -1,19 +1,19 @@
-// Browser replacement for AlloyClient.Networking.Client: same public surface, but the game connection is a WebSocket (browsers cannot
+// Browser replacement for WaWClient.Networking.Client: same public surface, but the game connection is a WebSocket (browsers cannot
 // open raw TCP). On the VPS a websockify bridge (wss -> 127.0.0.1:2050) passes the exact same packet byte stream through, so the
 // game server is unchanged: packets are still [int32 length][byte id][body], just carried in WebSocket binary frames of any size.
 using System.Collections.Concurrent;
 using System.Net.WebSockets;
-using AlloyClient.Data;
-using AlloyClient.Display;
-using AlloyClient.Game;
-using AlloyClient.Loading;
-using AlloyClient.Logging;
-using AlloyClient.Networking.Packets;
-using AlloyClient.Networking.Packets.Outgoing;
-using AlloyClient.Utils;
+using WaWClient.Data;
+using WaWClient.Display;
+using WaWClient.Game;
+using WaWClient.Loading;
+using WaWClient.Logging;
+using WaWClient.Networking.Packets;
+using WaWClient.Networking.Packets.Outgoing;
+using WaWClient.Utils;
 using Microsoft.Extensions.Logging;
 
-namespace AlloyClient.Networking;
+namespace WaWClient.Networking;
 
 public enum ConnectionState {
     Disconnected,

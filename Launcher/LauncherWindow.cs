@@ -45,24 +45,25 @@ public sealed class LauncherWindow : Window {
         using (var s = Assets.Open("art.png"))
             art = new Bitmap(s);
 
+        // The whole window is one background (black since 2.1.0) with the embers drifting over it, so the art column is see-through now.
         var left = new Border {
             Width = 340,
-            Background = new SolidColorBrush(Color.Parse("#000000")),
+            Background = Brushes.Transparent,
             Child = new Image { Source = art, Width = 300, Height = 300, VerticalAlignment = VerticalAlignment.Center, HorizontalAlignment = HorizontalAlignment.Center }
         };
 
+        // The title in the game's own lettering (Not Jam Signature 21, embedded - see Launcher.csproj); a pixel font, so no synthetic bold.
         var header = new StackPanel {
             Spacing = 2,
             Children = {
                 new TextBlock {
-                    FontSize = 30, FontWeight = FontWeight.Bold,
+                    FontSize = 36, FontWeight = FontWeight.Normal, FontFamily = TitleFont,
                     Inlines = [
                         new Avalonia.Controls.Documents.Run("Warriors ") { Foreground = new SolidColorBrush(Palette.Orange) },
                         new Avalonia.Controls.Documents.Run("& ") { Foreground = new SolidColorBrush(Palette.Text) },
                         new Avalonia.Controls.Documents.Run("Wizards") { Foreground = new SolidColorBrush(Palette.Purple) }
                     ]
-                },
-                Label("Game launcher", 13, Palette.Dim)
+                }
             }
         };
 
@@ -75,7 +76,7 @@ public sealed class LauncherWindow : Window {
         DockPanel.SetDock(left, Dock.Left);
         root.Children.Add(left);
         root.Children.Add(right);
-        Content = root;
+        Content = new Panel { Children = { new EmberField(), root } };      // embers behind everything
 
         _play.Click += (_, _) => Play();
 
@@ -148,7 +149,7 @@ public sealed class LauncherWindow : Window {
             Children = {
                 Label("Welcome! Where should the game go?", 17, Palette.Text, FontWeight.SemiBold),
                 folderRow,
-                Label("About 150 MB. The game is placed right next to this launcher.", 12, Palette.Dim),
+                Label("Size: 150 MB", 12, Palette.Dim),
                 new Border { Height = 4 },
                 desktop, menu, close,
                 new Border { Height = 4 },
@@ -322,6 +323,8 @@ public sealed class LauncherWindow : Window {
     }
 
     // ---------------------------------------------------------------- building blocks
+
+    private static readonly FontFamily TitleFont = new("avares://WaWLauncher/Assets/Fonts#Not Jam Signature 21");
 
     private static bool SamePath(string a, string b) =>
         string.Equals(Path.TrimEndingDirectorySeparator(Path.GetFullPath(a)), Path.TrimEndingDirectorySeparator(Path.GetFullPath(b)),

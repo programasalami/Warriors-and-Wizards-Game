@@ -57,6 +57,12 @@ img { image-rendering: pixelated; image-rendering: crisp-edges; }
 }
 .nav-link:hover, .nav-link.is-current { color: var(--gold); border-color: var(--border); background: var(--panel); text-decoration: none; }
 .nav-play { color: var(--ember); }
+.nav-left { display: flex; align-items: center; gap: 14px; }
+.nav-back {
+  font-family: var(--font-pixel); font-size: 9px; color: var(--text-dim); padding: 7px 10px; border: 3px solid var(--border); background: var(--panel);
+}
+.nav-back:hover { color: var(--gold); text-decoration: none; }
+.wiki-tabs { display: flex; gap: 4px; justify-content: center; margin: 4px 0 16px; }
 .nav-search { display: flex; gap: 6px; position: relative; }
 .nav-search input { width: 190px; }
 

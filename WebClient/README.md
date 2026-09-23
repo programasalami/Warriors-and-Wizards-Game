@@ -6,7 +6,7 @@ The same game client as the desktop `.exe`, compiled to WebAssembly so it runs i
 ```
 WebClient/
   web/                 the WebAssembly project
-    web.csproj         compiles Alloy.Common / ContentReader / Engine / UiLib / AlloyClient / Common.Protocol from ../../AlloyClient + ../../Shared
+    web.csproj         compiles WaW.Common / ContentReader / Engine / UiLib / WaWClient / Common.Protocol from ../../WaWClient + ../../Shared
     shim/              browser replacements: GL.cs (OpenTK GL -> WebGL2 via gl.js), Platform.cs (window/input events), GameWindow.cs (rAF loop),
                        StorageBuffer.cs (SSBO -> data texture), Audio.cs, WebClient.cs (WebSocket instead of TCP), ReFuel.cs (managed PNG decode), Enums.g.cs
     WebHost.cs         entry point + JS<->C# bridge (input events, content download, saved login/settings in localStorage)

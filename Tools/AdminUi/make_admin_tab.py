@@ -1,8 +1,8 @@
-"""Draws the ADMIN tab icon (a gold crown, 32x32, hard pixels) into AlloyClient/AlloyClient/Content/Ui/Tabs/AdminTab.png."""
+"""Draws the ADMIN tab icon (a gold crown, 32x32, hard pixels) into WaW-Client/WaWClient/Content/Ui/Tabs/AdminTab.png."""
 import os
 from PIL import Image, ImageDraw
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'AlloyClient', 'AlloyClient', 'Content', 'Ui', 'Tabs', 'AdminTab.png')
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..', 'WaW-Client', 'WaWClient', 'Content', 'Ui', 'Tabs', 'AdminTab.png')
 OUTLINE = (58, 36, 16, 255)
 GOLD = (242, 182, 50, 255)
 LIGHT = (255, 226, 122, 255)

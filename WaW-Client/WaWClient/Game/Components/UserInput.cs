@@ -1,0 +1,304 @@
+﻿using System;
+using WaWClient.Game.Components.Hud;
+using WaWClient.Game.Components.Hud.Chat;
+using WaWClient.Game.Components.Hud.Panels;
+using WaWClient.Game.Components.Options;
+using WaWClient.Networking;
+using WaWClient.Networking.Packets.Outgoing;
+using WaW.UiLib.Core;
+using WaW.Common;
+using WaW.Engine;
+using WaWClient.Display;
+using WaWClient.Logging;
+using Microsoft.Extensions.Logging;
+using OpenTK.Mathematics;
+using OpenTK.Platform;
+
+namespace WaWClient.Game.Components;
+
+public sealed class UserInput : Sprite {
+
+    private static readonly ILogger Logger = ILogger.CreateLogger(nameof(UserInput));
+
+    private static Vector2 _mousePosition;
+    
+    private static bool _windowFocus;
+
+    private static bool _manualFocus = true;
+
+    private bool _mouseDown;
+
+    private bool _autoFire;
+
+    private int _rotateRight;
+    private int _rotateLeft;
+
+    private int _moveRight;
+    private int _moveLeft;
+    private int _moveDown;
+    private int _moveUp;
+
+    public UserInput() {
+        AddEventListener(Event.AddedToStage, AddedToStage);
+        AddEventListener(Event.RemovedFromStage, RemovedFromStage);
+    }
+
+    private void AddedToStage() {
+        Stage.AddEventListener(KeyboardEvent.KeyDown, OnKeyDown);
+        Stage.AddEventListener(KeyboardEvent.KeyUp, OnKeyUp);
+        
+        Stage.AddEventListener(MouseEvent.LeftDown,OnLeftDown);
+        Stage.AddEventListener(MouseEvent.LeftUp, OnLeftUp);
+        Stage.AddEventListener(MouseEvent.ScrollVertical, OnScroll);
+        Stage.AddEventListener(MouseEvent.MiddleClick, OnMiddleClick);
+        Stage.AddEventListener(MouseEvent.MouseMove, OnMouseMove);
+    }
+    
+    private void RemovedFromStage() {
+        Stage.RemoveEventListener(KeyboardEvent.KeyDown, OnKeyDown);
+        Stage.RemoveEventListener(KeyboardEvent.KeyUp, OnKeyUp);
+        
+        Stage.RemoveEventListener(MouseEvent.LeftDown,OnLeftDown);
+        Stage.RemoveEventListener(MouseEvent.LeftUp, OnLeftUp);
+        Stage.RemoveEventListener(MouseEvent.ScrollVertical, OnScroll);
+        Stage.RemoveEventListener(MouseEvent.MiddleClick, OnMiddleClick);
+        Stage.RemoveEventListener(MouseEvent.MouseMove, OnMouseMove);
+    }
+    
+    public static void SetWindowFocus(bool focus) => _windowFocus = focus;
+
+    public static void SetManualFocus(bool focus) => _manualFocus = focus;
+
+    private static bool IsInputDisabled() => !(_windowFocus && _manualFocus);
+
+    private void OnLeftDown(MouseEvent args) {
+        if (GameScreen.GameSprite != null && GameScreen.GameSprite.IsOverHud(args.Coords.X, args.Coords.Y)) {
+            return;
+        }
+        _mouseDown = true;
+    }
+
+    private void OnLeftUp() => _mouseDown = false;
+    
+    private void OnMouseMove(MouseEvent args) => _mousePosition = new Vector2(args.Coords.X, args.Coords.Y);
+
+    public void ClearInput() {
+        ClearMovement();
+        _autoFire = false;
+        _mouseDown = false;
+    }
+    
+    public void ClearMovement() {
+        _rotateLeft = 0;
+        _rotateRight = 0;
+        _moveUp = 0;
+        _moveDown = 0;
+        _moveLeft = 0;
+        _moveRight = 0;
+        Map.LocalPlayer?.SetRelativeMovement(0, 0, 0);
+    }
+
+    public void Update(in GameTime gameTime, in Camera camera) {
+        if (IsInputDisabled() || !(_mouseDown || _autoFire)) {
+            return;
+        }
+        
+        var pos = camera.ScreenToWorld(_mousePosition, Stage.Dimensions);
+        var dX = pos.X - Map.LocalPlayer.Position.X;
+        var dY = pos.Y - Map.LocalPlayer.Position.Y;
+        var angle = MathF.Atan2(dY, dX);
+        
+        Map.LocalPlayer.Shoot(angle, gameTime);
+    }
+
+    private void SetPlayerMovement() {
+        if (Map.LocalPlayer == null) return;
+        
+        if (IsInputDisabled()) {
+            Map.LocalPlayer.SetRelativeMovement(0, 0, 0);
+            return;
+        }
+        
+        Map.LocalPlayer.SetRelativeMovement(_rotateRight - _rotateLeft, _moveRight - _moveLeft, _moveDown - _moveUp);
+    }
+
+    private void OnScroll(MouseEvent args) {
+        if (IsInputDisabled()) return;
+        if (Map.LocalPlayer == null) return;
+        
+        if (args.ShiftKey) {
+            Settings.CameraZoom.Set(Math.Clamp(Settings.CameraZoom + 0.1f * args.VerticalDelta, Settings.MinCameraZoom, Settings.MaxCameraZoom));
+            Logger.Log(LogLevel.Information, $"Camera zoom: {Settings.CameraZoom.Value}");
+        } else {
+            Minimap.OnZoom.Dispatch((int)args.VerticalDelta);
+        }
+    }
+
+    private void OnMiddleClick(MouseEvent args) {
+        if (IsInputDisabled())
+            return;
+    }
+
+    private void OnKeyDown(KeyboardEvent args) {
+        if (IsInputDisabled() || args.Code == Scancode.Unknown)
+            return;
+        if (Map.LocalPlayer == null)
+            return;
+        
+        var key = args.Code;
+
+        switch (true) {
+            case true when Settings.RotateLeft.Equals(key):
+                _rotateLeft = 1;
+                break;
+            case true when Settings.RotateRight.Equals(key):
+                _rotateRight = 1;
+                break;
+            case true when Settings.MoveUp.Equals(key):
+                _moveUp = 1;
+                break;
+            case true when Settings.MoveDown.Equals(key):
+                _moveDown = 1;
+                break;
+            case true when Settings.MoveLeft.Equals(key):
+                _moveLeft = 1;
+                break;
+            case true when Settings.MoveRight.Equals(key):
+                _moveRight = 1;
+                break;
+            case true when Settings.AutoFire.Equals(key):
+                _autoFire = !_autoFire;
+                break;
+            case true when Settings.Special.Equals(key):
+                //TODO: abilities
+                break;
+            case true when Settings.Escape.Equals(key):
+                if (Map.Name == "Nexus" || Client.IsReconnecting)
+                    break;
+                
+                Client.QueuePacket(Escape.CreatePacket());
+                Client.IsReconnecting = true;
+                break;
+            case true when Settings.Interact.Equals(key):
+                if (Client.IsReconnecting)
+                    break;
+                Panel.OnInteract.Dispatch();
+                break;
+            case true when Settings.ResetCameraAngle.Equals(key):
+                Settings.CameraAngle.Set(Settings.DefaultCameraAngle);
+                break;
+            case true when Settings.CenterPlayerKey.Equals(key):      // Player Position: Centered <-> Lowered (the key had no handler before 2026-09-22)
+                Settings.LowerPlayerView.Set(!Settings.LowerPlayerView);
+                break;
+            case true when Settings.PerformanceStats.Equals(key):
+                GameScreen.GameSprite?.ToggleDebugStats();
+                break;
+            case true when Settings.ToggleStatusBars.Equals(key):
+                Settings.ShowStatusBars.Set(!Settings.ShowStatusBars);
+                break;
+            case true when Settings.Options.Equals(key):
+                if (GameScreen.GameSprite != null) {
+                    GameScreen.GameSprite.OpenOptions();
+                } else {
+                    ClearMovement();
+                    SetManualFocus(false);
+                    OverlayManager.Set(new OptionsView());
+                }
+                break;
+            // Inventory //
+            // 1-8 use the consumable in that inventory slot; C / V drink the first Health / Magic Potion (all did nothing before 2026-09-22).
+            case true when Settings.InvOne.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(0);
+                break;
+            case true when Settings.InvTwo.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(1);
+                break;
+            case true when Settings.InvThree.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(2);
+                break;
+            case true when Settings.InvFour.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(3);
+                break;
+            case true when Settings.InvFive.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(4);
+                break;
+            case true when Settings.InvSix.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(5);
+                break;
+            case true when Settings.InvSeven.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(6);
+                break;
+            case true when Settings.InvEight.Equals(key):
+                Hud.Inventory.ItemTile.UseInventorySlot(7);
+                break;
+            case true when Settings.HealthPotion.Equals(key):
+                Hud.Inventory.ItemTile.UseFirst("Health Potion");
+                break;
+            case true when Settings.MagicPotion.Equals(key):
+                Hud.Inventory.ItemTile.UseFirst("Magic Potion");
+                break;
+            // Chat //
+            case true when Settings.Chat.Equals(key):
+                ClearMovement();
+                ChatBox.OnChatOpen.Dispatch("");
+                break;
+            case true when Settings.ChatCommand.Equals(key):
+                ClearMovement();
+                ChatBox.OnChatOpen.Dispatch("/");
+                break;
+            case true when Settings.TellKey.Equals(key):
+                ClearMovement();
+                ChatBox.OnChatOpen.Dispatch("/tell ");
+                break;
+            case true when Settings.GuildChat.Equals(key):
+                ClearMovement();
+                ChatBox.OnChatOpen.Dispatch("/g ");
+                break;
+            case true when Settings.PartyChat.Equals(key):
+                ClearMovement();
+                ChatBox.OnChatOpen.Dispatch("/p ");
+                break;
+            case true when Settings.ChatHistoryUp.Equals(key):
+                ChatBox.OnChatHistoryUp.Dispatch();
+                break;
+            case true when Settings.ChatHistoryDown.Equals(key):
+                ChatBox.OnChatHistoryDown.Dispatch();
+                break;
+        }
+        
+        SetPlayerMovement();
+    }
+    
+    private void OnKeyUp(KeyboardEvent args) {
+        if (IsInputDisabled() || args.Code == Scancode.Unknown) return;
+        if (Map.LocalPlayer == null) return;
+
+        var key = args.Code;
+
+        switch (true) {
+            case true when Settings.RotateLeft.Equals(key):
+                _rotateLeft = 0;
+                break;
+            case true when Settings.RotateRight.Equals(key):
+                _rotateRight = 0;
+                break;
+            case true when Settings.MoveUp.Equals(key):
+                _moveUp = 0;
+                break;
+            case true when Settings.MoveDown.Equals(key):
+                _moveDown = 0;
+                break;
+            case true when Settings.MoveLeft.Equals(key):
+                _moveLeft = 0;
+                break;
+            case true when Settings.MoveRight.Equals(key):
+                _moveRight = 0;
+                break;
+            case true when Settings.Special.Equals(key):
+                //TODO: abilities
+                break;
+        }
+        
+        SetPlayerMovement();
+    }
+}

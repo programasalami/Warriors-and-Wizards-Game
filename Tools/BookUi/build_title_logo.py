@@ -11,7 +11,7 @@ from collections import deque
 from PIL import Image, ImageFilter
 
 SRC = os.path.expanduser('~/Desktop/TitleLogo.png')
-OUT = 'AlloyClient/AlloyClient/Content/Ui/Title/Logo.png'
+OUT = 'WaW-Client/WaWClient/Content/Ui/Title/Logo.png'
 OUT_H = 560   # stored height; width follows the cropped aspect ratio
 
 BRIGHT = 195      # min(r,g,b) above this ...

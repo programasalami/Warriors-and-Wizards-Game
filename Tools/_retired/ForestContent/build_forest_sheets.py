@@ -6,7 +6,7 @@ if '--force' not in sys.argv:
 import random
 from PIL import Image
 SRC = 'C:/Users/cbart/Desktop/Assets and GUI/TopDownFantasy-Forest'
-OUT = 'AlloyClient/AlloyClient/Content/Sheets'
+OUT = 'WaW-Client/WaWClient/Content/Sheets'
 
 # ============ Decor sheet: 4 cols x 4 rows of 80x120 cells, native scale, bottom-centred ============
 CW, CH, COLS, ROWS = 80, 120, 4, 4

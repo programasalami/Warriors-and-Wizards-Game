@@ -3,7 +3,7 @@
 import sys
 if '--force' not in sys.argv:
     raise SystemExit('obsolete: see Tools/Sheets/README.md (run with --force to run it anyway)')
-"""Draws the Nexus props that are not part of the forest pack into AlloyClient/AlloyClient/Content/Sheets/ForestProps.png (cells of 80x120 like ForestDecor.png,
+"""Draws the Nexus props that are not part of the forest pack into WaW-Client/WaWClient/Content/Sheets/ForestProps.png (cells of 80x120 like ForestDecor.png,
 4 cells per row; game atlas name "forestProps"). Everything is drawn here in code, in the forest palette, so it is new art and reproducible.
 
     cell 0 : the Bug Board - a wooden notice board on two posts with paper notes pinned to it
@@ -19,7 +19,7 @@ import sys
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'
-OUT = ROOT + 'AlloyClient/AlloyClient/Content/Sheets/ForestProps.png'
+OUT = ROOT + 'WaW-Client/WaWClient/Content/Sheets/ForestProps.png'
 CELL_W, CELL_H, COLS = 80, 120, 4
 
 # palette (the forest pack's own dark outline / wood / grass colours + the UI's parchment)

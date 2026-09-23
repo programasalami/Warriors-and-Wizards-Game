@@ -1,4 +1,4 @@
-"""Generates the forest REALM map (alloy-server/Common/Resources/World/Data/Realm.jm) for the live-testing server.
+"""Generates the forest REALM map (WaW-Server/Common/Resources/World/Data/Realm.jm) for the live-testing server.
 
 The realm is the open-world zone the Nexus's Realm Portal leads to. Same aesthetic as the compact Nexus (Woodland grass / dirt / water / bridge,
 forest decor, tree wall round the coast) but a proper explorable island (about 120 tiles across - the old stock realm maps were 2048x2048 with
@@ -29,7 +29,7 @@ import zlib
 from collections import Counter, deque
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'   # the repo root, wherever the folder lives
-OUT = ROOT + 'alloy-server/Common/Resources/World/Data/Realm.jm'
+OUT = ROOT + 'WaW-Server/Common/Resources/World/Data/Realm.jm'
 
 W, H = 140, 140
 CX, CY, R = 70, 70, 58            # island centre and rough radius

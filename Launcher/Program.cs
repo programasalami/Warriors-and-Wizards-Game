@@ -97,7 +97,8 @@ public static class Assets {
 }
 
 public static class Palette {
-    public static readonly Color Background = Color.Parse("#120D16");
+    // The window (2.1.0: all black behind the embers, by request; the old dark purple was #120D16 - swap back here to compare).
+    public static readonly Color Background = Color.Parse("#000000");
     public static readonly Color Panel = Color.Parse("#1E1624");
     public static readonly Color Line = Color.Parse("#3A2C44");
     public static readonly Color Text = Color.Parse("#EFE6F5");

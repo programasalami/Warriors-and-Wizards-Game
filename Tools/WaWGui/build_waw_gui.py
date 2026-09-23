@@ -1,5 +1,5 @@
 """Cuts the in-game GUI pieces out of the "Mini Medieval User Interface" pack (V3X3D; the user's WaW-InGame-GUI folder on the Desktop)
-into AlloyClient/AlloyClient/Content/Ui/WaW/*.png. Pixel art at 1x - the client draws them at whole-number scales (panels/slots 2x, portrait 4x, bars 3x).
+into WaW-Client/WaWClient/Content/Ui/WaW/*.png. Pixel art at 1x - the client draws them at whole-number scales (panels/slots 2x, portrait 4x, bars 3x).
 
 Run from the repo root:  python Tools/WaWGui/build_waw_gui.py [preview.png]
 Then keep the WaW entries in Content/Ui.atlas and rebuild WarriorsAndWizards.Client.sln.
@@ -19,7 +19,7 @@ import sys
 from PIL import Image
 
 SRC = 'C:/Users/cbart/Desktop/WaW-InGame-GUI/Mini-Medieval-User-Interface-8x8/'
-OUT = 'AlloyClient/AlloyClient/Content/Ui/WaW/'
+OUT = 'WaW-Client/WaWClient/Content/Ui/WaW/'
 PANEL_FILL = (0x40, 0x2e, 0x2b, 255)
 DARK_FILL = (0x12, 0x0e, 0x23, 255)
 

@@ -2,7 +2,7 @@
 // wwwroot/gl.js createStorageTexture and the ported shaders in ../shaders). Same class the renderers already use.
 using System.Runtime.InteropServices;
 
-namespace Alloy.Engine.Graphics.Buffers;
+namespace WaW.Engine.Graphics.Buffers;
 
 public sealed unsafe class StorageBuffer<T> where T : unmanaged, IBufferData<T> {
     public readonly int Length;

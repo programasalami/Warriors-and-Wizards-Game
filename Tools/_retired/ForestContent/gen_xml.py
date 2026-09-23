@@ -10,9 +10,9 @@ import re
 import os
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'   # the repo root, wherever the folder lives
-# The server links the client's Xmls folder at build time (the duplicate copies under alloy-server were removed), so the client copy is the only one.
-OBJ_FILES = [ROOT + 'AlloyClient/AlloyClient/Content/Xmls/Objects.xml']
-GND_FILES = [ROOT + 'AlloyClient/AlloyClient/Content/Xmls/Ground.xml']
+# The server links the client's Xmls folder at build time (the duplicate copies under WaW-Server were removed), so the client copy is the only one.
+OBJ_FILES = [ROOT + 'WaW-Client/WaWClient/Content/Xmls/Objects.xml']
+GND_FILES = [ROOT + 'WaW-Client/WaWClient/Content/Xmls/Ground.xml']
 
 # (type, id, sheet index, size spec, inset, kind)
 #   size spec: int -> <Size>, (min, max) -> Min/MaxSize step 2

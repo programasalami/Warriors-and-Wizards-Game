@@ -24,12 +24,12 @@ from PIL import Image
 APPLY = '--apply' in sys.argv
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, '..', '..'))
-CONTENT = os.path.join(REPO, 'AlloyClient', 'AlloyClient', 'Content')
+CONTENT = os.path.join(REPO, 'WaW-Client', 'WaWClient', 'Content')
 SHEETS = os.path.join(CONTENT, 'Sheets')
 XMLS = os.path.join(CONTENT, 'Xmls')
 OLD = os.path.join(HERE, 'source_old')
 DESKTOP = r'C:\Users\cbart\Desktop'
-CODE = os.path.join(REPO, 'AlloyClient', 'AlloyClient')
+CODE = os.path.join(REPO, 'WaW-Client', 'WaWClient')
 
 # ------------------------------------------------------------------------------------------------------------------------------------------------------------
 # 0. the old sheets (archived on the first run)

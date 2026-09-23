@@ -4,7 +4,7 @@
     python tools/build_web.py --quick    # skip the dotnet publish (only re-copy wwwroot + content)
 
 The game content (art / fonts / xml, ~28 MB) is copied from the desktop client's built Content folder
-(AlloyClient/AlloyClient/bin/Debug/net10.0/Content - build the desktop client first if it is missing)."""
+(WaW-Client/WaWClient/bin/Debug/net10.0/Content - build the desktop client first if it is missing)."""
 import json, os, shutil, subprocess, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -14,7 +14,7 @@ WEB = os.path.join(WC, 'web')
 DIST = os.path.join(WC, 'dist')
 SITE = os.path.join(DIST, 'site')
 PUB = os.path.join(DIST, 'publish')
-CONTENT_SRC = os.path.join(LT, 'AlloyClient', 'AlloyClient', 'bin', 'Debug', 'net10.0', 'Content')
+CONTENT_SRC = os.path.join(LT, 'WaW-Client', 'WaWClient', 'bin', 'Debug', 'net10.0', 'Content')
 
 
 def run(cmd, cwd):

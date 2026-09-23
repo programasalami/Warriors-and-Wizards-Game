@@ -1,6 +1,6 @@
 # Art sheets (rebuilt 2026-09-20, all-pack since 2026-09-21)
 
-Every picture the game draws comes from a sheet listed in `AlloyClient/AlloyClient/Content/Game.atlas` (files in `Content/Sheets/`), and since
+Every picture the game draws comes from a sheet listed in `WaW-Client/WaWClient/Content/Game.atlas` (files in `Content/Sheets/`), and since
 2026-09-21 every sheet is cut from three bought packs by one artist, all on the Desktop: **GrasslandAssets**, **DarkDungeonAssets**,
 **CharactersAssets** (plus the two Vault chests from the bought **Treasure Chests** pack, `Desktop/Extra Assets/Treasure Chests`). Nothing from the original source is left (the retired sheets are archived in `source_old/`). Each sheet is ONE uniform grid of
 equal cells; the atlas builder skips empty cells but keeps their numbers. An XML picks a picture with `<File>sheetName</File><Index>n</Index>`,

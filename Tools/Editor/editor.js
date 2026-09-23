@@ -1,6 +1,6 @@
 'use strict';
 // W&W Editor: a map editor for the game's own .jm maps and a maker for new items / objects. Plain browser code, no libraries, no build step.
-// The .jm format (see alloy-server/Common/Resources/World/MapData.cs): { width, height, dict:[ {ground, objs:[{id}], regions:[{id}]} ... ], data }
+// The .jm format (see WaW-Server/Common/Resources/World/MapData.cs): { width, height, dict:[ {ground, objs:[{id}], regions:[{id}]} ... ], data }
 // where data is base64( zlib( int16 big-endian, row by row, each = an index into dict ) ).
 
 const P = window.PALETTE;
@@ -713,7 +713,7 @@ async function saveMap(forceDownload) {
   a.click();
   URL.revokeObjectURL(a.href);
   setDirty(false);
-  say('Downloaded ' + a.download + '. Put it in alloy-server/Common/Resources/World/Data/ (and list it in Common.csproj if it is new).', 'good');
+  say('Downloaded ' + a.download + '. Put it in WaW-Server/Common/Resources/World/Data/ (and list it in Common.csproj if it is new).', 'good');
 }
 
 function newMapDialog() {

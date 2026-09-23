@@ -23,7 +23,7 @@ redis-cli ping
 
 ## 3. Postgres: password + empty database (the server creates its own tables)
 
-(Pick your own strong password for `<your-db-password>`, and put the same one in `alloy-server/Common/Resources/Config/Data/postgresConfig.xml` - that file is git-ignored on purpose. Never write the real password in this document: it is committed to git.)
+(Pick your own strong password for `<your-db-password>`, and put the same one in `WaW-Server/Common/Resources/Config/Data/postgresConfig.xml` - that file is git-ignored on purpose. Never write the real password in this document: it is committed to git.)
 ```
 runuser -u postgres -- psql -c "ALTER USER postgres PASSWORD '<your-db-password>';"
 runuser -u postgres -- createdb alloy
@@ -44,7 +44,7 @@ Must list `Microsoft.NETCore.App 10.0.x`.
 On the VPS first: `mkdir -p /opt`
 Then on your PC:
 ```
-scp -r "<your repo folder>\alloy-server\bin\debug\net10.0" root@104.152.50.196:/opt/alloy-server
+scp -r "<your repo folder>\WaW-Server\bin\debug\net10.0" root@104.152.50.196:/opt/alloy-server
 ```
 (re-run the same command after every update; stop the services first - step 8.)
 
@@ -105,7 +105,7 @@ journalctl -u alloy-game -n 40 --no-pager
 ss -ltn | grep -E ':8080|:2050'
 ```
 - Account log should say `Listening on 104.152.50.196:8080`; game log should say `[RPC] Connected to AccountServer`.
-- The `Missing descriptor` lines (behaviours of monsters that were removed from the game) are normal; since 2026-09-21 they are Debug level and only show with the `ALLOY_DEBUG_LOG` environment variable set.
+- The `Missing descriptor` lines (behaviours of monsters that were removed from the game) are normal; since 2026-09-21 they are Debug level and only show with the `WAW_DEBUG_LOG` environment variable set.
 - Update: `systemctl stop alloy-game alloy-account`, upload again (step 5), `systemctl start alloy-account alloy-game`.
 - Live logs: `journalctl -u alloy-game -f` (Ctrl+C to leave).
 
@@ -114,7 +114,7 @@ ss -ltn | grep -E ':8080|:2050'
 Test-NetConnection 104.152.50.196 -Port 8080
 Test-NetConnection 104.152.50.196 -Port 2050
 ```
-Both `TcpTestSucceeded : True`, then run `<your repo folder>\AlloyClient\AlloyClient\bin\Debug\net10.0\AlloyClient.exe`.
+Both `TcpTestSucceeded : True`, then run `<your repo folder>\WaW-Client\WaWClient\bin\Debug\net10.0\WaWClient.exe`.
 
 ## 10. The website, the download and the forums
 

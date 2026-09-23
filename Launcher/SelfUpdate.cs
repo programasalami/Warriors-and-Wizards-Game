@@ -6,7 +6,7 @@ namespace WarriorsAndWizards.Launcher;
 // is put next to it, the running one is renamed to *.old, the new one takes the real name, and the new launcher is started.
 // The .old file is deleted by the next launcher start.
 public static class SelfUpdate {
-    public const string Version = "2.0.0";     // keep equal to <Version> in Launcher.csproj; deploy -Launcher publishes it in the manifest
+    public const string Version = "2.1.0";     // keep equal to <Version> in Launcher.csproj; deploy -Launcher publishes it in the manifest
 
     public static string ExecutablePath => Environment.ProcessPath ?? throw new InvalidOperationException("cannot find my own executable");
 

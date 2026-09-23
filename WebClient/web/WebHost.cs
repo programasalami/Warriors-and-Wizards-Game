@@ -2,8 +2,8 @@
 // system, then calls Start(); after that requestAnimationFrame calls Frame() and the DOM events call the On* methods, which raise the
 // same event objects OpenTK would have raised on desktop.
 using System.Runtime.InteropServices.JavaScript;
-using AlloyClient;
-using Alloy.Engine;
+using WaWClient;
+using WaW.Engine;
 using OpenTK.Mathematics;
 using OpenTK.Platform;
 
@@ -40,7 +40,7 @@ public static partial class WebHost {
     private static readonly string[] PersistedFiles = ["account.xml", "settings.xml"];
 
     private static string LocalDir() {
-        var name = (string)typeof(Settings).GetField("LocalFolderName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetRawConstantValue() ?? "AlloyClient";
+        var name = (string)typeof(Settings).GetField("LocalFolderName", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetRawConstantValue() ?? "WaWClient";
         return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), name);
     }
 

@@ -1,4 +1,4 @@
-"""Generates the forest VAULT map (alloy-server/Common/Resources/World/Data/Vault.jm): your personal storage glade.
+"""Generates the forest VAULT map (WaW-Server/Common/Resources/World/Data/Vault.jm): your personal storage glade.
 
     a round clearing of grass ringed by a wall of trees, a dirt plaza in the middle, a dirt path running south to the spawn, a small pond with reeds in the
     north-east, flowers / mushrooms / rocks scattered about. 16 chest spots are marked with the "Vault" region: the server puts an OPEN Vault Chest on as many
@@ -20,7 +20,7 @@ import zlib
 from collections import deque
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'
-OUT = ROOT + 'alloy-server/Common/Resources/World/Data/Vault.jm'
+OUT = ROOT + 'WaW-Server/Common/Resources/World/Data/Vault.jm'
 
 W, H = 48, 40
 CX, CY = 24, 20

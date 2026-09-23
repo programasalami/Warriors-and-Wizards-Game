@@ -98,8 +98,8 @@ New-Item -ItemType Directory -Force -Path $dist | Out-Null
 $remote = "$VpsUser@$VpsHost"
 
 # ---- game version: one number, kept in two files (client + server) --------------------------------------------------------------------------
-$settingsCs = Join-Path $root 'AlloyClient\AlloyClient\Core\Settings.cs'
-$serverCfg = Join-Path $root 'alloy-server\Common\Resources\Config\Data\gameServerConfig.xml'
+$settingsCs = Join-Path $root 'WaW-Client\WaWClient\Core\Settings.cs'
+$serverCfg = Join-Path $root 'WaW-Server\Common\Resources\Config\Data\gameServerConfig.xml'
 function Get-ClientVersion { [regex]::Match([IO.File]::ReadAllText($settingsCs), 'BuildVersion\s*=\s*"([^"]+)"').Groups[1].Value }
 function Get-ServerVersion { [regex]::Match([IO.File]::ReadAllText($serverCfg), '<Version>([^<]+)</Version>').Groups[1].Value }
 function Set-FileText($path, $pattern, $replacement) {
@@ -206,14 +206,14 @@ function Assert-GoodBackup([string]$path) {
 
 if ($Server) {
     Step 'Building the servers'
-    Push-Location (Join-Path $root 'alloy-server')
+    Push-Location (Join-Path $root 'WaW-Server')
     try {
         dotnet build WarriorsAndWizards.Server.sln --nologo -v:q
         Check 'Server build'
     } finally { Pop-Location }
 
     Step 'Packing the servers'
-    $bin = Join-Path $root 'alloy-server\bin\debug\net10.0'
+    $bin = Join-Path $root 'WaW-Server\bin\debug\net10.0'
     $stage = Join-Path $dist 'server-stage'
     if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
     robocopy $bin $stage /E /NFL /NDL /NJH /NJS /NP | Out-Null
@@ -232,7 +232,7 @@ if ($Server) {
     $machineOwned = 'postgresConfig.xml', 'redisConfig.xml', 'rpcClientConfig.xml', 'rpcServerConfig.xml', 'rpc-server.cer', 'rpc-server.pfx'
     foreach ($name in $machineOwned) { Remove-Item (Join-Path $cfgDir $name) -Force -ErrorAction SilentlyContinue }
     Write-Host "Left out of the package (the VPS keeps its own): $($machineOwned -join ', ')" -ForegroundColor DarkGray
-    $pack = Join-Path $dist 'alloy-server.tgz'
+    $pack = Join-Path $dist 'WaW-Server.tgz'
     if (Test-Path $pack) { Remove-Item $pack -Force }
     tar -czf $pack -C $stage .
     Check 'Packing'
@@ -241,11 +241,11 @@ if ($Server) {
 
     if (-not $NoUpload) {
         Step "Uploading to $remote"
-        scp $pack "${remote}:/tmp/alloy-server.tgz"
+        scp $pack "${remote}:/tmp/WaW-Server.tgz"
         Check 'Upload'
 
         Step 'Restarting the servers on the VPS'
-        $cmd = 'systemctl stop alloy-game alloy-account && mkdir -p /opt/alloy-server && tar -xzf /tmp/alloy-server.tgz -C /opt/alloy-server && rm -f /tmp/alloy-server.tgz && systemctl start alloy-account alloy-game && sleep 12 && systemctl is-active alloy-account alloy-game && journalctl -u alloy-account -n 3 --no-pager && journalctl -u alloy-game -n 3 --no-pager'
+        $cmd = 'systemctl stop alloy-game alloy-account && mkdir -p /opt/alloy-server && tar -xzf /tmp/WaW-Server.tgz -C /opt/alloy-server && rm -f /tmp/WaW-Server.tgz && systemctl start alloy-account alloy-game && sleep 12 && systemctl is-active alloy-account alloy-game && journalctl -u alloy-account -n 3 --no-pager && journalctl -u alloy-game -n 3 --no-pager'
         ssh $remote $cmd
         Check 'Remote restart'
         Write-Host "`nServers updated." -ForegroundColor Green
@@ -288,24 +288,24 @@ function Get-RemoteArchiveInfo([string]$file) {
 
 if ($Client) {
     Step 'Building the public client (self-contained, Windows x64)'
-    $clientDir = Join-Path $root 'AlloyClient'
+    $clientDir = Join-Path $root 'WaW-Client'
     $out = Join-Path $dist 'client'
     if (Test-Path $out) { Remove-Item $out -Recurse -Force }
     Push-Location $clientDir
     try {
         # ONE file since 2026-09-22: WarriorsAndWizards.exe carries the runtime and the native libraries (the csproj names it for DeployTarget=vps)
-        dotnet publish 'AlloyClient\AlloyClient.csproj' -c Release -r win-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" "-p:DeployTarget=vps" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $out --nologo -v:q
+        dotnet publish 'WaWClient\WaWClient.csproj' -c Release -r win-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" "-p:DeployTarget=vps" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $out --nologo -v:q
         Check 'Client publish'
     } finally { Pop-Location }
 
     # checked on the game's own assembly as it went into the single file (the bundle also holds the framework, with its own 127.0.0.1 strings)
-    Assert-BinaryHasAddress (Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\win-x64\WarriorsAndWizards.dll') $VpsHost
+    Assert-BinaryHasAddress (Join-Path $clientDir 'WaWClient\bin\Release\net10.0\win-x64\WarriorsAndWizards.dll') $VpsHost
     if (-not (Test-Path (Join-Path $out 'WarriorsAndWizards.exe'))) { throw 'The publish did not produce WarriorsAndWizards.exe' }
     Write-Host "Client build points at $VpsHost." -ForegroundColor DarkGray
 
     # The game's art / sound / fonts are built by the project's post-build step next to the built exe, and 'publish' does not
     # carry that folder along - copy it in or the client starts with no content.
-    $built = Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\win-x64\Content'
+    $built = Join-Path $clientDir 'WaWClient\bin\Release\net10.0\win-x64\Content'
     if (-not (Test-Path $built)) { throw "Built content folder not found: $built" }
     Copy-Item $built (Join-Path $out 'Content') -Recurse -Force
 
@@ -313,7 +313,7 @@ if ($Client) {
     # so the copy from the build output goes where the client looks.
     $native = Join-Path $out 'runtimes\win-x64\native'
     New-Item -ItemType Directory -Force -Path $native | Out-Null
-    Copy-Item (Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\win-x64\soft_oal.dll') $native -Force
+    Copy-Item (Join-Path $clientDir 'WaWClient\bin\Release\net10.0\win-x64\soft_oal.dll') $native -Force
 
     Step 'Zipping the client'
     $zip = Join-Path $dist 'WarriorsAndWizards-Client.zip'
@@ -337,28 +337,28 @@ if ($Client) {
 
 if ($Linux) {
     Step 'Building the Linux client (x64, self-contained)'
-    $clientDir = Join-Path $root 'AlloyClient'
+    $clientDir = Join-Path $root 'WaW-Client'
     $out = Join-Path $dist 'client-linux'
     if (Test-Path $out) { Remove-Item $out -Recurse -Force }
     Push-Location $clientDir
     try {
-        dotnet publish 'AlloyClient\AlloyClient.csproj' -c Release -r linux-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" "-p:DeployTarget=vps" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $out --nologo -v:q
+        dotnet publish 'WaWClient\WaWClient.csproj' -c Release -r linux-x64 --self-contained true "-p:SolutionDir=$($clientDir -replace '\\','/')/" "-p:DeployTarget=vps" -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -p:DebugType=none -o $out --nologo -v:q
         Check 'Linux client publish'
     } finally { Pop-Location }
 
-    Assert-BinaryHasAddress (Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\linux-x64\WarriorsAndWizards.dll') $VpsHost
+    Assert-BinaryHasAddress (Join-Path $clientDir 'WaWClient\bin\Release\net10.0\linux-x64\WarriorsAndWizards.dll') $VpsHost
     if (-not (Test-Path (Join-Path $out 'WarriorsAndWizards'))) { throw 'The publish did not produce WarriorsAndWizards' }
     Write-Host "Linux client build points at $VpsHost." -ForegroundColor DarkGray
 
     # Content is built next to the RID-specific build output by the post-build step; publish does not carry it along.
-    $built = Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\linux-x64\Content'
+    $built = Join-Path $clientDir 'WaWClient\bin\Release\net10.0\linux-x64\Content'
     if (-not (Test-Path $built)) { throw "Built content folder not found: $built" }
     Copy-Item $built (Join-Path $out 'Content') -Recurse -Force
 
-    # The audio engine looks for runtimes/linux-x64/native/libopenal.so (see Alloy.Audio InternalUtils.GetAudioBinaryPath).
+    # The audio engine looks for runtimes/linux-x64/native/libopenal.so (see WaW.Audio InternalUtils.GetAudioBinaryPath).
     $native = Join-Path $out 'runtimes\linux-x64\native'
     New-Item -ItemType Directory -Force -Path $native | Out-Null
-    $so = Join-Path $clientDir 'AlloyClient\bin\Release\net10.0\linux-x64\libopenal.so'
+    $so = Join-Path $clientDir 'WaWClient\bin\Release\net10.0\linux-x64\libopenal.so'
     if (-not (Test-Path $so)) { throw "libopenal.so was not produced by the build - check the Silk.NET.OpenAL.Soft.Native package" }
     Copy-Item $so $native -Force
 

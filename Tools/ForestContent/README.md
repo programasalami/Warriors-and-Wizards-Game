@@ -2,7 +2,7 @@
 
 # Forest content generators
 
-Run from the repo root, in this order, then rebuild `AlloyClient/WarriorsAndWizards.Client.sln` and `alloy-server/WarriorsAndWizards.Server.sln`:
+Run from the repo root, in this order, then rebuild `WaW-Client/WarriorsAndWizards.Client.sln` and `WaW-Server/WarriorsAndWizards.Server.sln`:
 
 1. `python Tools/ForestContent/build_forest_sheets.py` - builds `ForestDecor.png`, `ForestGround.png`, `ForestGroundEdge.png`
    from `Desktop/TopDownFantasy-Forest` (needs Pillow).
@@ -11,4 +11,4 @@ Run from the repo root, in this order, then rebuild `AlloyClient/WarriorsAndWiza
 3. `python Tools/ForestContent/gen_nexus.py [out.jm]` - regenerates the Nexus layout. It reads the map at `HEAD` for the
    island silhouette, regions and functional fixtures (all of which the generated map preserves, so re-running after
    committing a generated Nexus still works). Layout knobs are the constants near the top (SPAWN, MARKET, GROVES, ...).
-   With no argument it overwrites `alloy-server/Common/Resources/World/Data/Nexus.jm`.
+   With no argument it overwrites `WaW-Server/Common/Resources/World/Data/Nexus.jm`.

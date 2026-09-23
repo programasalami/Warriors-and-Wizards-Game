@@ -7,7 +7,7 @@ import os, re, sys
 HERE = os.path.dirname(os.path.abspath(__file__))
 LT = os.path.normpath(os.path.join(HERE, '..', '..'))
 OUT = os.path.join(LT, 'WebClient', 'web', 'shaders')
-SRC_DIRS = [os.path.join(LT, 'AlloyClient', 'Alloy.UiLib', 'AdditionalFiles'), os.path.join(LT, 'AlloyClient', 'AlloyClient', 'AdditionalFiles')]
+SRC_DIRS = [os.path.join(LT, 'WaW-Client', 'WaW.UiLib', 'AdditionalFiles'), os.path.join(LT, 'WaW-Client', 'WaWClient', 'AdditionalFiles')]
 TEX_W = 2048   # must match SSBO_W in gl.js
 
 HEADER = ('#version 300 es\n'

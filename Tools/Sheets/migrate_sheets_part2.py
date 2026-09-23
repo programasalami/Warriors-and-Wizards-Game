@@ -12,10 +12,10 @@ from PIL import Image
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, '..', '..'))
-CONTENT = os.path.join(REPO, 'AlloyClient', 'AlloyClient', 'Content')
+CONTENT = os.path.join(REPO, 'WaW-Client', 'WaWClient', 'Content')
 SHEETS = os.path.join(CONTENT, 'Sheets')
 OLD = os.path.join(HERE, 'source_old')
-CB = os.path.join(REPO, 'AlloyClient', 'AlloyClient', 'Screens', 'Components', 'CaveBattle.cs')
+CB = os.path.join(REPO, 'WaW-Client', 'WaWClient', 'Screens', 'Components', 'CaveBattle.cs')
 MAPF = os.path.join(HERE, 'migration_map_2026-09-20.json')
 MAP = json.load(open(MAPF))
 

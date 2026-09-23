@@ -18,7 +18,7 @@ import zlib
 HERE = os.path.dirname(os.path.abspath(__file__))
 EDITOR = os.path.normpath(os.path.join(HERE, '..'))
 REPO = os.path.normpath(os.path.join(EDITOR, '..', '..'))
-MAPS = os.path.join(REPO, 'alloy-server', 'Common', 'Resources', 'World', 'Data')
+MAPS = os.path.join(REPO, 'WaW-Server', 'Common', 'Resources', 'World', 'Data')
 OUT = os.path.join(HERE, 'out')
 
 BROWSERS = [

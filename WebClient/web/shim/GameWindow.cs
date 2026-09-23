@@ -1,10 +1,10 @@
-// Browser version of Alloy.Engine.GameWindow: same protected API the client's Main derives from, but instead of owning a blocking
+// Browser version of WaW.Engine.GameWindow: same protected API the client's Main derives from, but instead of owning a blocking
 // loop, the page's requestAnimationFrame calls Tick(). Context creation happens in JavaScript (wwwroot/gl.js).
 using System.Diagnostics;
 using Microsoft.Extensions.Logging;
 using OpenTK.Platform;
 
-namespace Alloy.Engine;
+namespace WaW.Engine;
 
 public abstract class GameWindow {
     private static ILogger _logger;

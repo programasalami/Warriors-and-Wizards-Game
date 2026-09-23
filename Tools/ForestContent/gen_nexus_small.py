@@ -1,4 +1,4 @@
-"""Generates the COMPACT forest Nexus test map (alloy-server/Common/Resources/World/Data/Nexus.jm) for the live-testing server.
+"""Generates the COMPACT forest Nexus test map (WaW-Server/Common/Resources/World/Data/Nexus.jm) for the live-testing server.
 
 Same aesthetic as the big Nexus (gen_nexus.py: Woodland grass/dirt/water/bridge, forest decor, tree wall round the island) but
 about 1/6 of the area, laid out as a test bench around a central spawn plaza:
@@ -22,7 +22,7 @@ import zlib
 from collections import Counter, deque
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '..')).replace(os.sep, '/') + '/'   # the repo root, wherever the folder lives
-OUT = ROOT + 'alloy-server/Common/Resources/World/Data/Nexus.jm'
+OUT = ROOT + 'WaW-Server/Common/Resources/World/Data/Nexus.jm'
 
 W, H = 72, 56
 OX, OY = 4, 3          # design-space -> array offset (keeps a void margin round everything)

@@ -1,9 +1,9 @@
-// Browser stand-in for the desktop Alloy.Audio engine (OpenAL): same public surface the client uses. Music/sfx play through the
+// Browser stand-in for the desktop WaW.Audio engine (OpenAL): same public surface the client uses. Music/sfx play through the
 // page's Web Audio / <audio> (wwwroot/audio.js); files come from the in-memory Content folder the page downloaded.
 using System.Runtime.InteropServices.JavaScript;
 using Microsoft.Extensions.Logging;
 
-namespace Alloy.Audio;
+namespace WaW.Audio;
 
 internal static partial class WebAudio {
     [JSImport("playMusic", "audio")] internal static partial void PlayMusic(string path, float fadeSeconds);

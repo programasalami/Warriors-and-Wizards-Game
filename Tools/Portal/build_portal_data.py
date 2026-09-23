@@ -17,7 +17,7 @@ import xml.etree.ElementTree as ET
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-CONTENT = os.path.join(ROOT, 'AlloyClient', 'AlloyClient', 'Content')
+CONTENT = os.path.join(ROOT, 'WaW-Client', 'WaWClient', 'Content')
 SITE = os.path.join(ROOT, 'Portal', 'site')
 SCALE = 3
 
@@ -170,7 +170,7 @@ def main():
         json.dump(items, f, indent=1)
     with open(os.path.join(SITE, 'data', 'classes.json'), 'w', encoding='utf-8') as f:
         json.dump(classes, f, indent=1)
-    version = re.search(r'BuildVersion\s*=\s*"([^"]+)"', open(os.path.join(ROOT, 'AlloyClient', 'AlloyClient', 'Core', 'Settings.cs'), encoding='utf-8-sig').read())
+    version = re.search(r'BuildVersion\s*=\s*"([^"]+)"', open(os.path.join(ROOT, 'WaW-Client', 'WaWClient', 'Core', 'Settings.cs'), encoding='utf-8-sig').read())
     with open(os.path.join(SITE, 'data', 'build.json'), 'w', encoding='utf-8') as f:
         json.dump({'gameVersion': version.group(1) if version else '', 'items': len(items), 'classes': len(classes)}, f)
     print(f'portal data: {len(items)} items, {len(classes)} classes, icons in {os.path.join(SITE, "icons")}')

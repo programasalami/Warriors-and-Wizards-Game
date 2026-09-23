@@ -1,4 +1,4 @@
-"""Generates the organized forest Nexus (alloy-server/Common/Resources/World/Data/Nexus.jm).
+"""Generates the organized forest Nexus (WaW-Server/Common/Resources/World/Data/Nexus.jm).
 
 Layout ("compass village"): dirt market+spawn plaza in the middle, four dirt path arms
 (N -> realm portals plaza, W -> training yard, E -> loop over two bridges to the guild plaza,
@@ -16,8 +16,8 @@ import zlib
 from collections import Counter
 
 ROOT = 'C:/Users/cbart/Desktop/Repos/Warriors-and-Wizards-Game/'
-OUT = ROOT + 'alloy-server/Common/Resources/World/Data/Nexus.jm'
-REL = 'alloy-server/Common/Resources/World/Data/Nexus.jm'
+OUT = ROOT + 'WaW-Server/Common/Resources/World/Data/Nexus.jm'
+REL = 'WaW-Server/Common/Resources/World/Data/Nexus.jm'
 
 # ---------------------------------------------------------------- load original (mask + fixtures)
 raw = subprocess.check_output(['git', '-C', ROOT, 'show', 'HEAD:' + REL]).decode('utf-8')

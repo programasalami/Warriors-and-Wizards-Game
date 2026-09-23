@@ -881,3 +881,50 @@ scripted, repeatable rig. Results and what was changed:
   is therefore still unexplained - it needs his own readout / `[FPS]` lines. Also fixed on the way: the account server capped
   registrations at 10 per address INCLUDING this PC (`DbClient.RegisterAsync`); loopback is exempt now (same rule as ConnectionLedger).
   Biggest CPU section now: the UI stage update (~1.1 ms, EnterFrame listeners) - the next candidate.
+
+## v0.3.7 release (2026-09-22, late night) - written up on 2026-09-23 (the PC shut off before the session log)
+- Bugs and Todo items 1-7: floating XP / level / fame / heal texts (`Notification.Handle` -> `NotificationLayer.AddStatusText`, stacked + capped);
+  Portal Last Seen (`logins.last_login_at` on every VerifyAccount) and Created (`Account.CreatedAt`); Portal search (1-2 letters = prefix,
+  3+ = contains, exact first); the in-game Portal's X button; "Update required" as soon as a server update kicks you (the Failure is reported
+  in `Read`, Disconnect re-fetches `/app/version`).
+- Launcher 2.0.0 (`WaWLauncher`, Avalonia, UI in code): first-run folder + shortcuts, progress / speed, PLAY, Open game folder, Release notes,
+  Repair; the published game became one `WarriorsAndWizards.exe` next to it (`Content` + `runtimes`); the self-update archives keep the old
+  file name for launcher 1.0.0. Website: download-first home page (`js/os.js` highlights the visitor's system), short Download page, Cinzel +
+  Inter fonts. Item 7 (a third key not registering) is keyboard ghosting, not the game.
+- Deploy order used: `-Launcher` first, then `-Server`, `-Web -SkipWebBuild`, `-Client -Linux`, website push. MISTAKE: `-SkipWebBuild` re-uploaded
+  the 21:14 AOT build (`dist/site-aot`, still 0.3.6) because the newer 22:10 build was the interpreted one (`dist/site`); browser players
+  got "Update required" until a full `deploy -Web` on 2026-09-23. Before `-SkipWebBuild`, check `site-aot/index.html`'s date against the bump.
+
+## 2026-09-23: Alloy -> WaW rename, website FAQ, Portal tabs, Skill slot, options, camera, HP bars, dialogs, launcher 2.1.0 (v0.3.8)
+- **Website** (Website repo): Home tab first, "Web version" -> Web Client, removed the lines the user listed, "Having trouble with the launcher?"
+  jumps to a new 8-question FAQ on the Download page (folded `.reqs` boxes, `.faq` styles); the Mac/phone hint line only shows for those visitors.
+- **Portal** (`Portal/site/js/portal.js` + css): a boxed "<- Home" button by the logo, tabs Rankings / Guilds / Wiki / Graveyard / Releases /
+  Forums (Forums in the orange Play colour, no Play tab); Wiki lights up on Items + Classes, which get an Items | Classes switch; the small nav
+  search is left out on the Portal home page (big search there). Careful: `search()` with a null form would grab the big box - guarded.
+- **Rename** (`rename_waw.py` in the session scratchpad, dry-run first, run by the user with `!` because the auto-mode classifier blocks big
+  move/delete scripts): `AlloyClient` -> `WaW-Client` (project `WaWClient`), `Alloy.*` -> `WaW.*`, `alloy-server` -> `WaW-Server`, 481 files,
+  obj folders + generated web files cleared. Kept on purpose: VPS names, the launcher's `OldGameName`, upstream credits, this history.
+  Fixed afterwards: `AlloyClient\AlloyClient.csproj` (folder + FILE) had been read as two folders in `deploy.ps1`, the test csproj and the .sln;
+  the upstream GitHub links / credits had been renamed too. Settings folder: `Settings.MoveOldLocalFolder` moves `%LocalAppData%\AlloyClient`
+  to `WaWClient` once (it already ran on this PC during the client tests). Checked: both solutions, all tests, the web compile,
+  `deploy -Client/-Server -NoUpload`; launched locally for the user to try.
+- **Todo 1 (dialogs)**: `Dialog` rebuilt in the Options look (WaW panel, gold title, cream wrapped text, ParchmentButtons), fixed 500 x 270
+  (it used to size itself from its text).
+- **Todo 2 (launcher 2.1.0)**: all-black window + `EmberField` (46 drifting glow dots, 30 fps, not hit-testable), title in Not Jam Signature 21
+  (`Assets/Fonts`, `AvaloniaResource`, `avares://WaWLauncher/Assets/Fonts#Not Jam Signature 21`), no "Game launcher", "Size: 150 MB".
+  Version bumped in BOTH `Launcher.csproj` and `SelfUpdate.Version` (new test guards it: a mismatch = endless self-update).
+  The first-run text "placed right next to this launcher" was misleading: from Downloads/Desktop the launcher proposes
+  `%LOCALAPPDATA%\Programs\Warriors & Wizards` and copies itself there on INSTALL, so the game IS next to the installed copy.
+- **Todo 3 (options)**: Controls -> General (Movement / Camera / Actions / Interface sections; potions, Escape To Nexus, Show Options, Switch
+  Tabs moved in), Hot Keys -> Inventory (slot keys only), Show HP/MP Bars + Allow Camera Rotation -> Extra.
+- **Todo 4 (camera)**: `Settings.CameraAngle` was both the option and the live angle, so the last played angle became the next start; new
+  `DefaultCameraAngle` (the option; "45" now 7pi/4, it was 7pi = 180 degrees), applied in `Map` when the local player spawns and by the reset key.
+- **Todo 5 (HP bars)**: `SetFill` moved the centre by the whole lost width; the quad is centred (corners +-0.5), so it is half now
+  (`TypeHpBar` + `TypeBar`, the MP bar had it too).
+- **Skill slot (old todo 9)**: `Shared/Common.Protocol/InventoryLayout.cs` (slot 20, SlotType 30); server players have 21 slots, slot 20
+  typed Skill; stats `Skill0 = 96` / `SkillData0 = 115` on both sides (the enums differ after 82 - these were free on both);
+  `EntityInventory.Save` grows 20-slot arrays; new characters get 21. Client: `Equipment` 21, `SkillBar` above the gear (popups stop above it),
+  `ItemTile` greyed "S", skills usable by every class, double-click in / out. Tests: `SkillSlotTests` (4). No Skill items exist yet.
+- Version 0.3.8 (`deploy -SetVersion`, local): the Skill stats would desync a 0.3.7 client. Tests: client 254, server 62 + 262 + 168,
+  launcher 24. Compile-checked while the user's game ran by building into a scratch `-p:OutDir`.
+- Not seen in a window: the new dialogs, the Skill row, the options tabs, the launcher's look (embers / font), the camera start, the HP bars.

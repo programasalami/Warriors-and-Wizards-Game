@@ -16,11 +16,11 @@ import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.normpath(os.path.join(HERE, '..', '..'))
-CONTENT = os.path.join(REPO, 'AlloyClient', 'AlloyClient', 'Content')
+CONTENT = os.path.join(REPO, 'WaW-Client', 'WaWClient', 'Content')
 XMLS = os.path.join(CONTENT, 'Xmls')
-MAPDATA = os.path.join(REPO, 'alloy-server', 'Common', 'Resources', 'World', 'MapData.cs')
+MAPDATA = os.path.join(REPO, 'WaW-Server', 'Common', 'Resources', 'World', 'MapData.cs')
 OUT = os.path.join(HERE, 'palette.js')
-SHEET_URL = '../../AlloyClient/AlloyClient/Content/Sheets/'
+SHEET_URL = '../../WaW-Client/WaWClient/Content/Sheets/'
 
 
 def read(path):

@@ -7,7 +7,7 @@
                                            (BookFrameData.g.cs carries its frame by hand)
 
 Run from the repo root:  python Tools/BookUi/build_fast_travel.py
-Reads the real map files (alloy-server/Common/Resources/World/Data/*.jm), Ground.xml and the ground sheets; never edits them.
+Reads the real map files (WaW-Server/Common/Resources/World/Data/*.jm), Ground.xml and the ground sheets; never edits them.
 """
 import base64
 import json
@@ -20,8 +20,8 @@ import zlib
 from PIL import Image
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
-CONTENT = os.path.join(ROOT, 'AlloyClient', 'AlloyClient', 'Content')
-MAPS = os.path.join(ROOT, 'alloy-server', 'Common', 'Resources', 'World', 'Data')
+CONTENT = os.path.join(ROOT, 'WaW-Client', 'WaWClient', 'Content')
+MAPS = os.path.join(ROOT, 'WaW-Server', 'Common', 'Resources', 'World', 'Data')
 OUT = os.path.join(CONTENT, 'Ui', 'BookGems')
 PreviewSize = 96
 

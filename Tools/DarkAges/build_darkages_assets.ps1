@@ -1,5 +1,5 @@
 # Cuts the character creation popup's inner pieces out of the user's "Dark Ages UI v1.0" tilesheet (Hypnobius) into
-# AlloyClient/AlloyClient/Content/Ui/DarkAges. (The popup's wooden main frame comes from build_wood_frame_assets.ps1.)
+# WaW-Client/WaWClient/Content/Ui/DarkAges. (The popup's wooden main frame comes from build_wood_frame_assets.ps1.)
 #
 # The pack's boxes are near-black / charcoal / grey, which fight the wood frame, so the two box pieces (Panel, Slot) are
 # recoloured onto a walnut-to-tan ramp: every pixel keeps its brightness (so the bevels, borders and inner rims stay exactly
@@ -13,7 +13,7 @@
 
 param(
     [string]$Sheet = "$env:USERPROFILE\Desktop\Assets and GUI\DarkAgesUi_v1.0\32x32-Tilesheet.png",
-    [string]$Out = "AlloyClient/AlloyClient/Content/Ui/DarkAges"
+    [string]$Out = "WaW-Client/WaWClient/Content/Ui/DarkAges"
 )
 
 Add-Type -AssemblyName System.Drawing

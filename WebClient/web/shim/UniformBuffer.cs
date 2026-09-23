@@ -2,7 +2,7 @@
 // texelFetch, because a big dynamically-indexed uniform block does not compile on some D3D11 drivers behind WebGL.
 using System.Runtime.InteropServices;
 
-namespace Alloy.Engine.Graphics.Buffers;
+namespace WaW.Engine.Graphics.Buffers;
 
 public sealed unsafe class UniformBuffer {
     public readonly int LengthBytes;

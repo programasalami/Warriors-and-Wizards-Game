@@ -59,29 +59,37 @@
 
   // ---- shared chrome ------------------------------------------------------------------------------------------------------
   function chrome(page) {
+    // Left: a way back to the main website, then the Portal's own logo (its home). Right: the Portal's tabs, one word each.
+    // No Play tab: people here are mostly looking someone up. The home page has its own big search box, so the small one is left out there.
+    const wiki = page === 'items' || page === 'classes';
     const nav = `
 <nav class="site-nav" aria-label="Site">
-  <a class="nav-brand" href="${url.home()}"><img src="${PRETTY ? '/' : ''}assets/favicon-32.png" alt="" width="20" height="20"> The Portal <small>W&amp;W</small></a>
+  <div class="nav-left">
+    <a class="nav-back" href="https://warriorsandwizards.com" title="Back to warriorsandwizards.com">&larr; Home</a>
+    <a class="nav-brand" href="${url.home()}"><img src="${PRETTY ? '/' : ''}assets/favicon-32.png" alt="" width="20" height="20"> The Portal <small>W&amp;W</small></a>
+  </div>
   <div class="nav-links">
-    <a href="${url.top('fame')}" class="nav-link ${page === 'top' ? 'is-current' : ''}">Top Players</a>
+    <a href="${url.top('fame')}" class="nav-link ${page === 'top' ? 'is-current' : ''}">Rankings</a>
     <a href="${url.top('guilds')}" class="nav-link ${page === 'guilds' ? 'is-current' : ''}">Guilds</a>
-    <a href="${url.items()}" class="nav-link ${page === 'items' ? 'is-current' : ''}">Items</a>
-    <a href="${url.classes()}" class="nav-link ${page === 'classes' ? 'is-current' : ''}">Classes</a>
+    <a href="${url.items()}" class="nav-link ${wiki ? 'is-current' : ''}">Wiki</a>
     <a href="${url.graveyard()}" class="nav-link ${page === 'graveyard' ? 'is-current' : ''}">Graveyard</a>
     <a href="${url.releases()}" class="nav-link ${page === 'releases' ? 'is-current' : ''}">Releases</a>
-    <a href="https://warriorsandwizards.com" class="nav-link">Home</a>
-    <a href="https://play.warriorsandwizards.com" class="nav-link nav-play">Play</a>
-    <a href="https://forums.warriorsandwizards.com" class="nav-link">Forums</a>
+    <a href="https://forums.warriorsandwizards.com" class="nav-link nav-play">Forums</a>
   </div>
-  <form class="nav-search" id="nav-search" autocomplete="off">
+  ${page === 'home' ? '' : `<form class="nav-search" id="nav-search" autocomplete="off">
     <input type="search" name="q" placeholder="Player name" aria-label="Find a player" maxlength="16">
     <div class="suggest"></div>
-  </form>
+  </form>`}
 </nav>`;
     document.body.insertAdjacentHTML('afterbegin', '<div class="embers"></div>' + nav);
     document.body.insertAdjacentHTML('beforeend', `<div class="foot">The Portal is the public record of <a href="https://warriorsandwizards.com">Warriors &amp; Wizards</a>.
       The game is in open beta. Profiles update within a minute of the game saving. <a href="https://forums.warriorsandwizards.com">Forums</a> &middot; <a href="https://play.warriorsandwizards.com">Play in the browser</a></div>`);
-    search($('#nav-search'));
+    if ($('#nav-search')) search($('#nav-search'));
+    if (wiki) {   // the Wiki tab covers both wiki pages; this switches between them
+      $('main').insertAdjacentHTML('afterbegin', `<div class="wiki-tabs">
+        <a href="${url.items()}" class="nav-link ${page === 'items' ? 'is-current' : ''}">Items</a>
+        <a href="${url.classes()}" class="nav-link ${page === 'classes' ? 'is-current' : ''}">Classes</a></div>`);
+    }
   }
 
   // A search box with suggestions from /public/search. Enter goes to the exact name typed.

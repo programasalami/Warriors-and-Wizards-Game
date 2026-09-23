@@ -31,7 +31,7 @@ function Step($text) { Write-Host "`n=== $text ===" -ForegroundColor Cyan }
 function Full($p) { [IO.Path]::GetFullPath($p).TrimEnd('\') }
 
 # ---- safety checks -----------------------------------------------------------------------------------------------------------------------------
-if (-not (Test-Path (Join-Path $source 'alloy-server')) -or -not (Test-Path (Join-Path $source 'AlloyClient'))) { throw "This does not look like the game folder: $source" }
+if (-not (Test-Path (Join-Path $source 'WaW-Server')) -or -not (Test-Path (Join-Path $source 'WaW-Client'))) { throw "This does not look like the game folder: $source" }
 if (-not (Test-Path $Target)) { throw "The target folder does not exist: $Target" }
 $src = Full $source; $dst = Full $Target
 if ($src -ieq $dst) { throw 'Source and target are the same folder.' }
@@ -44,8 +44,8 @@ $excludeFiles = @('*.db', '*.db-shm', '*.db-wal', '*.log', 'Thumbs.db', 'patched
 $common = @($src, $dst, '/MIR', '/XD') + $excludeDirs + @('/XF') + $excludeFiles + @('/R:1', '/W:1', '/NP', '/NJH', '/NJS', '/FP')
 
 function Get-Version {
-    $cs = [IO.File]::ReadAllText((Join-Path $src 'AlloyClient\AlloyClient\Core\Settings.cs'))
-    $xml = [IO.File]::ReadAllText((Join-Path $src 'alloy-server\Common\Resources\Config\Data\gameServerConfig.xml'))
+    $cs = [IO.File]::ReadAllText((Join-Path $src 'WaW-Client\WaWClient\Core\Settings.cs'))
+    $xml = [IO.File]::ReadAllText((Join-Path $src 'WaW-Server\Common\Resources\Config\Data\gameServerConfig.xml'))
     $c = [regex]::Match($cs, 'BuildVersion\s*=\s*"([^"]+)"').Groups[1].Value
     $s = [regex]::Match($xml, '<Version>([^<]+)</Version>').Groups[1].Value
     if ($c -ne $s) { throw "Client version '$c' and server version '$s' differ - fix that first (deploy -SetVersion $c)." }
@@ -84,7 +84,7 @@ $version = Get-Version
 Write-Host "`nPromoting game version $version" -ForegroundColor DarkGray
 if (-not $SkipChecks) {
     Step 'Checking the build: both solutions must build and every test must pass'
-    foreach ($job in @(@('AlloyClient', 'WarriorsAndWizards.Client.sln'), @('alloy-server', 'WarriorsAndWizards.Server.sln'))) {
+    foreach ($job in @(@('WaW-Client', 'WarriorsAndWizards.Client.sln'), @('WaW-Server', 'WarriorsAndWizards.Server.sln'))) {
         Push-Location (Join-Path $src $job[0])
         try {
             dotnet build $job[1] --nologo -v:q
